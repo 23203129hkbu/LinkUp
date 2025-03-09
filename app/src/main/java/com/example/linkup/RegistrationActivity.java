@@ -37,9 +37,6 @@ public class RegistrationActivity extends AppCompatActivity {
     ProgressBar progressBar;
     // Limitation / Case handling
     String emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+";
-    /*It is used to display a dialog box with progress indication when the user performs a long operation
-       to provide user feedback and prevent them from mistakenly operating
-    */
     // Dialog
     ProgressDialog progressDialog;
     // Firebase features
@@ -122,12 +119,11 @@ public class RegistrationActivity extends AppCompatActivity {
                             if (task.isSuccessful()) {
                                 if (task.isSuccessful()) {
                                     updateUI("Main");
-                                    // Dismiss your Dialog
-                                    progressDialog.dismiss();
                                 } else {
                                     // Handle the error
                                     Toast.makeText(RegistrationActivity.this, "Registration failed", Toast.LENGTH_SHORT).show();
                                 }
+                                progressDialog.dismiss();
                             } else {
                                 Toast.makeText(RegistrationActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                             }
