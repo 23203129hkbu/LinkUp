@@ -39,7 +39,7 @@ public class LoginActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressbar);
         // [END gain]
         // [START layout component function]
-        // Move to Registration Screen - Text View (Not yet registered? Sign Up Now)
+        // // Switch the screen - Registration Activity
         btnSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

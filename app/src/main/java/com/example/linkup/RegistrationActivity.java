@@ -1,24 +1,161 @@
 package com.example.linkup;
 
+import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-public class RegistrationActivity extends AppCompatActivity {
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.storage.FirebaseStorage;
 
+public class RegistrationActivity extends AppCompatActivity {
+    // layout object
+    EditText email, pwd, conPwd;
+    CheckBox cbxPwd;
+    Button btnSignUp;
+    TextView btnLogin;
+    ProgressBar progressBar;
+    // Limitation / Case handling
+    String emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+";
+    /*It is used to display a dialog box with progress indication when the user performs a long operation
+       to provide user feedback and prevent them from mistakenly operating
+    */
+    // Dialog
+    ProgressDialog progressDialog;
+    // Firebase features
+    FirebaseAuth auth; // auth
+    // User default registration info
+    String userEmail = "";
+    String userPwd = "";
+    String userConPwd = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_registration);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+        // [START gain layout objects]
+        email = findViewById(R.id.email);
+        pwd = findViewById(R.id.pwd);
+        conPwd = findViewById(R.id.conPwd);
+        cbxPwd = findViewById(R.id.cbxPwd);
+        btnSignUp = findViewById(R.id.btnSignUp);
+        btnLogin = findViewById(R.id.btnLogin);
+        progressBar = findViewById(R.id.progressbar);
+        // [END gain]
+
+        // [START config_firebase]
+        auth = FirebaseAuth.getInstance();
+        // [END config_firebase]
+
+        // [START config_dialog]
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Creating account, please wait...");
+        progressDialog.setCancelable(false);
+        // [END config_dialog]
+
+        // [START layout component function]
+        // Check whether shown password -- checkBox
+        cbxPwd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    // show password && confirm password
+                    pwd.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                    conPwd.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                } else {
+                    // keep hiding the password && confirm password
+                    pwd.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                    conPwd.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                }
+            }
         });
+
+        // Sign Up with email, password
+        btnSignUp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                userEmail = email.getText().toString();
+                userPwd = pwd.getText().toString();
+                userConPwd = conPwd.getText().toString();
+
+                if (TextUtils.isEmpty(userEmail)) {
+                    Toast.makeText(RegistrationActivity.this, "Email is required", Toast.LENGTH_SHORT).show();
+                } else if (TextUtils.isEmpty(userPwd)) {
+                    Toast.makeText(RegistrationActivity.this, "Password is required", Toast.LENGTH_SHORT).show();
+                } else if (TextUtils.isEmpty(userConPwd)) {
+                    Toast.makeText(RegistrationActivity.this, "Confirm Password is required", Toast.LENGTH_SHORT).show();
+                } else if (!userEmail.matches(emailPattern)) {
+                    email.setError("Please enter a valid email address");
+                    Toast.makeText(RegistrationActivity.this, "Email address is invalid", Toast.LENGTH_SHORT).show();
+                } else if (userPwd.length() < 6) {
+                    pwd.setError("Passwords must be six or more characters");
+                    Toast.makeText(RegistrationActivity.this, "Passwords are less than six characters", Toast.LENGTH_SHORT).show();
+                } else if (!userPwd.equals(userConPwd)) {
+                    conPwd.setError("Password and Confirm Password must be match");
+                    Toast.makeText(RegistrationActivity.this, "Passwords don't match", Toast.LENGTH_SHORT).show();
+                } else {
+                    progressBar.setVisibility(View.VISIBLE); // Show progress bar
+                    progressDialog.show();
+                    // createUserWithEmailAndPassword -> create the record -> user -> for sign in
+                    auth.createUserWithEmailAndPassword(userEmail, userPwd).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            if (task.isSuccessful()) {
+                                if (task.isSuccessful()) {
+                                    updateUI("Main");
+                                    // Dismiss your Dialog
+                                    progressDialog.dismiss();
+                                } else {
+                                    // Handle the error
+                                    Toast.makeText(RegistrationActivity.this, "Registration failed", Toast.LENGTH_SHORT).show();
+                                }
+                            } else {
+                                Toast.makeText(RegistrationActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+                }
+            }
+        });
+        // Switch the screen - Login Activity
+        btnLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateUI("Login");
+            }
+        });
+        // [END layout component function]
     }
+    // [START Method]
+    // handling UI update
+    private void updateUI(String screen) {
+        Intent intent;
+        if (screen.equals("Main")) {
+            intent = new Intent(RegistrationActivity.this, MainActivity.class);
+        } else {
+            intent = new Intent(RegistrationActivity.this, LoginActivity.class);
+        }
+        startActivity(intent);
+        finish();
+    }
+    // [END Method]
 }
