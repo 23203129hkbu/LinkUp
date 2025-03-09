@@ -136,7 +136,7 @@
         app:srcCompat="@drawable/facebook" />
 
     <ProgressBar
-        android:id="@+id/progressbarLogin"
+        android:id="@+id/progressbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:indeterminate="true"
