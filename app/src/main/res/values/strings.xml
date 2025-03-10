@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">LinkUp</string>
     <string name="default_web_client_id">128213176269-q0q5m1nq4k8chisq5a558supnorlglma.apps.googleusercontent.com</string>
+    <string name="facebook_app_id">966940032608028</string>
+    <string name="fb_login_protocol_scheme">33ca73c4211b5c8318aed4321a94ddd6</string>
+    <string name="facebook_client_token">BoX7bW9fXJzsrbNbbPgPKYgeIGQ=</string>
 </resources>

@@ -108,7 +108,6 @@
         android:textSize="@dimen/_12sdp" />
 
     <TextView
-        android:id="@+id/textView3"
         android:layout_width="match_parent"
         android:layout_height="@dimen/_25sdp"
         android:layout_gravity="center"
@@ -119,21 +118,32 @@
         android:textSize="@dimen/_16sdp"
         android:textStyle="bold" />
 
-    <ImageView
+    <Button
         android:id="@+id/btnGoogleLogin"
         android:layout_width="@dimen/_260sdp"
         android:layout_height="@dimen/_50sdp"
         android:layout_gravity="center"
-        android:layout_marginBottom="@dimen/_5sdp"
-        app:srcCompat="@drawable/google" />
+        android:layout_marginBottom="5dp"
+        android:backgroundTint="@color/white"
+        android:text="Sign in with Google"
+        android:drawableLeft="@drawable/google_icon"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_15sdp"
+        android:textStyle="bold" />
 
-    <ImageView
+    <Button
         android:id="@+id/btnFacebookLogin"
         android:layout_width="@dimen/_260sdp"
         android:layout_height="@dimen/_50sdp"
         android:layout_gravity="center"
-        android:layout_marginBottom="@dimen/_5sdp"
-        app:srcCompat="@drawable/facebook" />
+        android:layout_marginBottom="5dp"
+        android:backgroundTint="@color/white"
+        android:text="Sign in with Facebook"
+        android:drawableLeft="@drawable/facebook_icon"
+        android:drawablePadding="@dimen/_5sdp"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_15sdp"
+        android:textStyle="bold" />
 
     <ProgressBar
         android:id="@+id/progressbar"

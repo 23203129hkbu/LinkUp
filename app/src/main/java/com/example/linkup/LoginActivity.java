@@ -19,6 +19,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.linkup.SocialLogin.FacebookSignInActivity;
 import com.example.linkup.SocialLogin.GoogleSignInActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -27,11 +28,10 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginActivity extends AppCompatActivity {
     // layout object
-    Button btnLogin;
+    Button btnLogin, btnGoogleLogin, btnFacebookLogin;
     EditText email, pwd;
     CheckBox cbxPwd;
     TextView btnSignUp;
-    ImageView btnGoogleLogin, btnFacebookLogin;
     ProgressBar progressBar;
     // Limitation / Case handling
     String emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+";
@@ -42,6 +42,7 @@ public class LoginActivity extends AppCompatActivity {
     // User default registration info
     String userEmail = "";
     String userPwd = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -127,6 +128,7 @@ public class LoginActivity extends AppCompatActivity {
                 updateUI("Registration");
             }
         });
+        // Google Sign In
         btnGoogleLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -134,10 +136,19 @@ public class LoginActivity extends AppCompatActivity {
                 updateUI("Google");
             }
         });
+        // Facebook Sign In
+        btnFacebookLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                progressBar.setVisibility(View.VISIBLE);
+                updateUI("Facebook");
+            }
+        });
 
 
         // [END layout component function]
     }
+
     // [START Method]
     // handling UI update
     private void updateUI(String screen) {
@@ -146,6 +157,8 @@ public class LoginActivity extends AppCompatActivity {
             intent = new Intent(LoginActivity.this, MainActivity.class);
         } else if (screen.equals("Google")) {
             intent = new Intent(LoginActivity.this, GoogleSignInActivity.class);
+        } else if (screen.equals("Facebook")) {
+            intent = new Intent(LoginActivity.this, FacebookSignInActivity.class);
         } else {
             intent = new Intent(LoginActivity.this, RegistrationActivity.class);
         }

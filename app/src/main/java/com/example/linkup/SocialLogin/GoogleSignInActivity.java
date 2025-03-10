@@ -118,7 +118,5 @@ public class GoogleSignInActivity extends Activity {
                 });
     }
     // [END auth_with_google]
-
     // [END Method]
-
 }
