@@ -16,18 +16,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
+import com.example.linkup.SocialLogin.GoogleSignInActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.FirebaseDatabase;
 
 public class LoginActivity extends AppCompatActivity {
     // layout object
@@ -90,6 +86,7 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                progressBar.setVisibility(View.VISIBLE);
                 // get the value from the input
                 userEmail = email.getText().toString();
                 userPwd = pwd.getText().toString();
@@ -106,7 +103,6 @@ public class LoginActivity extends AppCompatActivity {
                     pwd.setError("Passwords must be six or more characters");
                     Toast.makeText(LoginActivity.this, "Passwords are less than six characters", Toast.LENGTH_SHORT).show();
                 } else {
-                    progressBar.setVisibility(View.VISIBLE);
                     progressDialog.show();
                     // When a user signs in to your app, pass the user's email address and password
                     auth.signInWithEmailAndPassword(userEmail, userPwd).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -127,9 +123,19 @@ public class LoginActivity extends AppCompatActivity {
         btnSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                progressBar.setVisibility(View.VISIBLE);
                 updateUI("Registration");
             }
         });
+        btnGoogleLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                progressBar.setVisibility(View.VISIBLE);
+                updateUI("Google");
+            }
+        });
+
+
         // [END layout component function]
     }
     // [START Method]
@@ -138,6 +144,8 @@ public class LoginActivity extends AppCompatActivity {
         Intent intent;
         if (screen.equals("Main")) {
             intent = new Intent(LoginActivity.this, MainActivity.class);
+        } else if (screen.equals("Google")) {
+            intent = new Intent(LoginActivity.this, GoogleSignInActivity.class);
         } else {
             intent = new Intent(LoginActivity.this, RegistrationActivity.class);
         }

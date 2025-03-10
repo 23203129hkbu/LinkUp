@@ -41,7 +41,10 @@ dependencies {
     implementation(libs.firebase.auth) // real-time database
     implementation(libs.firebase.database) // authentication
     implementation(libs.firebase.firestore) // cloud storage
-    implementation(libs.firebase.storage) // firestore database
+    implementation(libs.firebase.storage)
+    implementation(libs.credentials)
+    implementation(libs.credentials.play.services.auth)
+    implementation(libs.googleid) // firestore database
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
