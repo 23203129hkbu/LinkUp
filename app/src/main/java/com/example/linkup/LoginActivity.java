@@ -87,7 +87,6 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                progressBar.setVisibility(View.VISIBLE);
                 // get the value from the input
                 userEmail = email.getText().toString();
                 userPwd = pwd.getText().toString();
@@ -104,6 +103,7 @@ public class LoginActivity extends AppCompatActivity {
                     pwd.setError("Passwords must be six or more characters");
                     Toast.makeText(LoginActivity.this, "Passwords are less than six characters", Toast.LENGTH_SHORT).show();
                 } else {
+                    progressBar.setVisibility(View.VISIBLE);
                     progressDialog.show();
                     // When a user signs in to your app, pass the user's email address and password
                     auth.signInWithEmailAndPassword(userEmail, userPwd).addOnCompleteListener(new OnCompleteListener<AuthResult>() {

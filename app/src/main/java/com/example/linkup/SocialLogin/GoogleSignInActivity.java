@@ -57,16 +57,16 @@ public class GoogleSignInActivity extends Activity {
     }
     // [START Method]
     // handling UI update
-    private void updateUI(String screen) {
-        Intent intent;
-        if (screen.equals("Main")) {
-            intent = new Intent(GoogleSignInActivity.this, MainActivity.class);
-        } else {
-            intent = new Intent(GoogleSignInActivity.this, LoginActivity.class);
-        }
-        startActivity(intent);
-        finish();
-    }
+//    private void updateUI(String screen) {
+//        Intent intent;
+//        if (screen.equals("Main")) {
+//
+//        } else {
+//            intent = new Intent(GoogleSignInActivity.this, LoginActivity.class);
+//        }
+//        startActivity(intent);
+//        finish();
+//    }
 
     // [START signin]
     private void signIn() {
@@ -107,12 +107,12 @@ public class GoogleSignInActivity extends Activity {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "signInWithCredential:success");
-                            updateUI("Main");
-
+                            Intent intent = new Intent(GoogleSignInActivity.this, MainActivity.class);
+                            startActivity(intent);
+                            finish();
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
-                            updateUI("Login");
                         }
                     }
                 });

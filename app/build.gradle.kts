@@ -53,7 +53,7 @@ dependencies {
     implementation("de.hdodenhof:circleimageview:3.1.0") // Create a CircularImageView
     implementation("com.squareup.picasso:picasso:2.8") // A powerful image downloading and caching library for Android
     implementation("androidx.multidex:multidex:2.0.1") // Enable multidex for apps with over 64K methods
-//    //[Start Firebase Google / Facebook Login]
+    //[Start Firebase Google / Facebook Login]
     // Import the BoM for the Firebase platform
     implementation(platform("com.google.firebase:firebase-bom:33.8.0"))
     // Add the dependency for the Firebase Authentication library
@@ -63,7 +63,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth:21.3.0")
     // Facebook 登入 SDK
     implementation ("com.facebook.android:facebook-login:latest.release")
-//    //[End Firebase Google / Facebook Login]
+    //[End Firebase Google / Facebook Login]
 
 
 }
