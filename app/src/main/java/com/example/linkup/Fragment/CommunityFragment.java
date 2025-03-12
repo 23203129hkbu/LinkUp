@@ -28,12 +28,7 @@ public class CommunityFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         view = inflater.inflate(R.layout.activity_community_fragment, container, false);
-        // [START Firebase configuration - get a object]
-        auth = FirebaseAuth.getInstance();
-        // [END configuration]
-        auth.signOut();
-        Intent intent = new Intent(getActivity(), LoginActivity.class);
-        startActivity(intent);
+
         // this line must be finalized
         return view;
     }

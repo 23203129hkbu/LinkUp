@@ -56,17 +56,6 @@ public class GoogleSignInActivity extends Activity {
         signIn();
     }
     // [START Method]
-    // handling UI update
-//    private void updateUI(String screen) {
-//        Intent intent;
-//        if (screen.equals("Main")) {
-//
-//        } else {
-//            intent = new Intent(GoogleSignInActivity.this, LoginActivity.class);
-//        }
-//        startActivity(intent);
-//        finish();
-//    }
 
     // [START signin]
     private void signIn() {

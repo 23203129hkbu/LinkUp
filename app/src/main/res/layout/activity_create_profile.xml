@@ -145,7 +145,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:visibility="invisible"
-        android:background="@color/white"
-        android:id="@+id/progressbarCreatePF"/>
+        android:background="@color/purple_3"
+        android:id="@+id/progressbar"/>
 
 </LinearLayout>

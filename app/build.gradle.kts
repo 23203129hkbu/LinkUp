@@ -64,6 +64,10 @@ dependencies {
     // Facebook 登入 SDK
     implementation ("com.facebook.android:facebook-login:latest.release")
     //[End Firebase Google / Facebook Login]
+    // fix bug java.lang.SecurityException: Unknown calling package name 'com.google.android.gms'.
+    implementation ("com.google.android.gms:play-services-auth:21.0.1") // Latest Google Sign-In
+    implementation ("com.google.firebase:firebase-auth:22.1.1") // Latest Firebase Auth
+    implementation ("com.github.bumptech.glide:glide:4.16.0") // Glide supports fetching, decoding, and displaying video stills, images, and animated GIFs
 
 
 }
