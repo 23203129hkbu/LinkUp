@@ -4,6 +4,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="red_1">#DB715C</color>
     <color name="red_2">#DBAEA5</color>
+    <color name="red_3">#FF2400</color>
     <color name="purple_1">#b52bb5</color>
     <color name="purple_2">#8692F7</color>
     <color name="purple_3">#5D3FD3</color>
@@ -12,4 +13,6 @@
     <color name="green_1">#90EE90</color>
     <color name="orange_1">#FF5C00</color>
     <color name="yellow_1">#ffce1b</color>
+    <color name="gray_1">#808080</color>
+    <color name="gray_2">#999DA0</color>
 </resources>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/_300sdp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_gravity="center"
+    android:background="@drawable/shape_dialogue">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Log out of your account?"
+        android:textSize="@dimen/_20sdp"
+        android:gravity="center"
+        android:layout_margin="@dimen/_8sdp"
+        android:fontFamily="@font/poppins_regular"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@drawable/shape_dialogue"
+        >
+        <Button
+            android:id="@+id/btnYes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:layout_marginLeft="@dimen/_30sdp"
+            android:layout_marginRight="@dimen/_30sdp"
+            android:textSize="@dimen/_17sdp"
+            android:backgroundTint="@color/white"
+            android:gravity="center"
+            android:text="Logout"
+            android:textColor="@color/red_3" />
+
+        <Button
+            android:id="@+id/btnNo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/_30sdp"
+            android:layout_marginTop="@dimen/_5sdp"
+            android:layout_marginRight="@dimen/_30sdp"
+            android:layout_marginBottom="@dimen/_10sdp"
+            android:textSize="@dimen/_17sdp"
+            android:gravity="center"
+            android:text="Cancel"
+            android:textColor="@color/black"
+            android:backgroundTint="@color/white"/>
+
+
+
+    </LinearLayout>
+
+
+</LinearLayout>

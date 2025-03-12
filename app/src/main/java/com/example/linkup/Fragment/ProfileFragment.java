@@ -2,12 +2,14 @@ package com.example.linkup.Fragment;
 
 import static android.content.ContentValues.TAG;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -93,8 +95,30 @@ public class ProfileFragment extends Fragment {
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                auth.signOut();
-                updateUI("Login");
+
+                // Setup Logout
+                Dialog dialog = new Dialog(getActivity());
+                dialog.setContentView(R.layout.dialogue_layout);
+                Button btnYes, btnNo; // for logout dialogue
+                // [START gain layout objects]
+                btnYes = dialog.findViewById(R.id.btnYes);
+                btnNo = dialog.findViewById(R.id.btnNo);
+                // [END gain]
+                btnYes.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        auth.signOut();
+                        updateUI("Login");
+                    }
+                });
+
+                btnNo.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                    }
+                });
+                dialog.show();
             }
         });
         // [END layout component function]
