@@ -1,11 +1,16 @@
 package com.example.linkup.ProfileOperation;
 
+import static android.app.ProgressDialog.show;
+import static android.content.ContentValues.TAG;
+
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,7 +27,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.linkup.Fragment.ProfileFragment;
-import com.example.linkup.Object.Users;
+import com.example.linkup.LoginActivity;
 import com.example.linkup.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -32,64 +37,60 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Transaction;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
 import java.util.Map;
 
-
-public class CreateProfile extends AppCompatActivity {
+public class UpdateProfile extends AppCompatActivity {
     // layout object
-    ImageView avatarUpload;
+    ImageView avatar, btnBack;
     EditText username, website, introduction;
-    Button btnSave;
+    Button btnSave, btnUpload;
     ProgressBar progressbar;
     // Firebase features
     FirebaseAuth auth;
     FirebaseStorage storage;
-    FirebaseDatabase Rdb; // real-time db
     FirebaseFirestore Fdb; // firestore db
     StorageReference storageRef; // cloud storage ref
-    DatabaseReference databaseUserRef; // real-time db ref
     DocumentReference documentUserRef; // firestore db ref
     // Dialog
     ProgressDialog progressDialog;
     // Upload Photo
     Uri imageURI;
     // default user info
-    Users user = new Users();
-    String userUsername = "";
-    String userWebsite = "";
-    String userIntroduction = "";
-    // default img is saved in firebase cloud storage
-    String imageURIString = "https://firebasestorage.googleapis.com/v0/b/link-up-17148.firebasestorage.app/o/defaulticon.png?alt=media&token=249ae5c9-6d08-4f66-beb7-5297fd864738";
+    String userUsername, userIntroduction, userWebsite, userAvatar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create_profile);
+        setContentView(R.layout.activity_update_profile);
         // [START gain layout objects]
-        avatarUpload = findViewById(R.id.avatar);
+        avatar = findViewById(R.id.avatar);
         username = findViewById(R.id.username);
         website = findViewById(R.id.website);
         introduction = findViewById(R.id.introduction);
         btnSave = findViewById(R.id.btnSave);
+        btnBack = findViewById(R.id.btnBack);
+        btnUpload = findViewById(R.id.btnUpload);
         progressbar = findViewById(R.id.progressbar);
         // [END gain]
 
-        // [START config_firebase]
+        //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
-        storage = FirebaseStorage.getInstance();
-        Rdb = FirebaseDatabase.getInstance();
         Fdb = FirebaseFirestore.getInstance();
-        // [END config_firebase]
+        storage = FirebaseStorage.getInstance();
+        //[END configuration]
 
         // [START config_firebase reference]
         storageRef = storage.getReference();
-        databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
         documentUserRef = Fdb.collection("user").document(auth.getUid());
         // [END config_firebase reference]
 
@@ -99,17 +100,35 @@ public class CreateProfile extends AppCompatActivity {
         progressDialog.setCancelable(false);
         // [END config_dialog]
 
-        // Profile image click listener / Upload the new avatar
-        avatarUpload.setOnClickListener(new View.OnClickListener() {
+        //[Gain User Profile]
+        documentUserRef.get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.getResult().exists()) {
+                            userAvatar = task.getResult().getString("avatar");
+                            userUsername = task.getResult().getString("username");
+                            userIntroduction = task.getResult().getString("introduction");
+                            userWebsite = task.getResult().getString("website");
+
+                            Picasso.get().load(userAvatar).into(avatar);
+                            username.setText(userUsername);
+                            introduction.setText(userIntroduction);
+                            website.setText(userWebsite);
+                        } else {
+                            Log.w(TAG, "Personal information cannot be obtained", task.getException());
+                        }
+                    }
+                });
+        // [START layout component function]
+        // Switch the screen - Profile Fragment
+        btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                Intent intent = new Intent();
-                intent.setType("image/*");
-                intent.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(Intent.createChooser(intent, "Select Picture"), 10);
+            public void onClick(View v) {
+                updateUI();
             }
         });
-
+        // Update Profile
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -118,23 +137,39 @@ public class CreateProfile extends AppCompatActivity {
                 userIntroduction = introduction.getText().toString();
                 if (TextUtils.isEmpty(userUsername)) {
                     progressDialog.dismiss();
-                    Toast.makeText(CreateProfile.this, "Username is required", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(UpdateProfile.this, "Username is required", Toast.LENGTH_SHORT).show();
                 } else {
                     progressbar.setVisibility(View.VISIBLE);
+                    Toast.makeText(UpdateProfile.this, "Updating...", Toast.LENGTH_SHORT).show();
                     // handle imageURI To String
                     if (imageURI != null)
                         handleImageURI();
-                    // Save profile to database
-                    handleProfileToDatabase();
-                    // Save profile (full) to Firestore
-                    handleProfileToFirestore();
+                    // Save profile to Firestore
+                    updateProfileToFirestore();
                     // update UI
-                    updateUI();
+                    Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            updateUI();
+                        }
+                    },4000);
+
                 }
             }
         });
 
-
+        // Profile image click listener / Upload the new avatar
+        btnUpload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent();
+                intent.setType("image/*");
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), 10);
+            }
+        });
+        // [END layout component function]
     }
 
     // [START Method]
@@ -144,11 +179,10 @@ public class CreateProfile extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 10 && data != null) {
             imageURI = data.getData();
-            avatarUpload.setImageURI(imageURI);
+            avatar.setImageURI(imageURI);
 
         }
     }
-
     private void handleImageURI() {
         storageRef.putFile(imageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
             @Override
@@ -157,81 +191,59 @@ public class CreateProfile extends AppCompatActivity {
                     storageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                         @Override
                         public void onSuccess(Uri uri) {
-                            imageURIString = uri.toString(); // uri convert to string
+                            userAvatar = uri.toString(); // uri convert to string
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
                             progressDialog.dismiss();
-                            Toast.makeText(CreateProfile.this, "Failed to get image URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(UpdateProfile.this, "Failed to get image URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
                 } else {
                     progressDialog.dismiss();
-                    Toast.makeText(CreateProfile.this, "Image upload failed.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(UpdateProfile.this, "Image upload failed.", Toast.LENGTH_SHORT).show();
                 }
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
                 progressDialog.dismiss();
-                Toast.makeText(CreateProfile.this, "Image upload error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(UpdateProfile.this, "Image upload error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void handleProfileToDatabase() {
-        user.setUserId(auth.getUid());
-        databaseUserRef.setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                progressDialog.dismiss();
-                if (task.isSuccessful()) {
-                    Toast.makeText(CreateProfile.this, "Data saved successfully!", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(CreateProfile.this, "Failed to save data.", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                progressDialog.dismiss();
-                Toast.makeText(CreateProfile.this, "Database error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void handleProfileToFirestore() {
-        // Prepare the profile data
-        Map<String, String> user_firestore = new HashMap<>();
-        user_firestore.put("uid", auth.getUid());
-        user_firestore.put("username", userUsername);
-        user_firestore.put("avatar", imageURIString); // Use empty string if no image
-        user_firestore.put("website", userWebsite);
-        user_firestore.put("introduction", userIntroduction);
-        user_firestore.put("privacy", "Public");
-        documentUserRef.set(user_firestore)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
+    private void updateProfileToFirestore() {
+        Fdb.runTransaction(new Transaction.Function<Void>() {
+                    @Override
+                    public Void apply(Transaction transaction) throws FirebaseFirestoreException {
+                        DocumentSnapshot snapshot = transaction.get(documentUserRef);
+                        transaction.update(documentUserRef, "avatar",userAvatar);
+                        transaction.update(documentUserRef, "username",userUsername);
+                        transaction.update(documentUserRef,"website",userWebsite);
+                        transaction.update(documentUserRef,"introduction",userIntroduction);
+                        // Success
+                        return null;
+                    }
+                }).addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        Toast.makeText(CreateProfile.this, "Profile Created", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(UpdateProfile.this, "updated", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(UpdateProfile.this, "failed", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
-
     // handling UI update
     private void updateUI() {
-        Toast.makeText(CreateProfile.this, "Profile Created", Toast.LENGTH_SHORT).show();
-        // Delay execution to allow enough time for data to be uploaded
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Intent intent = new Intent(CreateProfile.this,ProfileFragment.class);
-                startActivity(intent);
-                finish();
-            }
-        },4000);
+        Intent intent = new Intent(UpdateProfile.this, ProfileFragment.class);
+        startActivity(intent);
+        finish();
     }
     // [END Method]
 }

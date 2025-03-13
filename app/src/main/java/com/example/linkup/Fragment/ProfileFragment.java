@@ -4,6 +4,7 @@ import static android.content.ContentValues.TAG;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -26,6 +27,7 @@ import com.bumptech.glide.Glide;
 import com.example.linkup.LoginActivity;
 import com.example.linkup.MainActivity;
 import com.example.linkup.ProfileOperation.CreateProfile;
+import com.example.linkup.ProfileOperation.UpdateProfile;
 import com.example.linkup.R;
 import com.example.linkup.RegistrationActivity;
 import com.example.linkup.SocialLogin.FacebookSignInActivity;
@@ -47,6 +49,8 @@ public class ProfileFragment extends Fragment {
     FirebaseAuth auth; // auth
     FirebaseFirestore Fdb; // firestore db
     DocumentReference documentUserRef; // firestore db ref
+    // Upload Photo
+    Uri imageURI;
     String userUsername, userIntroduction, userWebsite, userAvatar;
     @Nullable
     @Override
@@ -59,6 +63,7 @@ public class ProfileFragment extends Fragment {
         website = view.findViewById(R.id.website);
         introduction = view.findViewById(R.id.introduction);
         btnLogout = view.findViewById(R.id.btnLogout);
+        btnEdit = view.findViewById(R.id.btnEdit);
         // [END gain]
 
         //[START Firebase configuration - get a object]
@@ -91,7 +96,14 @@ public class ProfileFragment extends Fragment {
                 });
 
         // [START layout component function]
-        //
+        // // Switch the screen - Update Profile
+        btnEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateUI("Update");
+            }
+        });
+        // Logout with dialog message
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -132,8 +144,8 @@ public class ProfileFragment extends Fragment {
         Intent intent = null;
         if (screen.equals("Login")) {
             intent = new Intent(getContext(), LoginActivity.class);
-        } else if (screen.equals("Google")) {
-            intent = new Intent(getContext(), MainActivity.class);
+        } else if (screen.equals("Update")) {
+            intent = new Intent(getContext(), UpdateProfile.class);
         }
         startActivity(intent);
     }
