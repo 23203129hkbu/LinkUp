@@ -30,6 +30,7 @@ import com.example.linkup.ProfileOperation.CreateProfile;
 import com.example.linkup.ProfileOperation.UpdateProfile;
 import com.example.linkup.R;
 import com.example.linkup.RegistrationActivity;
+import com.example.linkup.SettingActivity;
 import com.example.linkup.SocialLogin.FacebookSignInActivity;
 import com.example.linkup.SocialLogin.GoogleSignInActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -43,14 +44,13 @@ import com.squareup.picasso.Picasso;
 public class ProfileFragment extends Fragment {
     View view;
     // layout object
-    ImageView btnMenu, btnEdit, btnSetting, btnLogout, avatar;
+    ImageView btnEdit, btnSetting, btnLogout, avatar;
     TextView username, introduction, website, btnPost;
     // Firebase features
     FirebaseAuth auth; // auth
     FirebaseFirestore Fdb; // firestore db
     DocumentReference documentUserRef; // firestore db ref
-    // Upload Photo
-    Uri imageURI;
+    // default user info
     String userUsername, userIntroduction, userWebsite, userAvatar;
     @Nullable
     @Override
@@ -62,8 +62,8 @@ public class ProfileFragment extends Fragment {
         username = view.findViewById(R.id.username);
         website = view.findViewById(R.id.website);
         introduction = view.findViewById(R.id.introduction);
-        btnLogout = view.findViewById(R.id.btnLogout);
         btnEdit = view.findViewById(R.id.btnEdit);
+        btnSetting = view.findViewById(R.id.btnSetting);
         // [END gain]
 
         //[START Firebase configuration - get a object]
@@ -104,33 +104,33 @@ public class ProfileFragment extends Fragment {
             }
         });
         // Logout with dialog message
-        btnLogout.setOnClickListener(new View.OnClickListener() {
+        btnSetting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                // Setup Logout
-                Dialog dialog = new Dialog(getActivity());
-                dialog.setContentView(R.layout.dialogue_layout);
-                Button btnYes, btnNo; // for logout dialogue
-                // [START gain layout objects]
-                btnYes = dialog.findViewById(R.id.btnYes);
-                btnNo = dialog.findViewById(R.id.btnNo);
-                // [END gain]
-                btnYes.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        auth.signOut();
-                        updateUI("Login");
-                    }
-                });
-
-                btnNo.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        dialog.dismiss();
-                    }
-                });
-                dialog.show();
+                updateUI("Setting");
+//                // Setup Logout
+//                Dialog dialog = new Dialog(getActivity());
+//                dialog.setContentView(R.layout.dialogue_layout);
+//                Button btnYes, btnNo; // for logout dialogue
+//                // [START gain layout objects]
+//                btnYes = dialog.findViewById(R.id.btnYes);
+//                btnNo = dialog.findViewById(R.id.btnNo);
+//                // [END gain]
+//                btnYes.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        auth.signOut();
+//                        updateUI("Login");
+//                    }
+//                });
+//
+//                btnNo.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        dialog.dismiss();
+//                    }
+//                });
+//                dialog.show();
             }
         });
         // [END layout component function]
@@ -142,8 +142,8 @@ public class ProfileFragment extends Fragment {
     // handling UI update
     private void updateUI(String screen) {
         Intent intent = null;
-        if (screen.equals("Login")) {
-            intent = new Intent(getContext(), LoginActivity.class);
+        if (screen.equals("Setting")) {
+            intent = new Intent(getContext(), SettingActivity.class);
         } else if (screen.equals("Update")) {
             intent = new Intent(getContext(), UpdateProfile.class);
         }
