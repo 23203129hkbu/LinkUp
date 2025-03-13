@@ -182,6 +182,33 @@
         android:paddingStart="20dp"
         android:paddingLeft="20dp" />
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="State"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginStart="20dp"
+        android:padding="5dp"
+        android:layout_marginLeft="20dp"
+        android:textColor="@android:color/darker_gray"
+        android:drawablePadding="20dp"
+        android:paddingStart="20dp"
+        android:paddingLeft="20dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="State"
+        android:id="@+id/state"
+        android:textSize="15sp"
+        android:layout_marginStart="20dp"
+        android:padding="5dp"
+        android:clickable="true"
+        android:layout_marginLeft="20dp"
+        android:drawablePadding="20dp"
+        android:paddingStart="20dp"
+        android:paddingLeft="20dp" />
 
 
     <LinearLayout

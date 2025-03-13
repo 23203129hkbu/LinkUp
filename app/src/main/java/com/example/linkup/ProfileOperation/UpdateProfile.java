@@ -25,10 +25,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.Fragment;
 
 import com.example.linkup.Fragment.ProfileFragment;
 import com.example.linkup.LoginActivity;
+import com.example.linkup.MainActivity;
 import com.example.linkup.R;
+import com.example.linkup.SettingActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -125,7 +128,7 @@ public class UpdateProfile extends AppCompatActivity {
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                updateUI();
+                finish();
             }
         });
         // Update Profile
@@ -153,12 +156,10 @@ public class UpdateProfile extends AppCompatActivity {
                         public void run() {
                             updateUI();
                         }
-                    },4000);
-
+                    }, 4000);
                 }
             }
         });
-
         // Profile image click listener / Upload the new avatar
         btnUpload.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -183,6 +184,7 @@ public class UpdateProfile extends AppCompatActivity {
 
         }
     }
+
     private void handleImageURI() {
         storageRef.putFile(imageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
             @Override
@@ -219,10 +221,10 @@ public class UpdateProfile extends AppCompatActivity {
                     @Override
                     public Void apply(Transaction transaction) throws FirebaseFirestoreException {
                         DocumentSnapshot snapshot = transaction.get(documentUserRef);
-                        transaction.update(documentUserRef, "avatar",userAvatar);
-                        transaction.update(documentUserRef, "username",userUsername);
-                        transaction.update(documentUserRef,"website",userWebsite);
-                        transaction.update(documentUserRef,"introduction",userIntroduction);
+                        transaction.update(documentUserRef, "avatar", userAvatar);
+                        transaction.update(documentUserRef, "username", userUsername);
+                        transaction.update(documentUserRef, "website", userWebsite);
+                        transaction.update(documentUserRef, "introduction", userIntroduction);
                         // Success
                         return null;
                     }
@@ -239,9 +241,10 @@ public class UpdateProfile extends AppCompatActivity {
                     }
                 });
     }
+
     // handling UI update
     private void updateUI() {
-        Intent intent = new Intent(UpdateProfile.this, ProfileFragment.class);
+        Intent intent = new Intent(UpdateProfile.this, MainActivity.class);
         startActivity(intent);
         finish();
     }

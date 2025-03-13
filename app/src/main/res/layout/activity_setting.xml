@@ -12,7 +12,6 @@
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:layout_marginTop="@dimen/_15sdp"
         app:cardBackgroundColor="@color/purple_3">
 
         <ImageView
@@ -22,6 +21,7 @@
             android:layout_gravity="left"
             android:layout_marginLeft="@dimen/_8sdp"
             android:src="@drawable/baseline_arrow_back_24" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -34,42 +34,48 @@
             android:textStyle="bold" />
 
     </androidx.cardview.widget.CardView>
+
     <TextView
+        android:id="@+id/btnLogout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/poppins_bold"
-        android:gravity="left"
-        android:text="Logout"
-        android:textColor="@color/black"
-        android:textSize="@dimen/_15sdp"
-        android:padding="@dimen/_10sdp"
         android:background="@drawable/custom_textview"
         android:drawableLeft="@drawable/baseline_logout_24"
-        android:drawablePadding="@dimen/_5sdp"/>
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:drawablePadding="@dimen/_5sdp"
         android:fontFamily="@font/poppins_bold"
         android:gravity="left"
-        android:text="Privacy"
-        android:textColor="@color/black"
-        android:textSize="@dimen/_15sdp"
         android:padding="@dimen/_10sdp"
+        android:text="Logout"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_15sdp" />
+
+    <TextView
+        android:id="@+id/btnState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:background="@drawable/custom_textview"
         android:drawableLeft="@drawable/baseline_lock_24"
-        android:drawablePadding="@dimen/_5sdp"/>
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:drawablePadding="@dimen/_5sdp"
         android:fontFamily="@font/poppins_bold"
         android:gravity="left"
-        android:text="Delete"
-        android:textColor="@color/black"
-        android:textSize="@dimen/_15sdp"
         android:padding="@dimen/_10sdp"
+        android:text="Account Privacy Settings"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_15sdp" />
+
+    <TextView
+        android:id="@+id/btnDeletePF"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:background="@drawable/custom_textview"
         android:drawableLeft="@drawable/baseline_delete_24"
-        android:drawablePadding="@dimen/_5sdp"/>
+        android:drawablePadding="@dimen/_5sdp"
+        android:fontFamily="@font/poppins_bold"
+        android:gravity="left"
+        android:padding="@dimen/_10sdp"
+        android:text="Delete Personal Profile"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_15sdp" />
 
 
 </LinearLayout>

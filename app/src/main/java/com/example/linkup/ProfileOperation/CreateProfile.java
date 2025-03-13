@@ -22,6 +22,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.linkup.Fragment.ProfileFragment;
+import com.example.linkup.MainActivity;
 import com.example.linkup.Object.Users;
 import com.example.linkup.R;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -227,7 +228,7 @@ public class CreateProfile extends AppCompatActivity {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Intent intent = new Intent(CreateProfile.this,ProfileFragment.class);
+                Intent intent = new Intent(CreateProfile.this, MainActivity.class);
                 startActivity(intent);
                 finish();
             }

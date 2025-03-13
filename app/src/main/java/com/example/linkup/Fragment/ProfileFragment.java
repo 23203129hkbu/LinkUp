@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -44,14 +45,15 @@ import com.squareup.picasso.Picasso;
 public class ProfileFragment extends Fragment {
     View view;
     // layout object
-    ImageView btnEdit, btnSetting, btnLogout, avatar;
-    TextView username, introduction, website, btnPost;
+    ImageView btnEdit, btnSetting, avatar;
+    TextView username, introduction, website, state, btnPost;
     // Firebase features
     FirebaseAuth auth; // auth
     FirebaseFirestore Fdb; // firestore db
     DocumentReference documentUserRef; // firestore db ref
     // default user info
-    String userUsername, userIntroduction, userWebsite, userAvatar;
+    String userUsername, userIntroduction, userWebsite, userAvatar, userState;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -62,6 +64,7 @@ public class ProfileFragment extends Fragment {
         username = view.findViewById(R.id.username);
         website = view.findViewById(R.id.website);
         introduction = view.findViewById(R.id.introduction);
+        state = view.findViewById(R.id.state);
         btnEdit = view.findViewById(R.id.btnEdit);
         btnSetting = view.findViewById(R.id.btnSetting);
         // [END gain]
@@ -69,8 +72,11 @@ public class ProfileFragment extends Fragment {
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
         Fdb = FirebaseFirestore.getInstance();
-        documentUserRef = Fdb.collection("user").document(auth.getUid());
         //[END configuration]
+
+        // [START config_firebase reference]
+        documentUserRef = Fdb.collection("user").document(auth.getUid());
+        // [END config_firebase reference]
 
         //[Determine whether the user is logging in for the first time]
         documentUserRef.get()
@@ -82,12 +88,14 @@ public class ProfileFragment extends Fragment {
                             userUsername = task.getResult().getString("username");
                             userIntroduction = task.getResult().getString("introduction");
                             userWebsite = task.getResult().getString("website");
+                            userState = task.getResult().getString("privacy");
 
                             Picasso.get().load(userAvatar).into(avatar);
                             // Glide.with(getContext()).load(userAvatar).into(avatar);
                             username.setText(userUsername);
                             introduction.setText(userIntroduction);
                             website.setText(userWebsite);
+                            state.setText(userState);
                         } else {
                             Intent intent = new Intent(getContext(), CreateProfile.class);
                             startActivity(intent);
@@ -96,7 +104,7 @@ public class ProfileFragment extends Fragment {
                 });
 
         // [START layout component function]
-        // // Switch the screen - Update Profile
+        // Switch the screen - Update Profile
         btnEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -108,29 +116,21 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 updateUI("Setting");
-//                // Setup Logout
-//                Dialog dialog = new Dialog(getActivity());
-//                dialog.setContentView(R.layout.dialogue_layout);
-//                Button btnYes, btnNo; // for logout dialogue
-//                // [START gain layout objects]
-//                btnYes = dialog.findViewById(R.id.btnYes);
-//                btnNo = dialog.findViewById(R.id.btnNo);
-//                // [END gain]
-//                btnYes.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        auth.signOut();
-//                        updateUI("Login");
-//                    }
-//                });
-//
-//                btnNo.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        dialog.dismiss();
-//                    }
-//                });
-//                dialog.show();
+            }
+        });
+
+        // Logout with dialog message
+        website.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    String webUrl = userWebsite;
+                    Intent webIntent = new Intent(Intent.ACTION_VIEW);
+                    webIntent.setData(Uri.parse(webUrl));
+                    startActivity(webIntent);
+                }catch (Exception e){
+                    Toast.makeText(getContext(), "Invalid Link", Toast.LENGTH_SHORT).show();
+                }
             }
         });
         // [END layout component function]
@@ -138,6 +138,7 @@ public class ProfileFragment extends Fragment {
         // this line must be finalized
         return view;
     }
+
     // [START Method]
     // handling UI update
     private void updateUI(String screen) {
