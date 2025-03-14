@@ -45,6 +45,7 @@ public class RegistrationActivity extends AppCompatActivity {
     String userEmail = "";
     String userPwd = "";
     String userConPwd = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -142,17 +143,20 @@ public class RegistrationActivity extends AppCompatActivity {
         });
         // [END layout component function]
     }
+
     // [START Method]
     // handling UI update
     private void updateUI(String screen) {
-        Intent intent;
+        Intent intent = null;
         if (screen.equals("Main")) {
             intent = new Intent(RegistrationActivity.this, MainActivity.class);
-        } else {
+        } else if(screen.equals("Login")) {
             intent = new Intent(RegistrationActivity.this, LoginActivity.class);
         }
-        startActivity(intent);
-        finish();
+        if (intent != null) {
+            startActivity(intent);
+            finish();
+        }
     }
     // [END Method]
 }

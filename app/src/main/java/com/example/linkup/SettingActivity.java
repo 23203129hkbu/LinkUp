@@ -154,18 +154,18 @@ public class SettingActivity extends AppCompatActivity {
     // [START Method]
     // handling UI update
     private void updateUI(String screen) {
-        Intent intent;
+        Intent intent = null;
         if (screen.equals("Profile")) {
             intent = new Intent(SettingActivity.this, MainActivity.class);
         } else if (screen.equals("Login")) {
             intent = new Intent(SettingActivity.this, LoginActivity.class);
         } else if (screen.equals("Privacy")) {
             intent = new Intent(SettingActivity.this, PrivacyActivity.class);
-        } else {
-            intent = null;
         }
-        startActivity(intent);
-        finish();
+        if (intent != null) {
+            startActivity(intent);
+            finish();
+        }
     }
     // [END Method]
 }

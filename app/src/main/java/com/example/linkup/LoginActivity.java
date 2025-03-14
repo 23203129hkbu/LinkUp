@@ -152,18 +152,20 @@ public class LoginActivity extends AppCompatActivity {
     // [START Method]
     // handling UI update
     private void updateUI(String screen) {
-        Intent intent;
+        Intent intent = null;
         if (screen.equals("Main")) {
             intent = new Intent(LoginActivity.this, MainActivity.class);
         } else if (screen.equals("Google")) {
             intent = new Intent(LoginActivity.this, GoogleSignInActivity.class);
         } else if (screen.equals("Facebook")) {
             intent = new Intent(LoginActivity.this, FacebookSignInActivity.class);
-        } else {
+        } else if (screen.equals("Registration")){
             intent = new Intent(LoginActivity.this, RegistrationActivity.class);
         }
-        startActivity(intent);
-        finish();
+        if (intent != null) {
+            startActivity(intent);
+            finish();
+        }
     }
     // [END Method]
 }

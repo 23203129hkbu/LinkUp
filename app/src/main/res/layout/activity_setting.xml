@@ -25,8 +25,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_gravity="left"
-            android:layout_marginLeft="@dimen/_25sdp"
+            android:layout_gravity="center"
             android:padding="@dimen/_8sdp"
             android:text="Setting"
             android:textColor="@color/white"
@@ -59,7 +58,7 @@
         android:fontFamily="@font/poppins_bold"
         android:gravity="left"
         android:padding="@dimen/_10sdp"
-        android:text="Account Privacy Settings"
+        android:text="Account Privacy Setting"
         android:textColor="@color/black"
         android:textSize="@dimen/_15sdp" />
 

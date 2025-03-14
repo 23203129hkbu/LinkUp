@@ -148,7 +148,9 @@ public class ProfileFragment extends Fragment {
         } else if (screen.equals("Update")) {
             intent = new Intent(getContext(), UpdateProfile.class);
         }
-        startActivity(intent);
+        if (intent != null) {
+            startActivity(intent);
+        }
     }
     // [END Method]
 }
