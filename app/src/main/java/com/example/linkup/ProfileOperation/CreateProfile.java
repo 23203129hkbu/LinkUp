@@ -100,6 +100,7 @@ public class CreateProfile extends AppCompatActivity {
         progressDialog.setCancelable(false);
         // [END config_dialog]
 
+        // [START layout component function]
         // Profile image click listener / Upload the new avatar
         avatarUpload.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -111,6 +112,7 @@ public class CreateProfile extends AppCompatActivity {
             }
         });
 
+        // Create Profile
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -125,7 +127,7 @@ public class CreateProfile extends AppCompatActivity {
                     // handle imageURI To String
                     if (imageURI != null)
                         handleImageURI();
-                    // Save profile to database
+                    // Save profile to Database
                     handleProfileToDatabase();
                     // Save profile (full) to Firestore
                     handleProfileToFirestore();
@@ -182,7 +184,9 @@ public class CreateProfile extends AppCompatActivity {
     }
 
     private void handleProfileToDatabase() {
-        user.setUserId(auth.getUid());
+        user.setUID(auth.getUid());
+        user.setUsername(userUsername);
+        user.setImageURI(imageURIString);
         databaseUserRef.setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {

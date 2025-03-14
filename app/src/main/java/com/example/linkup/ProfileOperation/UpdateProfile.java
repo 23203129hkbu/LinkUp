@@ -30,6 +30,7 @@ import androidx.fragment.app.Fragment;
 import com.example.linkup.Fragment.ProfileFragment;
 import com.example.linkup.LoginActivity;
 import com.example.linkup.MainActivity;
+import com.example.linkup.Object.Users;
 import com.example.linkup.R;
 import com.example.linkup.SettingActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -61,14 +62,17 @@ public class UpdateProfile extends AppCompatActivity {
     // Firebase features
     FirebaseAuth auth;
     FirebaseStorage storage;
+    FirebaseDatabase Rdb; // real-time db
     FirebaseFirestore Fdb; // firestore db
     StorageReference storageRef; // cloud storage ref
+    DatabaseReference databaseUserRef; // real-time db ref
     DocumentReference documentUserRef; // firestore db ref
     // Dialog
     ProgressDialog progressDialog;
     // Upload Photo
     Uri imageURI;
     // default user info
+    Users user = new Users();
     String userUsername, userIntroduction, userWebsite, userAvatar;
 
     @Override
@@ -88,12 +92,14 @@ public class UpdateProfile extends AppCompatActivity {
 
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
-        Fdb = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
+        Fdb = FirebaseFirestore.getInstance();
+        Rdb = FirebaseDatabase.getInstance();
         //[END configuration]
 
         // [START config_firebase reference]
         storageRef = storage.getReference();
+        databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
         documentUserRef = Fdb.collection("user").document(auth.getUid());
         // [END config_firebase reference]
 
@@ -123,6 +129,7 @@ public class UpdateProfile extends AppCompatActivity {
                         }
                     }
                 });
+
         // [START layout component function]
         // Switch the screen - Profile Fragment
         btnBack.setOnClickListener(new View.OnClickListener() {
@@ -147,7 +154,9 @@ public class UpdateProfile extends AppCompatActivity {
                     // handle imageURI To String
                     if (imageURI != null)
                         handleImageURI();
-                    // Save profile to Firestore
+                    // Update profile to database
+                    updateProfileToDatabase();
+                    // Update profile to Firestore
                     updateProfileToFirestore();
                     // update UI
                     Handler handler = new Handler();
@@ -172,6 +181,8 @@ public class UpdateProfile extends AppCompatActivity {
         });
         // [END layout component function]
     }
+
+
 
     // [START Method]
     // Handle image selection
@@ -212,6 +223,29 @@ public class UpdateProfile extends AppCompatActivity {
             public void onFailure(@NonNull Exception e) {
                 progressDialog.dismiss();
                 Toast.makeText(UpdateProfile.this, "Image upload error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void updateProfileToDatabase() {
+        user.setUID(auth.getUid());
+        user.setUsername(userUsername);
+        user.setImageURI(userAvatar);
+        databaseUserRef.setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                progressDialog.dismiss();
+                if (task.isSuccessful()) {
+                    Toast.makeText(UpdateProfile.this, "Data saved successfully!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(UpdateProfile.this, "Failed to save data.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                progressDialog.dismiss();
+                Toast.makeText(UpdateProfile.this, "Database error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
