@@ -32,7 +32,7 @@ public class LoginActivity extends AppCompatActivity {
     EditText email, pwd;
     CheckBox cbxPwd;
     TextView btnSignUp;
-    ProgressBar progressBar;
+    ProgressBar progressbar;
     // Limitation / Case handling
     String emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+";
     // Dialog
@@ -55,7 +55,7 @@ public class LoginActivity extends AppCompatActivity {
         btnSignUp = findViewById(R.id.btnSignUp);
         btnGoogleLogin = findViewById(R.id.btnGoogleLogin);
         btnFacebookLogin = findViewById(R.id.btnFacebookLogin);
-        progressBar = findViewById(R.id.progressbar);
+        progressbar = findViewById(R.id.progressbar);
         // [END gain]
 
         // [START config_firebase]
@@ -103,7 +103,7 @@ public class LoginActivity extends AppCompatActivity {
                     pwd.setError("Passwords must be six or more characters");
                     Toast.makeText(LoginActivity.this, "Passwords are less than six characters", Toast.LENGTH_SHORT).show();
                 } else {
-                    progressBar.setVisibility(View.VISIBLE);
+                    progressbar.setVisibility(View.VISIBLE);
                     progressDialog.show();
                     // When a user signs in to your app, pass the user's email address and password
                     auth.signInWithEmailAndPassword(userEmail, userPwd).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -124,7 +124,7 @@ public class LoginActivity extends AppCompatActivity {
         btnSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                progressBar.setVisibility(View.VISIBLE);
+                progressbar.setVisibility(View.VISIBLE);
                 updateUI("Registration");
             }
         });
@@ -132,7 +132,7 @@ public class LoginActivity extends AppCompatActivity {
         btnGoogleLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                progressBar.setVisibility(View.VISIBLE);
+                progressbar.setVisibility(View.VISIBLE);
                 updateUI("Google");
             }
         });
@@ -140,7 +140,7 @@ public class LoginActivity extends AppCompatActivity {
         btnFacebookLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                progressBar.setVisibility(View.VISIBLE);
+                progressbar.setVisibility(View.VISIBLE);
                 updateUI("Facebook");
             }
         });

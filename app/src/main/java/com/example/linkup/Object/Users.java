@@ -15,36 +15,36 @@ public class Users {
         this.privacy = privacy;
     }
 
-    public void setUID(String UID) {
-        this.UID = UID;
-    }
-
     public String getUID() {
         return UID;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUID(String UID) {
+        this.UID = UID;
     }
 
     public String getUsername() {
         return username;
     }
 
-    public void setImageURI(String imageURI) {
-        this.imageURI = imageURI;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getImageURI() {
         return imageURI;
     }
 
-    public void setPrivacy(String privacy) {
-        this.privacy = privacy;
+    public void setImageURI(String imageURI) {
+        this.imageURI = imageURI;
     }
 
     public String getPrivacy() {
         return privacy;
+    }
+
+    public void setPrivacy(String privacy) {
+        this.privacy = privacy;
     }
 
 }
