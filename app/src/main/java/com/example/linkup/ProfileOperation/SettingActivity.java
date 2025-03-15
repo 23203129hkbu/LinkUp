@@ -1,4 +1,4 @@
-package com.example.linkup;
+package com.example.linkup.ProfileOperation;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.linkup.Process.LoginActivity;
 import com.example.linkup.Process.MainActivity;
+import com.example.linkup.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;

@@ -17,7 +17,7 @@ import androidx.fragment.app.Fragment;
 import com.example.linkup.ProfileOperation.CreateProfile;
 import com.example.linkup.ProfileOperation.UpdateProfile;
 import com.example.linkup.R;
-import com.example.linkup.SettingActivity;
+import com.example.linkup.ProfileOperation.SettingActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;

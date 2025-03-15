@@ -8,7 +8,7 @@
     android:background="@color/white"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    tools:context=".PrivacyActivity">
+    tools:context=".ProfileOperation.PrivacyActivity">
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"

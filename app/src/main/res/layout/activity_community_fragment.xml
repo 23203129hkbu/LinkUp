@@ -12,7 +12,6 @@
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="70dp"
-        android:layout_marginBottom="10dp"
         app:cardBackgroundColor="@color/purple_3">
 
         <TextView
@@ -43,5 +42,14 @@
             android:src="@drawable/baseline_menu_24" />
 
     </androidx.cardview.widget.CardView>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/articleRV"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+
+        />
+
+
 
 </LinearLayout>
