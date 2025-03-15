@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/purple_3"
-    tools:context=".SplashActivity">
+    tools:context=".Process.SplashActivity">
 
     <ImageView
         android:id="@+id/splashicon"

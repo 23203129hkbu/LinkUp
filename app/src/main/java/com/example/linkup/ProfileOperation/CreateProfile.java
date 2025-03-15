@@ -13,16 +13,11 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-import com.example.linkup.Fragment.ProfileFragment;
-import com.example.linkup.MainActivity;
+import com.example.linkup.Process.MainActivity;
 import com.example.linkup.Object.Users;
 import com.example.linkup.R;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -187,6 +182,7 @@ public class CreateProfile extends AppCompatActivity {
         user.setUID(auth.getUid());
         user.setUsername(userUsername);
         user.setImageURI(imageURIString);
+        user.setPrivacy("Public");
         databaseUserRef.setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {

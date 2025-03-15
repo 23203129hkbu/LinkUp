@@ -1,15 +1,9 @@
-package com.example.linkup;
+package com.example.linkup.Process;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.TextView;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.linkup.Fragment.ChatFragment;
@@ -17,6 +11,7 @@ import com.example.linkup.Fragment.CommunityFragment;
 import com.example.linkup.Fragment.EventFragment;
 import com.example.linkup.Fragment.HomeFragment;
 import com.example.linkup.Fragment.ProfileFragment;
+import com.example.linkup.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.firebase.auth.FirebaseAuth;

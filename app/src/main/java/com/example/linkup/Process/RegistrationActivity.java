@@ -1,4 +1,4 @@
-package com.example.linkup;
+package com.example.linkup.Process;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -11,7 +11,6 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,19 +18,18 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.linkup.SocialLogin.FacebookSignInActivity;
-import com.example.linkup.SocialLogin.GoogleSignInActivity;
+import com.example.linkup.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
-public class LoginActivity extends AppCompatActivity {
+public class RegistrationActivity extends AppCompatActivity {
     // layout object
-    Button btnLogin, btnGoogleLogin, btnFacebookLogin;
-    EditText email, pwd;
+    EditText email, pwd, conPwd;
     CheckBox cbxPwd;
-    TextView btnSignUp;
+    Button btnSignUp;
+    TextView btnLogin;
     ProgressBar progressBar;
     // Limitation / Case handling
     String emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+";
@@ -42,19 +40,19 @@ public class LoginActivity extends AppCompatActivity {
     // User default registration info
     String userEmail = "";
     String userPwd = "";
+    String userConPwd = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_registration);
         // [START gain layout objects]
-        btnLogin = findViewById(R.id.btnLogin);
         email = findViewById(R.id.email);
         pwd = findViewById(R.id.pwd);
+        conPwd = findViewById(R.id.conPwd);
         cbxPwd = findViewById(R.id.cbxPwd);
         btnSignUp = findViewById(R.id.btnSignUp);
-        btnGoogleLogin = findViewById(R.id.btnGoogleLogin);
-        btnFacebookLogin = findViewById(R.id.btnFacebookLogin);
+        btnLogin = findViewById(R.id.btnLogin);
         progressBar = findViewById(R.id.progressbar);
         // [END gain]
 
@@ -63,89 +61,82 @@ public class LoginActivity extends AppCompatActivity {
         // [END config_firebase]
 
         // [START config_dialog]
-        progressDialog = new ProgressDialog(this); // create new dialog
-        progressDialog.setMessage("Login account, please wait..."); // input msg
-        progressDialog.setCancelable(false); // Can the dialog be canceled?
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Creating account, please wait...");
+        progressDialog.setCancelable(false);
         // [END config_dialog]
 
         // [START layout component function]
-        // Check whether shown password
+        // Check whether shown password -- checkBox
         cbxPwd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-
                 if (isChecked) {
-                    // show password / confirm password
+                    // show password && confirm password
                     pwd.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                    conPwd.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
                 } else {
-                    // keep hiding the password
+                    // keep hiding the password && confirm password
                     pwd.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                    conPwd.setTransformationMethod(PasswordTransformationMethod.getInstance());
                 }
             }
         });
-        // SignIn with email, password
-        btnLogin.setOnClickListener(new View.OnClickListener() {
+
+        // Sign Up with email, password
+        btnSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // get the value from the input
                 userEmail = email.getText().toString();
                 userPwd = pwd.getText().toString();
+                userConPwd = conPwd.getText().toString();
 
-                // error handling : empty, invalid format, length limitation
-                if ((TextUtils.isEmpty(userEmail))) {
-                    Toast.makeText(LoginActivity.this, "Email is required", Toast.LENGTH_SHORT).show();
+                if (TextUtils.isEmpty(userEmail)) {
+                    Toast.makeText(RegistrationActivity.this, "Email is required", Toast.LENGTH_SHORT).show();
                 } else if (TextUtils.isEmpty(userPwd)) {
-                    Toast.makeText(LoginActivity.this, "Password is required", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RegistrationActivity.this, "Password is required", Toast.LENGTH_SHORT).show();
+                } else if (TextUtils.isEmpty(userConPwd)) {
+                    Toast.makeText(RegistrationActivity.this, "Confirm Password is required", Toast.LENGTH_SHORT).show();
                 } else if (!userEmail.matches(emailPattern)) {
                     email.setError("Please enter a valid email address");
-                    Toast.makeText(LoginActivity.this, "Email address is invalid", Toast.LENGTH_SHORT).show();
-                } else if (pwd.length() < 6) {
+                    Toast.makeText(RegistrationActivity.this, "Email address is invalid", Toast.LENGTH_SHORT).show();
+                } else if (userPwd.length() < 6) {
                     pwd.setError("Passwords must be six or more characters");
-                    Toast.makeText(LoginActivity.this, "Passwords are less than six characters", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RegistrationActivity.this, "Passwords are less than six characters", Toast.LENGTH_SHORT).show();
+                } else if (!userPwd.equals(userConPwd)) {
+                    conPwd.setError("Password and Confirm Password must be match");
+                    Toast.makeText(RegistrationActivity.this, "Passwords don't match", Toast.LENGTH_SHORT).show();
                 } else {
-                    progressBar.setVisibility(View.VISIBLE);
+                    progressBar.setVisibility(View.VISIBLE); // Show progress bar
                     progressDialog.show();
-                    // When a user signs in to your app, pass the user's email address and password
-                    auth.signInWithEmailAndPassword(userEmail, userPwd).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    // createUserWithEmailAndPassword -> create the record -> user -> for sign in
+                    auth.createUserWithEmailAndPassword(userEmail, userPwd).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if (task.isSuccessful()) {
-                                updateUI("Main");
+                                if (task.isSuccessful()) {
+                                    updateUI("Main");
+                                } else {
+                                    // Handle the error
+                                    Toast.makeText(RegistrationActivity.this, "Registration failed", Toast.LENGTH_SHORT).show();
+                                }
+                                progressDialog.dismiss();
                             } else {
-                                Toast.makeText(LoginActivity.this, "Incorrect email or password", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(RegistrationActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                             }
-                            progressDialog.dismiss();
                         }
                     });
                 }
             }
         });
-        // Switch the screen - Registration Activity
-        btnSignUp.setOnClickListener(new View.OnClickListener() {
+        // Switch the screen - Login Activity
+        btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 progressBar.setVisibility(View.VISIBLE);
-                updateUI("Registration");
+                updateUI("Login");
             }
         });
-        // Google Sign In
-        btnGoogleLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                progressBar.setVisibility(View.VISIBLE);
-                updateUI("Google");
-            }
-        });
-        // Facebook Sign In
-        btnFacebookLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                progressBar.setVisibility(View.VISIBLE);
-                updateUI("Facebook");
-            }
-        });
-
-
         // [END layout component function]
     }
 
@@ -154,13 +145,9 @@ public class LoginActivity extends AppCompatActivity {
     private void updateUI(String screen) {
         Intent intent = null;
         if (screen.equals("Main")) {
-            intent = new Intent(LoginActivity.this, MainActivity.class);
-        } else if (screen.equals("Google")) {
-            intent = new Intent(LoginActivity.this, GoogleSignInActivity.class);
-        } else if (screen.equals("Facebook")) {
-            intent = new Intent(LoginActivity.this, FacebookSignInActivity.class);
-        } else if (screen.equals("Registration")){
-            intent = new Intent(LoginActivity.this, RegistrationActivity.class);
+            intent = new Intent(RegistrationActivity.this, MainActivity.class);
+        } else if(screen.equals("Login")) {
+            intent = new Intent(RegistrationActivity.this, LoginActivity.class);
         }
         if (intent != null) {
             startActivity(intent);

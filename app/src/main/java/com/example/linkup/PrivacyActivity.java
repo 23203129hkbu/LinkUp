@@ -24,6 +24,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.linkup.Object.Users;
 import com.example.linkup.ProfileOperation.UpdateProfile;
 import com.example.linkup.SocialLogin.FacebookSignInActivity;
 import com.example.linkup.SocialLogin.GoogleSignInActivity;
@@ -32,6 +33,8 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -48,11 +51,13 @@ public class PrivacyActivity extends AppCompatActivity {
     TextView status;
     // Firebase features
     FirebaseAuth auth;
+    FirebaseDatabase Rdb; // real-time db
     FirebaseFirestore Fdb; // firestore db
+    DatabaseReference databaseUserRef; // real-time db ref
     DocumentReference documentUserRef; // firestore db ref
-    // User state
-    String userStatus;
-    //
+    // default user info
+    Users user = new Users();
+    String userUsername, userAvatar, userStatus;
     private boolean isUserChange = true;
 
     @Override
@@ -68,9 +73,11 @@ public class PrivacyActivity extends AppCompatActivity {
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
         Fdb = FirebaseFirestore.getInstance();
+        Rdb = FirebaseDatabase.getInstance();
         //[END configuration]
 
         // [START config_firebase reference]
+        databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
         documentUserRef = Fdb.collection("user").document(auth.getUid());
         // [END config_firebase reference]
 
@@ -80,10 +87,12 @@ public class PrivacyActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                         if (task.getResult().exists()) {
+                            userAvatar = task.getResult().getString("avatar");
+                            userUsername = task.getResult().getString("username");
                             userStatus = task.getResult().getString("privacy");
                             status.setText(userStatus);
 
-                            if (userStatus.equals("Private")){
+                            if (userStatus.equals("Private")) {
                                 // Prevent message frames from popping up
                                 isUserChange = false; // Do Not Remove
                                 switchStatus.setChecked(true);
@@ -105,7 +114,7 @@ public class PrivacyActivity extends AppCompatActivity {
         });
 
         switchStatus.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-             // Flag to differentiate user actions from programmatic changes
+            // Flag to differentiate user actions from programmatic changes
 
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -140,6 +149,7 @@ public class PrivacyActivity extends AppCompatActivity {
     }
 
     private void savePrivacySetting() {
+
         userStatus = status.getText().toString();
         Fdb.runTransaction(new Transaction.Function<Void>() {
                     @Override
@@ -161,6 +171,26 @@ public class PrivacyActivity extends AppCompatActivity {
                         Toast.makeText(PrivacyActivity.this, "failed", Toast.LENGTH_SHORT).show();
                     }
                 });
+
+        user.setUID(auth.getUid());
+        user.setUsername(userUsername);
+        user.setImageURI(userAvatar);
+        user.setPrivacy(userStatus);
+        databaseUserRef.setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    Toast.makeText(PrivacyActivity.this, "Data saved successfully!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(PrivacyActivity.this, "Failed to save data.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(PrivacyActivity.this, "Database error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     // [START Method]

@@ -3,7 +3,6 @@ package com.example.linkup.ProfileOperation;
 import static android.app.ProgressDialog.show;
 import static android.content.ContentValues.TAG;
 
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
@@ -18,21 +17,13 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.fragment.app.Fragment;
 
-import com.example.linkup.Fragment.ProfileFragment;
-import com.example.linkup.LoginActivity;
-import com.example.linkup.MainActivity;
+import com.example.linkup.Process.MainActivity;
 import com.example.linkup.Object.Users;
 import com.example.linkup.R;
-import com.example.linkup.SettingActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -49,9 +40,6 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class UpdateProfile extends AppCompatActivity {
     // layout object
@@ -73,7 +61,9 @@ public class UpdateProfile extends AppCompatActivity {
     Uri imageURI;
     // default user info
     Users user = new Users();
-    String userUsername, userIntroduction, userWebsite, userAvatar;
+    String userUsername, userIntroduction, userWebsite, userAvatar, userStatus;
+    // Prevent user status from disappearing -> real DB -> userStatus
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,6 +109,7 @@ public class UpdateProfile extends AppCompatActivity {
                             userUsername = task.getResult().getString("username");
                             userIntroduction = task.getResult().getString("introduction");
                             userWebsite = task.getResult().getString("website");
+                            userStatus = task.getResult().getString("privacy");
 
                             Picasso.get().load(userAvatar).into(avatar);
                             username.setText(userUsername);
@@ -183,7 +174,6 @@ public class UpdateProfile extends AppCompatActivity {
     }
 
 
-
     // [START Method]
     // Handle image selection
     @Override
@@ -231,6 +221,7 @@ public class UpdateProfile extends AppCompatActivity {
         user.setUID(auth.getUid());
         user.setUsername(userUsername);
         user.setImageURI(userAvatar);
+        user.setPrivacy(userStatus);
         databaseUserRef.setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {

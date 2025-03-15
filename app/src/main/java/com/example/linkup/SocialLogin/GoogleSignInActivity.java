@@ -6,10 +6,8 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.example.linkup.LoginActivity;
-import com.example.linkup.MainActivity;
+import com.example.linkup.Process.MainActivity;
 import com.example.linkup.R;
-import com.example.linkup.RegistrationActivity;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;

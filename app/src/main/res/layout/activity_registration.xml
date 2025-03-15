@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="@color/purple_3"
     android:orientation="vertical"
-    tools:context=".RegistrationActivity">
+    tools:context=".Process.RegistrationActivity">
 
     <ImageView
         android:layout_width="@dimen/_180sdp"

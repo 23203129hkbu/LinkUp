@@ -8,7 +8,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.example.linkup.MainActivity;
+import com.example.linkup.Process.MainActivity;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -21,10 +21,8 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 public class FacebookSignInActivity extends Activity {
 
