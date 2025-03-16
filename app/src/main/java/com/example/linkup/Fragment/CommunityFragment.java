@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.linkup.Adapter.ArticleAdapter;
+import com.example.linkup.CommunityOperation.CommunityMenu;
 import com.example.linkup.CommunityOperation.CreateCommunityPost;
 import com.example.linkup.Object.Articles;
 import com.example.linkup.R;
@@ -126,6 +127,14 @@ public class CommunityFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 updateUI("Add");
+            }
+        });
+        // Switch to menu
+        btnMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                CommunityMenu mu = new CommunityMenu();
+                mu.show(getParentFragmentManager(), "bottom");
             }
         });
 

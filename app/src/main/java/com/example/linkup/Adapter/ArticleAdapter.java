@@ -26,17 +26,26 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 
 public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHolder> {
-    private final CommunityFragment communityFragment;
-    private final ArrayList<Articles> articlesArrayList;
-    private final FirebaseAuth auth;
-    private final FirebaseDatabase Rdb;
-    private DatabaseReference databaseSavedArticleRef;
+    // layout object
+    CommunityFragment communityFragment;
+    ArrayList<Articles> articlesArrayList;
+    // Firebase features
+    FirebaseAuth auth;
+    FirebaseDatabase Rdb;
+    DatabaseReference databaseSavedArticleRef;
 
     public ArticleAdapter(CommunityFragment communityFragment, ArrayList<Articles> articlesArrayList) {
         this.communityFragment = communityFragment;
         this.articlesArrayList = articlesArrayList;
+
+        //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
         Rdb = FirebaseDatabase.getInstance();
+        //[END configuration]
+
+        // [START config_firebase reference]
+        databaseSavedArticleRef = Rdb.getReference().child("savedArticle").child(auth.getUid());
+        // [END config_firebase reference]
     }
 
     @NonNull
@@ -54,8 +63,6 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         holder.username.setText(article.getUsername());
         holder.date.setText(article.getDate());
         holder.headline.setText(article.getHeadline());
-
-        databaseSavedArticleRef = Rdb.getReference().child("savedArticle").child(auth.getUid());
 
         // Check if the article is already saved
         databaseSavedArticleRef.child(article.getArticleID()).addValueEventListener(new ValueEventListener() {
