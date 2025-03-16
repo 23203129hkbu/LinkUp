@@ -181,7 +181,7 @@ public class CreateProfile extends AppCompatActivity {
     private void handleProfileToDatabase() {
         user.setUID(auth.getUid());
         user.setUsername(userUsername);
-        user.setImageURI(imageURIString);
+        user.setImageURL(imageURIString);
         user.setPrivacy("Public");
         databaseUserRef.setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override

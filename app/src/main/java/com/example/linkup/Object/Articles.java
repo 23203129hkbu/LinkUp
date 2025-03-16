@@ -78,7 +78,7 @@ public class Articles {
         return time;
     }
 
-    public void setTime(String dateTime) {
+    public void setTime(String time) {
         this.time = time;
     }
 

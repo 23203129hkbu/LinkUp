@@ -162,7 +162,7 @@ public class PrivacyActivity extends AppCompatActivity {
 
         user.setUID(auth.getUid());
         user.setUsername(userUsername);
-        user.setImageURI(userAvatar);
+        user.setImageURL(userAvatar);
         user.setPrivacy(userStatus);
         databaseUserRef.setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override

@@ -47,7 +47,7 @@ public class CreateCommunityPost extends AppCompatActivity {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef,databaseArticleRef, databaseASBURef; // real-time db ref ; ArticleSortByUser -> ASBU
+    DatabaseReference databaseUserRef,databaseArticleRef; // real-time db ref ; ArticleSortByUser -> ASBU
     // Calendar & DateFormat
     Calendar date, time;
     SimpleDateFormat currentDate, currentTime;
@@ -77,14 +77,13 @@ public class CreateCommunityPost extends AppCompatActivity {
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
         databaseArticleRef = Rdb.getReference().child("article");
-        databaseASBURef = Rdb.getReference().child("articleSortByUser").child(auth.getUid());
         // [END config_firebase reference]
 
         //[START Calender / Date Format configuration]
         date = Calendar.getInstance();
         time = Calendar.getInstance();
         currentDate = new SimpleDateFormat("dd-mm-yy");
-        currentTime = new SimpleDateFormat("hh:mm");
+        currentTime = new SimpleDateFormat("HH:mm");
         //[END Calender / Date Format configuration]
 
         // Load / Gain existing user data
@@ -156,22 +155,16 @@ public class CreateCommunityPost extends AppCompatActivity {
     private void CreateArticle() {
         // Create Article
         article.setUID(auth.getUid());
-        article.setUsername(userUsername);
-        article.setPrivacy(userStatus);
         article.setHeadline(articleHeadline);
         article.setContent(articleContent);
-        article.setImageURL(userAvatar);
         article.setDate(createdDate);
         article.setTime(createdTime);
-        // Gain Article ID from real-time DB'
+        // Gain Article ID from real-time DB
         articleID = databaseArticleRef.push().getKey();
         // Save article Sort by User
-        databaseASBURef.child(articleID).setValue(article);
         // Save article
         article.setArticleID(articleID);
         databaseArticleRef.child(articleID).setValue(article);
     }
-
     // [END Method]
-
 }

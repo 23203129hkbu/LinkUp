@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -36,10 +37,16 @@ public class CommunityFragment extends Fragment {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseArticleRef; // real-time db ref
+    DatabaseReference databaseUserRef,databaseArticleRef, databaseSavedArticleRef; // real-time db ref ; SavedArticleSortByUser -> SASBU
     // convert article data into RecyclerView by Adapter
     ArrayList<Articles> articlesArrayList = new ArrayList<>();
     ArticleAdapter articleAdapter;
+    // Article-Info
+    Articles article = new Articles();
+    // Add the remaining information before display
+    String imageURL, username, privacy;
+    // identify whether article was saved
+    boolean checker = false;
 
     @Nullable
     @Override
@@ -58,14 +65,10 @@ public class CommunityFragment extends Fragment {
         //[END configuration]
 
         // [START config_firebase reference]
+        databaseUserRef = Rdb.getReference().child("user");
         databaseArticleRef = Rdb.getReference().child("article");
+        databaseSavedArticleRef = Rdb.getReference().child("savedArticle");
         // [END config_firebase reference]
-
-        // Grant value - which view, articles array list
-        articleAdapter = new ArticleAdapter(CommunityFragment.this, articlesArrayList);
-        // Set up the layout manager, adapter
-        articleRV.setLayoutManager(new LinearLayoutManager(getContext()));
-        articleRV.setAdapter(articleAdapter);
 
         databaseArticleRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -74,7 +77,38 @@ public class CommunityFragment extends Fragment {
                 articlesArrayList.clear();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Articles article = dataSnapshot.getValue(Articles.class);
-                    articlesArrayList.add(article);
+                    databaseArticleRef.addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            articlesArrayList.clear();
+                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                Articles article = dataSnapshot.getValue(Articles.class);
+
+                                // Fetch user data and update the article inside the callback
+                                databaseUserRef.child(article.getUID()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        if (snapshot.exists()) {
+                                            article.setUsername(snapshot.child("username").getValue(String.class));
+                                            article.setImageURL(snapshot.child("imageURL").getValue(String.class));
+                                            article.setPrivacy(snapshot.child("privacy").getValue(String.class));
+                                            articlesArrayList.add(article);
+                                            articleAdapter.notifyDataSetChanged(); // Notify adapter inside callback
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+                                        Toast.makeText(getContext(), "Failed to load user data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                        }
+                    });
                 }
                 articleAdapter.notifyDataSetChanged();
             }
@@ -84,6 +118,13 @@ public class CommunityFragment extends Fragment {
 
             }
         });
+
+        // Grant value - which view, articles array list
+        articleAdapter = new ArticleAdapter(CommunityFragment.this, articlesArrayList);
+        // Set up the layout manager, adapter
+        articleRV.setLayoutManager(new LinearLayoutManager(getContext()));
+        articleRV.setHasFixedSize(true);
+        articleRV.setAdapter(articleAdapter);
 
         // [START layout component function]
         // Switch the screen - Create Community Post
