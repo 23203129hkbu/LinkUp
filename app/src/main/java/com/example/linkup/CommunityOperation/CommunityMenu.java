@@ -40,7 +40,7 @@ public class CommunityMenu extends BottomSheetDialogFragment {
                 updateUI("savedArticles");
             }
         });
-
+        // [END layout component function]
         // this line must be finalized
         return view;
     }

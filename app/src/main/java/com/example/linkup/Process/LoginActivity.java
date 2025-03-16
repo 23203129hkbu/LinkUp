@@ -145,7 +145,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-
         // [END layout component function]
     }
 

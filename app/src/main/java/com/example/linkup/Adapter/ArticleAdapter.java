@@ -1,5 +1,6 @@
 package com.example.linkup.Adapter;
 
+import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.linkup.CommunityOperation.ArticleActivity;
+import com.example.linkup.CommunityOperation.MyArticlesActivity;
 import com.example.linkup.Fragment.CommunityFragment;
 import com.example.linkup.Object.Articles;
 import com.example.linkup.R;
@@ -27,17 +29,31 @@ import java.util.ArrayList;
 
 public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHolder> {
     // layout object
-    CommunityFragment communityFragment;
+    Context context;
     ArrayList<Articles> articlesArrayList;
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb;
     DatabaseReference databaseSavedArticleRef;
 
-    public ArticleAdapter(CommunityFragment communityFragment, ArrayList<Articles> articlesArrayList) {
-        this.communityFragment = communityFragment;
+    // Constructor
+    public ArticleAdapter(Context context, ArrayList<Articles> articlesArrayList) {
+        this.context = context;
         this.articlesArrayList = articlesArrayList;
 
+        // Firebase initialization
+        auth = FirebaseAuth.getInstance();
+        Rdb = FirebaseDatabase.getInstance();
+
+        // Firebase reference for saved articles
+        databaseSavedArticleRef = Rdb.getReference().child("savedArticle").child(auth.getUid());
+    }
+
+
+    @NonNull
+    @Override
+    public ArticleAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.article_item, parent, false);
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
         Rdb = FirebaseDatabase.getInstance();
@@ -46,12 +62,6 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         // [START config_firebase reference]
         databaseSavedArticleRef = Rdb.getReference().child("savedArticle").child(auth.getUid());
         // [END config_firebase reference]
-    }
-
-    @NonNull
-    @Override
-    public ArticleAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(communityFragment.getContext()).inflate(R.layout.article_item, parent, false);
         return new ViewHolder(view);
     }
 
@@ -64,63 +74,72 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         holder.date.setText(article.getDate());
         holder.headline.setText(article.getHeadline());
 
-        // Check if the article is already saved
-        databaseSavedArticleRef.child(article.getArticleID()).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    holder.btnSave.setImageResource(R.drawable.baseline_turned_in_24);
-                } else {
-                    holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
-                }
-            }
+        // Check if the current user is the creator of the article
+        if (article.getUID().equals(auth.getUid())) {
+            // Hide save button if the user is the creator
+            holder.btnSave.setVisibility(View.GONE);
+        } else {
+            // Show save button for other users
+            holder.btnSave.setVisibility(View.VISIBLE);
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(communityFragment.getContext(), "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        // Open article details on item click
-        holder.itemView.setOnClickListener(view -> {
-            Intent intent = new Intent(communityFragment.getContext(), ArticleActivity.class);
-            intent.putExtra("articleID", article.getArticleID());
-            communityFragment.startActivity(intent);
-        });
-
-        // Handle save button click (toggle save/remove article)
-        holder.btnSave.setOnClickListener(view -> {
-            databaseSavedArticleRef.child(article.getArticleID()).addListenerForSingleValueEvent(new ValueEventListener() {
+            // Check if the article is already saved
+            databaseSavedArticleRef.child(article.getArticleID()).addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists()) {
-                        // Article is already saved, remove it
-                        databaseSavedArticleRef.child(article.getArticleID()).removeValue()
-                                .addOnCompleteListener(task -> {
-                                    if (task.isSuccessful()) {
-                                        Toast.makeText(communityFragment.getContext(), "Article Removed", Toast.LENGTH_SHORT).show();
-                                    } else {
-                                        Toast.makeText(communityFragment.getContext(), "Failed to remove article", Toast.LENGTH_SHORT).show();
-                                    }
-                                });
+                        holder.btnSave.setImageResource(R.drawable.baseline_turned_in_24);
                     } else {
-                        // Article is not saved, save it
-                        databaseSavedArticleRef.child(article.getArticleID()).setValue(article)
-                                .addOnCompleteListener(task -> {
-                                    if (task.isSuccessful()) {
-                                        Toast.makeText(communityFragment.getContext(), "Article Saved", Toast.LENGTH_SHORT).show();
-                                    } else {
-                                        Toast.makeText(communityFragment.getContext(), "Failed to save article", Toast.LENGTH_SHORT).show();
-                                    }
-                                });
+                        holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
                     }
                 }
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
-                    Toast.makeText(communityFragment.getContext(), "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
+
+            // Handle save button click (toggle save/remove article)
+            holder.btnSave.setOnClickListener(view -> {
+                databaseSavedArticleRef.child(article.getArticleID()).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            // Article is already saved, remove it
+                            databaseSavedArticleRef.child(article.getArticleID()).removeValue()
+                                    .addOnCompleteListener(task -> {
+                                        if (task.isSuccessful()) {
+                                            Toast.makeText(context, "Article Removed", Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            Toast.makeText(context, "Failed to remove article", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                        } else {
+                            // Article is not saved, save it
+                            databaseSavedArticleRef.child(article.getArticleID()).setValue(article)
+                                    .addOnCompleteListener(task -> {
+                                        if (task.isSuccessful()) {
+                                            Toast.makeText(context, "Article Saved", Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            Toast.makeText(context, "Failed to save article", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(context, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            });
+        }
+
+        // Open article details on item click
+        holder.itemView.setOnClickListener(view -> {
+            Intent intent = new Intent(context, ArticleActivity.class);
+            intent.putExtra("articleID", article.getArticleID());
+            context.startActivity(intent);
         });
     }
 

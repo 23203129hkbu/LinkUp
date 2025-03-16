@@ -42,8 +42,7 @@ public class CommunityFragment extends Fragment {
     // convert article data into RecyclerView by Adapter
     ArrayList<Articles> articlesArrayList = new ArrayList<>();
     ArticleAdapter articleAdapter;
-    // identify whether article was saved
-    boolean checker = false;
+
 
     @Nullable
     @Override
@@ -115,7 +114,7 @@ public class CommunityFragment extends Fragment {
         });
 
         // Grant value - which view, articles array list
-        articleAdapter = new ArticleAdapter(CommunityFragment.this, articlesArrayList);
+        articleAdapter = new ArticleAdapter(getContext(), articlesArrayList);
         // Set up the layout manager, adapter
         articleRV.setLayoutManager(new LinearLayoutManager(getContext()));
         articleRV.setHasFixedSize(true);
@@ -137,7 +136,7 @@ public class CommunityFragment extends Fragment {
                 mu.show(getParentFragmentManager(), "bottom");
             }
         });
-
+        // [END layout component function]
         // this line must be finalized
         return view;
     }

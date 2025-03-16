@@ -132,7 +132,7 @@ public class CreateCommunityPost extends AppCompatActivity {
                 }
             }
         });
-
+        // [END layout component function]
     }
 
     // [START Method]
@@ -151,17 +151,16 @@ public class CreateCommunityPost extends AppCompatActivity {
 
 
     private void CreateArticle() {
+        // Gain Article ID from real-time DB
+        articleID = databaseArticleRef.push().getKey();
         // Create Article
         article.setUID(auth.getUid());
         article.setHeadline(articleHeadline);
         article.setContent(articleContent);
         article.setDate(createdDate);
         article.setTime(createdTime);
-        // Gain Article ID from real-time DB
-        articleID = databaseArticleRef.push().getKey();
-        // Save article Sort by User
-        // Save article
         article.setArticleID(articleID);
+        // Save article
         databaseArticleRef.child(articleID).setValue(article);
     }
     // [END Method]
