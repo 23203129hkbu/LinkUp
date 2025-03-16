@@ -115,6 +115,9 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                                         }
                                     });
                         } else {
+                            article.setUsername(null);
+                            article.setImageURL(null);
+                            article.setPrivacy(null);
                             // Article is not saved, save it
                             databaseSavedArticleRef.child(article.getArticleID()).setValue(article)
                                     .addOnCompleteListener(task -> {
