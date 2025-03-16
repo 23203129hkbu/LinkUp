@@ -63,6 +63,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.viewhold
         holder.btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 Toast.makeText(communityFragment.getContext(), "Article Saved", Toast.LENGTH_SHORT).show();
             }
         });

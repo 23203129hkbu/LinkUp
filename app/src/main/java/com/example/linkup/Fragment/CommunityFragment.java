@@ -41,10 +41,6 @@ public class CommunityFragment extends Fragment {
     // convert article data into RecyclerView by Adapter
     ArrayList<Articles> articlesArrayList = new ArrayList<>();
     ArticleAdapter articleAdapter;
-    // Article-Info
-    Articles article = new Articles();
-    // Add the remaining information before display
-    String imageURL, username, privacy;
     // identify whether article was saved
     boolean checker = false;
 
@@ -73,49 +69,33 @@ public class CommunityFragment extends Fragment {
         databaseArticleRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                // Avoid user inconsistency if the user data are be updated
                 articlesArrayList.clear();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Articles article = dataSnapshot.getValue(Articles.class);
-                    databaseArticleRef.addValueEventListener(new ValueEventListener() {
+
+                    // Fetch user data and update the article inside the callback
+                    databaseUserRef.child(article.getUID()).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            articlesArrayList.clear();
-                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                Articles article = dataSnapshot.getValue(Articles.class);
-
-                                // Fetch user data and update the article inside the callback
-                                databaseUserRef.child(article.getUID()).addListenerForSingleValueEvent(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                        if (snapshot.exists()) {
-                                            article.setUsername(snapshot.child("username").getValue(String.class));
-                                            article.setImageURL(snapshot.child("imageURL").getValue(String.class));
-                                            article.setPrivacy(snapshot.child("privacy").getValue(String.class));
-                                            articlesArrayList.add(article);
-                                            articleAdapter.notifyDataSetChanged(); // Notify adapter inside callback
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError error) {
-                                        Toast.makeText(getContext(), "Failed to load user data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                                    }
-                                });
+                            if (snapshot.exists()) {
+                                article.setUsername(snapshot.child("username").getValue(String.class));
+                                article.setImageURL(snapshot.child("imageURL").getValue(String.class));
+                                article.setPrivacy(snapshot.child("privacy").getValue(String.class));
+                                articlesArrayList.add(article);
+                                articleAdapter.notifyDataSetChanged(); // Notify adapter inside callback
                             }
                         }
 
                         @Override
                         public void onCancelled(@NonNull DatabaseError error) {
+                            Toast.makeText(getContext(), "Failed to load user data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
-                articleAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
             }
         });
 
