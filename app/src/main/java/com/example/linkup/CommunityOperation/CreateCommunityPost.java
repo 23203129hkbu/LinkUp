@@ -82,7 +82,7 @@ public class CreateCommunityPost extends AppCompatActivity {
         //[START Calender / Date Format configuration]
         date = Calendar.getInstance();
         time = Calendar.getInstance();
-        currentDate = new SimpleDateFormat("dd-mm-yy");
+        currentDate = new SimpleDateFormat("dd-MM-yy");
         currentTime = new SimpleDateFormat("HH:mm");
         //[END Calender / Date Format configuration]
 
