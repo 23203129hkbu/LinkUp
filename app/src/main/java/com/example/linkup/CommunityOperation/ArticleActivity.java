@@ -3,6 +3,8 @@ package com.example.linkup.CommunityOperation;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -17,6 +19,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.linkup.Object.ArticleComments;
 import com.example.linkup.Object.Articles;
 import com.example.linkup.ProfileOperation.SettingActivity;
 import com.example.linkup.R;
@@ -30,6 +33,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+
 public class ArticleActivity extends AppCompatActivity {
     ImageView btnClose, btnSave, btnDelete, posterAvatar, btnLike, btnSend;
     TextView posterName, createdDate, createdTime, headline, content;
@@ -37,9 +43,15 @@ public class ArticleActivity extends AppCompatActivity {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef, databaseArticleRef, databaseSavedArticleRef; // real-time db ref ;
+    DatabaseReference databaseArticleRef, databaseSavedArticleRef, databaseCommentRef; // real-time db ref ;
+    // Calendar & DateFormat
+    Calendar date, time;
+    SimpleDateFormat currentDate, currentTime;
     // Article - retrieve data form adapter
     Articles article = new Articles();
+    ArticleComments articleComment = new ArticleComments();
+    // Comment
+    String userComment, commentDate, commentTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,10 +83,17 @@ public class ArticleActivity extends AppCompatActivity {
         //[END configuration]
 
         // [START config_firebase reference]
-        //databaseUserRef = Rdb.getReference().child("user");
         databaseArticleRef = Rdb.getReference().child("article").child(article.getArticleID());
         databaseSavedArticleRef = Rdb.getReference().child("savedArticle").child(auth.getUid());
+        databaseCommentRef = databaseArticleRef.child("Comment");
         // [END config_firebase reference]
+
+        //[START Calender / Date Format configuration]
+        date = Calendar.getInstance();
+        time = Calendar.getInstance();
+        currentDate = new SimpleDateFormat("dd-MM-yy");
+        currentTime = new SimpleDateFormat("HH:mm");
+        //[END Calender / Date Format configuration]
 
         // Load / Gain existing article data
         // ✅ Now, updating UI elements inside the callback
@@ -214,8 +233,53 @@ public class ArticleActivity extends AppCompatActivity {
             });
         });
 
+        // Send comment
+        btnSend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                userComment = comment.getText().toString();
+                commentDate = currentDate.format(date.getTime());
+                commentTime = currentTime.format(time.getTime());
+                if ((TextUtils.isEmpty(userComment))) {
+                    Toast.makeText(ArticleActivity.this, "Comment cannot be empty ", Toast.LENGTH_SHORT).show();
+                } else {
+                    // Create Comment
+                    CreateComment();
+                    // empty comment
+                    comment.setText("");
+                    Toast.makeText(ArticleActivity.this, "Comment sent successfully", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
         // [END layout component function]
-
-
     }
+    // [START Method]
+//    // handling UI update
+//    private void updateUI() {
+//        Toast.makeText(CreateCommunityPost.this, "Article Created", Toast.LENGTH_SHORT).show();
+//        // Delay execution to allow enough time for data to be uploaded
+//        Handler handler = new Handler();
+//        handler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                finish();
+//            }
+//        },2000);
+//    }
+//
+
+    private void CreateComment() {
+        // Gain Comment ID from real-time DB - No need to store
+        String CID = databaseCommentRef.push().getKey();
+        // Create Comment
+        articleComment.setUID(auth.getUid());
+        articleComment.setDate(commentDate);
+        articleComment.setTime(commentTime);
+        articleComment.setComment(userComment);
+        articleComment.setUsername(article.getUsername());
+        articleComment.setImageURL(article.getImageURL());
+        // Save comment
+        databaseCommentRef.child(CID).setValue(article);
+    }
+    // [END Method]
 }

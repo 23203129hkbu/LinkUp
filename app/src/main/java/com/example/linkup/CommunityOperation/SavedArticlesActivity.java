@@ -33,10 +33,11 @@ public class SavedArticlesActivity extends AppCompatActivity {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseSavedArticleRef; // real-time db ref ; SavedArticleSortByUser -> SASBU
+    DatabaseReference databaseArticleRef, databaseSavedArticleRef; // real-time db ref ; SavedArticleSortByUser -> SASBU
     // convert article data into RecyclerView by Adapter
     ArrayList<Articles> articlesArrayList = new ArrayList<>();
     ArticleAdapter articleAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,6 +53,7 @@ public class SavedArticlesActivity extends AppCompatActivity {
         //[END configuration]
 
         // [START config_firebase reference]
+        databaseArticleRef = Rdb.getReference().child("article");
         databaseSavedArticleRef = Rdb.getReference().child("savedArticle").child(auth.getUid());
         // [END config_firebase reference]
 
@@ -59,16 +61,53 @@ public class SavedArticlesActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 articlesArrayList.clear();
+                // Create a list to hold the article IDs
+                ArrayList<String> articleIDs = new ArrayList<>();
+
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Articles article = dataSnapshot.getValue(Articles.class);
-                    // Ensure article is not null before proceeding
                     if (article != null) {
-                        // Auto remove null article
-
-                        articlesArrayList.add(article);
+                        articleIDs.add(article.getArticleID());
                     }
                 }
 
+                // Now check each article ID against the article database
+                for (String articleID : articleIDs) {
+                    databaseArticleRef.child(articleID).addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if (snapshot.exists()) {
+                                Articles article = snapshot.getValue(Articles.class);
+                                if (article != null) {
+                                    // Update or add the article to the list
+                                    boolean found = false;
+                                    for (int i = 0; i < articlesArrayList.size(); i++) {
+                                        if (articlesArrayList.get(i).getArticleID().equals(article.getArticleID())) {
+                                            articlesArrayList.set(i, article);
+                                            found = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!found) {
+                                        articlesArrayList.add(article);
+                                    }
+                                }
+                            } else {
+                                // Remove the article ID from savedArticles if it doesn't exist
+                                databaseSavedArticleRef.child(articleID).removeValue();
+                                // Remove the article from the list
+                                articlesArrayList.removeIf(a -> a.getArticleID().equals(articleID));
+                            }
+                            // Notify adapter after changes
+                            articleAdapter.notifyDataSetChanged();
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            Toast.makeText(SavedArticlesActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
                 // Sort the articles after all have been added to the list
                 articlesArrayList.sort((a1, a2) -> {
                     // First, compare by date
@@ -85,7 +124,7 @@ public class SavedArticlesActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                // Handle possible errors
+                Toast.makeText(SavedArticlesActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
 
