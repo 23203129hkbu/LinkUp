@@ -1,10 +1,205 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".CommunityOperation.ArticleActivity">
+    android:background="@color/gray_3">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        app:cardBackgroundColor="@color/purple_3">
+
+        <ImageView
+            android:id="@+id/btnClose"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="left"
+            android:layout_marginLeft="@dimen/_8sdp"
+            android:src="@drawable/baseline_close_24" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:padding="@dimen/_8sdp"
+            android:text="Article"
+            android:textColor="@color/white"
+            android:textSize="@dimen/_15sdp"
+            android:textStyle="bold" />
+        <ImageView
+            android:id="@+id/btnDelete"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="right"
+            android:layout_marginRight="@dimen/_40sdp"
+            android:src="@drawable/baseline_delete_24_white" />
+        <ImageView
+            android:id="@+id/btnSave"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="right"
+            android:layout_marginRight="@dimen/_8sdp"
+            android:src="@drawable/baseline_turned_in_not_24_white" />
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Post Section -->
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/gray_4"
+        android:padding="16dp"
+        android:layout_marginBottom="8dp">
+
+        <!-- Profile Info -->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/posterAvatar"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/baseline_person_24"
+                android:layout_marginRight="8dp"
+                android:contentDescription="Profile Picture" />
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <TextView
+                    android:id="@+id/posterName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Poster Name"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/createdDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Date"
+                    android:textColor="@color/gray_5"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/createdTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Time"
+                android:textColor="@color/gray_5"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Post Content -->
+        <TextView
+            android:id="@+id/headline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Headline"
+            android:layout_marginTop="16dp"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Content"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+
+            <!-- Like Icon -->
+            <ImageView
+                android:id="@+id/likeIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/baseline_favorite_24"
+                android:contentDescription="Like"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true" />
+
+            <!-- Like Count -->
+            <TextView
+                android:id="@+id/count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="10"
+                android:textColor="@color/gray_5"
+                android:layout_toEndOf="@id/likeIcon"
+                android:layout_centerVertical="true" />
+
+            <!-- Favorite Border Icon -->
+            <ImageView
+                android:id="@+id/btnLike"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/baseline_favorite_border_24_gray"
+                android:contentDescription="Favorite Border"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true" />
+        </RelativeLayout>
+    </LinearLayout>
+
+    <!-- Comments Section -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="All comments"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_13sdp"
+        android:padding="@dimen/_10sdp"
+        android:layout_marginBottom="18dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/commentRV"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Add Comment Section -->
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:background="@color/gray_4">
+
+        <EditText
+            android:id="@+id/comment"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Add a comment..."
+            android:backgroundTint="@color/gray_5"
+            android:textColor="@color/white"
+            android:textColorHint="@color/gray_5"
+            android:padding="8dp" />
+
+        <ImageView
+            android:id="@+id/btnSend"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="right"
+            android:src="@drawable/baseline_send_24" />
+    </LinearLayout>
+</LinearLayout>
