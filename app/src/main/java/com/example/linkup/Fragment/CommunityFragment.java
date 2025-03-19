@@ -38,7 +38,7 @@ public class CommunityFragment extends Fragment {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef,databaseArticleRef; // real-time db ref ; SavedArticleSortByUser -> SASBU
+    DatabaseReference databaseArticleRef; // real-time db ref ; SavedArticleSortByUser -> SASBU
     // convert article data into RecyclerView by Adapter
     ArrayList<Articles> articlesArrayList = new ArrayList<>();
     ArticleAdapter articleAdapter;
@@ -61,55 +61,39 @@ public class CommunityFragment extends Fragment {
         //[END configuration]
 
         // [START config_firebase reference]
-        databaseUserRef = Rdb.getReference().child("user");
         databaseArticleRef = Rdb.getReference().child("article");
         // [END config_firebase reference]
 
+        // Gain the adapter data object
         databaseArticleRef.orderByChild("date").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 articlesArrayList.clear();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Articles article = dataSnapshot.getValue(Articles.class);
-
                     // Ensure article is not null before proceeding
                     if (article != null) {
-                        // Fetch user data and update the article inside the callback
-                        databaseUserRef.child(article.getUID()).addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot userSnapshot) {
-                                if (userSnapshot.exists()) {
-                                    article.setUsername(userSnapshot.child("username").getValue(String.class));
-                                    article.setImageURL(userSnapshot.child("imageURL").getValue(String.class));
-                                    article.setPrivacy(userSnapshot.child("privacy").getValue(String.class));
-                                    articlesArrayList.add(article);
-
-                                    // **Sort by date and time before updating UI**
-                                    articlesArrayList.sort((a1, a2) -> {
-                                        // First, compare by date
-                                        int dateComparison = a1.getDate().compareTo(a2.getDate());
-                                        if (dateComparison == 0) {
-                                            // If dates are equal, compare by time
-                                            return a1.getTime().compareTo(a2.getTime());
-                                        }
-                                        return dateComparison;
-                                    });
-
-                                    articleAdapter.notifyDataSetChanged(); // Notify adapter after sorting
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) {
-                                Toast.makeText(getContext(), "Failed to load user data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        articlesArrayList.add(article);
                     }
                 }
+
+                // Sort the articles after all have been added to the list
+                articlesArrayList.sort((a1, a2) -> {
+                    // First, compare by date
+                    int dateComparison = a2.getDate().compareTo(a1.getDate());
+                    if (dateComparison == 0) {
+                        // If dates are equal, compare by time
+                        return a2.getTime().compareTo(a1.getTime());
+                    }
+                    return dateComparison;
+                });
+                // Notify adapter after sorting
+                articleAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+                // Handle possible errors
             }
         });
 
@@ -148,9 +132,6 @@ public class CommunityFragment extends Fragment {
         if (screen.equals("Add")) {
             intent = new Intent(getContext(), CreateCommunityPost.class);
         }
-//        } else if (screen.equals("Update")) {
-//            intent = new Intent(getContext(), UpdateProfile.class);
-//        }
         if (intent != null) {
             startActivity(intent);
         }

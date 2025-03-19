@@ -1,6 +1,9 @@
 package com.example.linkup.Object;
 
-public class Articles {
+import java.io.Serializable;
+
+// article object directly through the Intent when setting the click listener for holder
+public class Articles implements Serializable {
     String articleID,UID,username,privacy,headline,content,date,time,imageURL;
 
     public Articles() {

@@ -108,9 +108,6 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                                         }
                                     });
                         } else {
-                            article.setUsername(null);
-                            article.setImageURL(null);
-                            article.setPrivacy(null);
                             // Article is not saved, save it
                             databaseSavedArticleRef.child(article.getArticleID()).setValue(article)
                                     .addOnCompleteListener(task -> {
@@ -134,7 +131,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         // Open article details on item click
         holder.itemView.setOnClickListener(view -> {
             Intent intent = new Intent(context, ArticleActivity.class);
-            intent.putExtra("articleID", article.getArticleID());
+            intent.putExtra("article", article);  // Pass the article object
             context.startActivity(intent);
         });
     }

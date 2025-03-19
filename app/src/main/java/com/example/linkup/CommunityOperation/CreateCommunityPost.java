@@ -92,7 +92,7 @@ public class CreateCommunityPost extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     userUsername = snapshot.child("username").getValue(String.class);
-                    userAvatar = snapshot.child("imageURI").getValue(String.class);
+                    userAvatar = snapshot.child("imageURL").getValue(String.class);
                     userStatus = snapshot.child("privacy").getValue(String.class);
                 }
             }
@@ -160,6 +160,9 @@ public class CreateCommunityPost extends AppCompatActivity {
         article.setDate(createdDate);
         article.setTime(createdTime);
         article.setArticleID(articleID);
+        article.setUsername(userUsername);
+        article.setPrivacy(userStatus);
+        article.setImageURL(userAvatar);
         // Save article
         databaseArticleRef.child(articleID).setValue(article);
     }
