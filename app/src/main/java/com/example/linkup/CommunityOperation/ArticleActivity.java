@@ -31,7 +31,7 @@ public class ArticleActivity extends AppCompatActivity {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef, databaseArticleRef; // real-time db ref ;
+    DatabaseReference databaseUserRef, databaseArticleRef, databaseSavedArticleRef; // real-time db ref ;
     String articleID, articleContent, articleDate, articleHeadline, articleTime, UID, username, imageURL;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +66,7 @@ public class ArticleActivity extends AppCompatActivity {
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user");
         databaseArticleRef = Rdb.getReference().child("article").child(articleID);
+        databaseSavedArticleRef = Rdb.getReference().child("savedArticle").child(auth.getUid());
         // [END config_firebase reference]
 
         // Load / Gain existing user data
@@ -79,6 +80,34 @@ public class ArticleActivity extends AppCompatActivity {
                     articleTime = snapshot.child("time").getValue(String.class);
                     UID = snapshot.child("uid").getValue(String.class);
 
+                    if (UID != null) {
+                        // Layout Control (moved here to ensure UID is initialized)
+                        if (UID.equals(auth.getUid())) {
+                            // Creator layout
+                            btnSave.setVisibility(View.GONE);
+                            btnDelete.setVisibility(View.VISIBLE);
+                        } else {
+                            // Netizen layout
+                            btnSave.setVisibility(View.VISIBLE);
+                            btnDelete.setVisibility(View.GONE);
+                            // Check if the article is already saved
+                            databaseSavedArticleRef.child(articleID).addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    if (snapshot.exists()) {
+                                        btnSave.setImageResource(R.drawable.baseline_turned_in_24);
+                                    } else {
+                                        btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+                                    Toast.makeText(ArticleActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    }
                     // Fetch user data and update the article inside the callback
                     databaseUserRef.child(UID).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
@@ -117,6 +146,7 @@ public class ArticleActivity extends AppCompatActivity {
                 finish();
             }
         });
+
         // [END layout component function]
     }
 }

@@ -40,13 +40,6 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     public ArticleAdapter(Context context, ArrayList<Articles> articlesArrayList) {
         this.context = context;
         this.articlesArrayList = articlesArrayList;
-
-        // Firebase initialization
-        auth = FirebaseAuth.getInstance();
-        Rdb = FirebaseDatabase.getInstance();
-
-        // Firebase reference for saved articles
-        databaseSavedArticleRef = Rdb.getReference().child("savedArticle").child(auth.getUid());
     }
 
 
