@@ -31,128 +31,56 @@ import java.util.ArrayList;
 public class ArticleCommentAdapter extends RecyclerView.Adapter<ArticleCommentAdapter.ViewHolder> {
     // layout object
     Context context;
-    ArrayList<Articles> articlesArrayList;
+    ArrayList<ArticleComments> commentsArrayList;
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb;
-    DatabaseReference databaseSavedArticleRef;
 
     // Constructor
-    public ArticleCommentAdapter(Context context, ArrayList<Articles> articlesArrayList) {
+    public ArticleCommentAdapter(Context context, ArrayList<ArticleComments> commentsArrayList) {
         this.context = context;
-        this.articlesArrayList = articlesArrayList;
+        this.commentsArrayList = commentsArrayList;
     }
 
 
     @NonNull
     @Override
     public ArticleCommentAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.article_item, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.article_comment_item, parent, false);
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
         Rdb = FirebaseDatabase.getInstance();
         //[END configuration]
 
-        // [START config_firebase reference]
-        databaseSavedArticleRef = Rdb.getReference().child("savedArticle").child(auth.getUid());
-        // [END config_firebase reference]
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ArticleCommentAdapter.ViewHolder holder, int position) {
-        Articles article = articlesArrayList.get(position);
+        ArticleComments comment = commentsArrayList.get(position);
 
-        Picasso.get().load(article.getImageURL()).into(holder.avatar);
-        holder.username.setText(article.getUsername());
-        holder.date.setText(article.getDate());
-        holder.headline.setText(article.getHeadline());
-
-        // Check if the current user is the creator of the article
-        if (article.getUID().equals(auth.getUid())) {
-            // Hide save button if the user is the creator
-            holder.btnSave.setVisibility(View.GONE);
-        } else {
-            // Show save button for other users
-            holder.btnSave.setVisibility(View.VISIBLE);
-
-            // Check if the article is already saved
-            databaseSavedArticleRef.child(article.getArticleID()).addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.exists()) {
-                        holder.btnSave.setImageResource(R.drawable.baseline_turned_in_24);
-                    } else {
-                        holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    Toast.makeText(context, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
-
-            // Handle save button click (toggle save/remove article)
-            holder.btnSave.setOnClickListener(view -> {
-                databaseSavedArticleRef.child(article.getArticleID()).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (snapshot.exists()) {
-                            // Article is already saved, remove it
-                            databaseSavedArticleRef.child(article.getArticleID()).removeValue()
-                                    .addOnCompleteListener(task -> {
-                                        if (task.isSuccessful()) {
-                                            Toast.makeText(context, "Article Removed", Toast.LENGTH_SHORT).show();
-                                        } else {
-                                            Toast.makeText(context, "Failed to remove article", Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
-                        } else {
-                            // Article is not saved, save it
-                            databaseSavedArticleRef.child(article.getArticleID()).setValue(article)
-                                    .addOnCompleteListener(task -> {
-                                        if (task.isSuccessful()) {
-                                            Toast.makeText(context, "Article Saved", Toast.LENGTH_SHORT).show();
-                                        } else {
-                                            Toast.makeText(context, "Failed to save article", Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(context, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-            });
-        }
-
-        // Open article details on item click
-        holder.itemView.setOnClickListener(view -> {
-            Intent intent = new Intent(context, ArticleActivity.class);
-            intent.putExtra("article", article);  // Pass the article object
-            context.startActivity(intent);
-        });
+        Picasso.get().load(comment.getImageURL()).into(holder.netizenAvatar);
+        holder.comment.setText(comment.getComment());
+        holder.date.setText(comment.getDate());
+        holder.netizenName.setText(comment.getUsername());
     }
 
     @Override
     public int getItemCount() {
-        return articlesArrayList.size();
+        return commentsArrayList.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView avatar, btnSave;
-        TextView username, date, headline;
+        ImageView netizenAvatar, btnLike;
+        TextView netizenName, comment, date;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            avatar = itemView.findViewById(R.id.avatar);
-            username = itemView.findViewById(R.id.username);
+            netizenAvatar = itemView.findViewById(R.id.netizenAvatar);
+            netizenName = itemView.findViewById(R.id.netizenName);
             date = itemView.findViewById(R.id.date);
-            headline = itemView.findViewById(R.id.headline);
-            btnSave = itemView.findViewById(R.id.btnSave);
+            comment = itemView.findViewById(R.id.comment);
+            btnLike = itemView.findViewById(R.id.btnLike);
         }
     }
 }

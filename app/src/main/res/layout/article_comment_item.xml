@@ -57,15 +57,5 @@
             android:text="Date"
             android:textColor="@color/gray_5"
             android:gravity="end" />
-
-        <!-- Like Button -->
-        <ImageView
-            android:id="@+id/btnLike"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/baseline_favorite_border_24_gray"
-            android:contentDescription="Like Button"
-            android:layout_marginTop="8dp"
-            android:gravity="end" />
     </LinearLayout>
 </LinearLayout>

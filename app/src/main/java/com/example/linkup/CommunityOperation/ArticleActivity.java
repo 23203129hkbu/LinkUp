@@ -18,9 +18,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.linkup.Adapter.ArticleAdapter;
+import com.example.linkup.Adapter.ArticleCommentAdapter;
 import com.example.linkup.Object.ArticleComments;
 import com.example.linkup.Object.Articles;
+import com.example.linkup.Object.Users;
 import com.example.linkup.ProfileOperation.SettingActivity;
 import com.example.linkup.R;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -34,24 +39,33 @@ import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 public class ArticleActivity extends AppCompatActivity {
     ImageView btnClose, btnSave, btnDelete, posterAvatar, btnLike, btnSend;
-    TextView posterName, createdDate, createdTime, headline, content;
+    TextView posterName, createdDate, createdTime, headline, content, likes;
     EditText comment;
+    RecyclerView commentRV;
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseArticleRef, databaseSavedArticleRef, databaseCommentRef; // real-time db ref ;
+    DatabaseReference databaseUserRef, databaseArticleRef, databaseSavedArticleRef, databaseCommentRef, databaseLikeRef; // real-time db ref ;
+    // convert comment data into RecyclerView by Adapter
+    ArrayList<ArticleComments> commentsArrayList = new ArrayList<>();
+    ArticleCommentAdapter articleCommentAdapter;
     // Calendar & DateFormat
     Calendar date, time;
     SimpleDateFormat currentDate, currentTime;
     // Article - retrieve data form adapter
     Articles article = new Articles();
     ArticleComments articleComment = new ArticleComments();
+    // User
+    Users user = new Users();
     // Comment
-    String userComment, commentDate, commentTime;
+    String userComment, commentDate, commentTime, userUsername, userAvatar;
+    // Likes
+    int noOfLikes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +85,8 @@ public class ArticleActivity extends AppCompatActivity {
         headline = findViewById(R.id.headline);
         content = findViewById(R.id.content);
         btnLike = findViewById(R.id.btnLike);
+        likes = findViewById(R.id.likes);
+        commentRV = findViewById(R.id.commentRV);
         comment = findViewById(R.id.comment);
         btnSend = findViewById(R.id.btnSend);
         // Only content creator
@@ -83,9 +99,11 @@ public class ArticleActivity extends AppCompatActivity {
         //[END configuration]
 
         // [START config_firebase reference]
+        databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
         databaseArticleRef = Rdb.getReference().child("article").child(article.getArticleID());
         databaseSavedArticleRef = Rdb.getReference().child("savedArticle").child(auth.getUid());
         databaseCommentRef = databaseArticleRef.child("Comment");
+        databaseLikeRef = databaseArticleRef.child("Like");
         // [END config_firebase reference]
 
         //[START Calender / Date Format configuration]
@@ -130,7 +148,89 @@ public class ArticleActivity extends AppCompatActivity {
                     }
                 });
             }
+            // Load Like Button
+
         }
+        // Load / Gain existing user data
+        databaseUserRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    userUsername = snapshot.child("username").getValue(String.class);
+                    userAvatar = snapshot.child("imageURL").getValue(String.class);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(ArticleActivity.this, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Load / Gain existing likes
+        databaseLikeRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                // Count total likes
+                noOfLikes = (int) snapshot.getChildrenCount();
+                likes.setText(String.valueOf(noOfLikes));
+                // Check if the current user has liked the article
+                if (snapshot.hasChild(auth.getUid())) {
+                    // User has liked the article
+                    btnLike.setImageResource(R.drawable.baseline_favorite_24); // Change to liked icon
+                } else {
+                    // User has not liked the article
+                    btnLike.setImageResource(R.drawable.baseline_favorite_border_24); // Change to unliked icon
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(ArticleActivity.this, "Failed to load likes: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+        // Gain the adapter data object
+        databaseCommentRef.orderByChild("date").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                commentsArrayList.clear();
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    ArticleComments comment = dataSnapshot.getValue(ArticleComments.class);
+                    // Ensure comment is not null before proceeding
+                    if (comment != null) {
+                        commentsArrayList.add(comment);
+                    }
+                }
+
+                // Sort the comments after all have been added to the list
+                commentsArrayList.sort((a1, a2) -> {
+                    // First, compare by date
+                    int dateComparison = a2.getDate().compareTo(a1.getDate());
+                    if (dateComparison == 0) {
+                        // If dates are equal, compare by time
+                        return a2.getTime().compareTo(a1.getTime());
+                    }
+                    return dateComparison;
+                });
+                // Notify adapter after sorting
+                articleCommentAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Handle possible errors
+            }
+        });
+
+        // Grant value - which view, articles array list
+        articleCommentAdapter = new ArticleCommentAdapter(ArticleActivity.this, commentsArrayList);
+        // Set up the layout manager, adapter
+        commentRV.setLayoutManager(new LinearLayoutManager(ArticleActivity.this));
+        commentRV.setHasFixedSize(true);
+        commentRV.setAdapter(articleCommentAdapter);
+
         // [START layout component function]
         // Switch the screen -  Community Fragment
         btnClose.setOnClickListener(new View.OnClickListener() {
@@ -233,6 +333,42 @@ public class ArticleActivity extends AppCompatActivity {
             });
         });
 
+        // Like the article
+        btnLike.setOnClickListener(view -> {
+            databaseLikeRef.child(auth.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        // Article is already saved, remove it
+                        databaseLikeRef.child(auth.getUid()).removeValue()
+                                .addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        Toast.makeText(ArticleActivity.this, "Unlike", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        Toast.makeText(ArticleActivity.this, "Failed to unlike", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                    } else {
+                        user.setUID(auth.getUid());
+                        // Article is not saved, save it
+                        databaseLikeRef.child(auth.getUid()).setValue(user)
+                                .addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        Toast.makeText(ArticleActivity.this, "Liked", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        Toast.makeText(ArticleActivity.this, "Failed to like", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(ArticleActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+
         // Send comment
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -253,21 +389,6 @@ public class ArticleActivity extends AppCompatActivity {
         });
         // [END layout component function]
     }
-    // [START Method]
-//    // handling UI update
-//    private void updateUI() {
-//        Toast.makeText(CreateCommunityPost.this, "Article Created", Toast.LENGTH_SHORT).show();
-//        // Delay execution to allow enough time for data to be uploaded
-//        Handler handler = new Handler();
-//        handler.postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                finish();
-//            }
-//        },2000);
-//    }
-//
-
     private void CreateComment() {
         // Gain Comment ID from real-time DB - No need to store
         String CID = databaseCommentRef.push().getKey();
@@ -276,10 +397,10 @@ public class ArticleActivity extends AppCompatActivity {
         articleComment.setDate(commentDate);
         articleComment.setTime(commentTime);
         articleComment.setComment(userComment);
-        articleComment.setUsername(article.getUsername());
-        articleComment.setImageURL(article.getImageURL());
+        articleComment.setUsername(userUsername);
+        articleComment.setImageURL(userAvatar);
         // Save comment
-        databaseCommentRef.child(CID).setValue(article);
+        databaseCommentRef.child(CID).setValue(articleComment);
     }
     // [END Method]
 }

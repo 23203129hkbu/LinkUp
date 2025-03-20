@@ -140,10 +140,10 @@
 
             <!-- Like Count -->
             <TextView
-                android:id="@+id/count"
+                android:id="@+id/likes"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="10"
+                android:text="0"
                 android:textColor="@color/gray_5"
                 android:layout_toEndOf="@id/likeIcon"
                 android:layout_centerVertical="true" />
