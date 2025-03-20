@@ -76,7 +76,6 @@ public class ProfileFragment extends Fragment {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     userWebsite = snapshot.child("website").getValue(String.class);
-
                     // Layout Control
                     username.setText(snapshot.child("username").getValue(String.class));
                     Picasso.get().load(snapshot.child("avatarURL").getValue(String.class)).into(avatar);

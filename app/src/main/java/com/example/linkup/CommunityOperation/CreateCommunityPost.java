@@ -1,5 +1,6 @@
 package com.example.linkup.CommunityOperation;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -41,18 +42,18 @@ import java.util.Calendar;
 
 public class CreateCommunityPost extends AppCompatActivity {
     // layout object
-    ImageView btnClose, btnCreate;
+    ImageView btnBack, btnCreate;
     EditText headline, content;
     ProgressBar progressbar;
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef,databaseArticleRef; // real-time db ref ; ArticleSortByUser -> ASBU
+    DatabaseReference databaseArticleRef; // real-time db ref
+    // Dialog
+    ProgressDialog progressDialog;
     // Calendar & DateFormat
     Calendar date, time;
     SimpleDateFormat currentDate, currentTime;
-    // User-Info
-    String userUsername, userAvatar, userStatus;
     // Article-Info
     Articles article = new Articles();
     String articleID,articleHeadline, articleContent, createdDate, createdTime;
@@ -62,7 +63,7 @@ public class CreateCommunityPost extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_community_post);
         // [START gain layout objects]
-        btnClose = findViewById(R.id.btnClose);
+        btnBack = findViewById(R.id.btnBack);
         btnCreate = findViewById(R.id.btnCreate);
         headline = findViewById(R.id.headline);
         content = findViewById(R.id.content);
@@ -75,7 +76,6 @@ public class CreateCommunityPost extends AppCompatActivity {
         //[END configuration]
 
         // [START config_firebase reference]
-        databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
         databaseArticleRef = Rdb.getReference().child("article");
         // [END config_firebase reference]
 
@@ -86,25 +86,15 @@ public class CreateCommunityPost extends AppCompatActivity {
         currentTime = new SimpleDateFormat("HH:mm");
         //[END Calender / Date Format configuration]
 
-        // Load / Gain existing user data
-        databaseUserRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    userUsername = snapshot.child("username").getValue(String.class);
-                    userAvatar = snapshot.child("imageURL").getValue(String.class);
-                    userStatus = snapshot.child("privacy").getValue(String.class);
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(CreateCommunityPost.this, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+        // [START config_dialog]
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Creating...");
+        progressDialog.setCancelable(false);
+        // [END config_dialog]
 
         // [START layout component function]
         // Switch the screen -  Community Fragment
-        btnClose.setOnClickListener(new View.OnClickListener() {
+        btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 finish();
@@ -148,21 +138,17 @@ public class CreateCommunityPost extends AppCompatActivity {
             }
         },2000);
     }
-
-
+    // Create article
     private void CreateArticle() {
         // Gain Article ID from real-time DB
         articleID = databaseArticleRef.push().getKey();
         // Create Article
+        article.setArticleID(articleID);
         article.setUID(auth.getUid());
         article.setHeadline(articleHeadline);
         article.setContent(articleContent);
         article.setDate(createdDate);
         article.setTime(createdTime);
-        article.setArticleID(articleID);
-        article.setUsername(userUsername);
-        article.setPrivacy(userStatus);
-        article.setImageURL(userAvatar);
         // Save article
         databaseArticleRef.child(articleID).setValue(article);
     }

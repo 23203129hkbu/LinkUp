@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 // article object directly through the Intent when setting the click listener for holder
 public class Articles implements Serializable {
-    String articleID,UID,username,privacy,headline,content,date,time,imageURL;
+    String articleID,UID,headline,content,date,time;
 
     public Articles() {
     }
@@ -12,13 +12,10 @@ public class Articles implements Serializable {
     public Articles(String articleID, String UID, String username, String privacy, String headline, String content, String date, String time, String imageURL) {
         this.articleID = articleID;
         this.UID = UID;
-        this.username = username;
-        this.privacy = privacy;
         this.headline = headline;
         this.content = content;
         this.date = date;
         this.time = time;
-        this.imageURL = imageURL;
     }
 
     public String getArticleID() {
@@ -35,22 +32,6 @@ public class Articles implements Serializable {
 
     public void setUID(String UID) {
         this.UID = UID;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPrivacy() {
-        return privacy;
-    }
-
-    public void setPrivacy(String privacy) {
-        this.privacy = privacy;
     }
 
     public String getHeadline() {
@@ -85,11 +66,4 @@ public class Articles implements Serializable {
         this.time = time;
     }
 
-    public String getImageURL() {
-        return imageURL;
-    }
-
-    public void setImageURL(String imageURL) {
-        this.imageURL = imageURL;
-    }
 }

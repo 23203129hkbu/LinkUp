@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.linkup.Adapter.ArticleAdapter;
 import com.example.linkup.Object.Articles;
+import com.example.linkup.Object.Users;
 import com.example.linkup.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -54,72 +55,45 @@ public class SavedArticlesActivity extends AppCompatActivity {
 
         // [START config_firebase reference]
         databaseArticleRef = Rdb.getReference().child("article");
-        databaseSavedArticleRef = Rdb.getReference().child("savedArticle").child(auth.getUid());
         // [END config_firebase reference]
 
-        databaseSavedArticleRef.orderByChild("date").addValueEventListener(new ValueEventListener() {
+        databaseArticleRef.orderByChild("date").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 articlesArrayList.clear();
-                // Create a list to hold the article IDs
-                ArrayList<String> articleIDs = new ArrayList<>();
-
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Articles article = dataSnapshot.getValue(Articles.class);
+
                     if (article != null) {
-                        articleIDs.add(article.getArticleID());
-                    }
-                }
+                        databaseSavedArticleRef = databaseArticleRef.child(article.getArticleID()).child("savedUser");
 
-                // Now check each article ID against the article database
-                for (String articleID : articleIDs) {
-                    databaseArticleRef.child(articleID).addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            if (snapshot.exists()) {
-                                Articles article = snapshot.getValue(Articles.class);
-                                if (article != null) {
-                                    // Update or add the article to the list
-                                    boolean found = false;
-                                    for (int i = 0; i < articlesArrayList.size(); i++) {
-                                        if (articlesArrayList.get(i).getArticleID().equals(article.getArticleID())) {
-                                            articlesArrayList.set(i, article);
-                                            found = true;
-                                            break;
-                                        }
-                                    }
-                                    if (!found) {
-                                        articlesArrayList.add(article);
-                                    }
+                        databaseSavedArticleRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot savedSnapshot) {
+                                if (savedSnapshot.hasChild(auth.getUid())) {
+                                    articlesArrayList.add(article);
                                 }
-                            } else {
-                                // Remove the article ID from savedArticles if it doesn't exist
-                                databaseSavedArticleRef.child(articleID).removeValue();
-                                // Remove the article from the list
-                                articlesArrayList.removeIf(a -> a.getArticleID().equals(articleID));
-                            }
-                            // Notify adapter after changes
-                            articleAdapter.notifyDataSetChanged();
-                        }
 
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-                            Toast.makeText(SavedArticlesActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-                // Sort the articles after all have been added to the list
-                articlesArrayList.sort((a1, a2) -> {
-                    // First, compare by date
-                    int dateComparison = a2.getDate().compareTo(a1.getDate());
-                    if (dateComparison == 0) {
-                        // If dates are equal, compare by time
-                        return a2.getTime().compareTo(a1.getTime());
+                                // Sort the articles after all have been processed
+                                articlesArrayList.sort((a1, a2) -> {
+                                    int dateComparison = a2.getDate().compareTo(a1.getDate());
+                                    if (dateComparison == 0) {
+                                        return a2.getTime().compareTo(a1.getTime());
+                                    }
+                                    return dateComparison;
+                                });
+
+                                // Notify adapter only once after the loop completes
+                                articleAdapter.notifyDataSetChanged();
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+                                Toast.makeText(SavedArticlesActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
-                    return dateComparison;
-                });
-                // Notify adapter after sorting
-                articleAdapter.notifyDataSetChanged();
+                }
             }
 
             @Override

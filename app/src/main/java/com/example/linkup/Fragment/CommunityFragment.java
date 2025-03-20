@@ -18,6 +18,8 @@ import com.example.linkup.Adapter.ArticleAdapter;
 import com.example.linkup.CommunityOperation.CommunityMenu;
 import com.example.linkup.CommunityOperation.CreateCommunityPost;
 import com.example.linkup.Object.Articles;
+import com.example.linkup.ProfileOperation.PrivacyActivity;
+import com.example.linkup.ProfileOperation.SettingActivity;
 import com.example.linkup.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -109,7 +111,7 @@ public class CommunityFragment extends Fragment {
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                updateUI("Add");
+                updateUI();
             }
         });
         // Switch to menu
@@ -127,14 +129,9 @@ public class CommunityFragment extends Fragment {
 
     // [START Method]
     // handling UI update
-    private void updateUI(String screen) {
-        Intent intent = null;
-        if (screen.equals("Add")) {
-            intent = new Intent(getContext(), CreateCommunityPost.class);
-        }
-        if (intent != null) {
-            startActivity(intent);
-        }
+    private void updateUI() {
+        Intent intent = new Intent(getContext(), CreateCommunityPost.class);
+        startActivity(intent);
     }
     // [END Method]
 }

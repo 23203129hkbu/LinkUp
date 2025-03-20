@@ -73,12 +73,7 @@ public class PrivacyActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    user.setUID(auth.getUid());
-                    user.setUsername(snapshot.child("username").getValue(String.class));
-                    user.setAvatarURL(snapshot.child("avatarURL").getValue(String.class));
-                    user.setPrivacy(snapshot.child("privacy").getValue(String.class));
-                    user.setWebsite(snapshot.child("website").getValue(String.class));
-                    user.setIntroduction(snapshot.child("introduction").getValue(String.class));
+                    user = snapshot.getValue(Users.class);
                     // Layout Control
                     state.setText(user.getPrivacy());
                     // State initialization

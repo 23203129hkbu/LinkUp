@@ -115,8 +115,8 @@ public class ArticleActivity extends AppCompatActivity {
 
         // Load / Gain existing article data
         // ✅ Now, updating UI elements inside the callback
-        Picasso.get().load(article.getImageURL()).into(posterAvatar);
-        posterName.setText(article.getUsername());
+//        Picasso.get().load(article.getImageURL()).into(posterAvatar);
+//        posterName.setText(article.getUsername());
         createdDate.setText(article.getDate());
         createdTime.setText(article.getTime());
         headline.setText(article.getHeadline());

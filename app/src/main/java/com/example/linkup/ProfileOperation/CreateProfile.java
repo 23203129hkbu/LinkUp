@@ -49,16 +49,13 @@ public class CreateProfile extends AppCompatActivity {
     FirebaseDatabase Rdb; // real-time db
     StorageReference storageRef; // cloud storage ref
     DatabaseReference databaseUserRef; // real-time db ref
-    DocumentReference documentUserRef; // firestore db ref
     // Dialog
     ProgressDialog progressDialog;
     // Upload Photo
     Uri imageURI;
     // default user info
     Users user = new Users();
-    String userUsername = "";
-    String userWebsite = "";
-    String userIntroduction = "";
+    String userUsername, userWebsite, userIntroduction;
     // default img is saved in firebase cloud storage
     String imageURL = "https://firebasestorage.googleapis.com/v0/b/link-up-17148.firebasestorage.app/o/defaulticon.png?alt=media&token=249ae5c9-6d08-4f66-beb7-5297fd864738";
 
@@ -140,6 +137,7 @@ public class CreateProfile extends AppCompatActivity {
 
         }
     }
+
     private void handleImageURI() {
         storageRef.putFile(imageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
             @Override
@@ -170,6 +168,7 @@ public class CreateProfile extends AppCompatActivity {
             }
         });
     }
+
     // Ref - update realtime db
     private void handleProfileToDatabase() {
         user.setUID(auth.getUid());
@@ -196,6 +195,7 @@ public class CreateProfile extends AppCompatActivity {
             }
         });
     }
+
     // handling UI update
     private void updateUI() {
         Toast.makeText(CreateProfile.this, "Profile Created", Toast.LENGTH_SHORT).show();
@@ -208,7 +208,7 @@ public class CreateProfile extends AppCompatActivity {
                 startActivity(intent);
                 finish();
             }
-        },2000);
+        }, 2000);
     }
     // [END Method]
 }

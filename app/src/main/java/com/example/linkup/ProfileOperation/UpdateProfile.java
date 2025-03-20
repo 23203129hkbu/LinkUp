@@ -21,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.linkup.Object.Articles;
 import com.example.linkup.Process.MainActivity;
 import com.example.linkup.Object.Users;
 import com.example.linkup.Process.RegistrationActivity;
@@ -103,20 +104,14 @@ public class UpdateProfile extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    user.setUID(auth.getUid());
-                    user.setUsername(snapshot.child("username").getValue(String.class));
-                    user.setAvatarURL(snapshot.child("avatarURL").getValue(String.class));
-                    user.setPrivacy(snapshot.child("privacy").getValue(String.class));
-                    user.setWebsite(snapshot.child("website").getValue(String.class));
-                    user.setIntroduction(snapshot.child("introduction").getValue(String.class));
-
+                    user = snapshot.getValue(Users.class);
                     // Layout Control
                     username.setText(user.getUsername());
                     Picasso.get().load(user.getAvatarURL()).into(avatar);
                     website.setText(user.getWebsite());
                     introduction.setText(user.getIntroduction());
                 } else {
-                    Toast.makeText(UpdateProfile.this, "Registration failed", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(UpdateProfile.this, "Updated failed", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -214,7 +209,7 @@ public class UpdateProfile extends AppCompatActivity {
             }
         });
     }
-
+    // Update Profile to real time db
     private void updateProfileToDatabase() {
         databaseUserRef.setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
@@ -234,8 +229,6 @@ public class UpdateProfile extends AppCompatActivity {
             }
         });
     }
-
-    // [START Method]
     // handling UI update
     private void updateUI() {
         Toast.makeText(UpdateProfile.this, "Profile Updated", Toast.LENGTH_SHORT).show();
