@@ -52,7 +52,7 @@
             android:textStyle="bold" />
 
         <Switch
-            android:id="@+id/switchStatus"
+            android:id="@+id/switchState"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="end"
@@ -79,7 +79,7 @@
             android:paddingStart="@dimen/_10sdp"
             android:textStyle="bold"/>
         <TextView
-            android:id="@+id/status"
+            android:id="@+id/state"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Public/Privacy"

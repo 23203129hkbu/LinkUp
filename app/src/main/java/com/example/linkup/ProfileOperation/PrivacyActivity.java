@@ -24,28 +24,29 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Transaction;
+import com.squareup.picasso.Picasso;
 
 public class PrivacyActivity extends AppCompatActivity {
     // layout object
     ImageView btnBack;
-    Switch switchStatus;
-    TextView status;
+    Switch switchState;
+    TextView state;
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    FirebaseFirestore Fdb; // firestore db
     DatabaseReference databaseUserRef; // real-time db ref
-    DocumentReference documentUserRef; // firestore db ref
     // default user info
     Users user = new Users();
-    String userUsername, userAvatar, userStatus;
     private boolean isUserChange = true;
 
     @Override
@@ -54,45 +55,52 @@ public class PrivacyActivity extends AppCompatActivity {
         setContentView(R.layout.activity_privacy);
         // [START gain layout objects]
         btnBack = findViewById(R.id.btnBack);
-        switchStatus = findViewById(R.id.switchStatus);
-        status = findViewById(R.id.status);
+        switchState = findViewById(R.id.switchState);
+        state = findViewById(R.id.state);
         // [END gain]
 
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
-        Fdb = FirebaseFirestore.getInstance();
         Rdb = FirebaseDatabase.getInstance();
         //[END configuration]
 
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
-        documentUserRef = Fdb.collection("user").document(auth.getUid());
         // [END config_firebase reference]
 
-        //[Gain User state]
-        documentUserRef.get()
-                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.getResult().exists()) {
-                            userAvatar = task.getResult().getString("avatar");
-                            userUsername = task.getResult().getString("username");
-                            userStatus = task.getResult().getString("privacy");
-                            status.setText(userStatus);
-
-                            if (userStatus.equals("Private")) {
-                                // Prevent message frames from popping up
-                                isUserChange = false; // Do Not Remove
-                                switchStatus.setChecked(true);
-                                isUserChange = true; // Do Not Remove
-                            }
-
-
-                        } else {
-                            Log.w(TAG, "Personal information cannot be obtained", task.getException());
-                        }
+        //[Gain User Data]
+        databaseUserRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    user.setUID(auth.getUid());
+                    user.setUsername(snapshot.child("username").getValue(String.class));
+                    user.setAvatarURL(snapshot.child("avatarURL").getValue(String.class));
+                    user.setPrivacy(snapshot.child("privacy").getValue(String.class));
+                    user.setWebsite(snapshot.child("website").getValue(String.class));
+                    user.setIntroduction(snapshot.child("introduction").getValue(String.class));
+                    // Layout Control
+                    state.setText(user.getPrivacy());
+                    // State initialization
+                    if (user.getPrivacy().equals("Private")) {
+                        // Prevent message frames from popping up
+                        isUserChange = false; // Do Not Remove
+                        switchState.setChecked(true);
+                        isUserChange = true; // Do Not Remove
                     }
-                });
+                } else {
+                    Toast.makeText(PrivacyActivity.this, "Modification failed", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(PrivacyActivity.this, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.w(TAG, "Personal data cannot be obtained: "+error.getMessage());
+            }
+        });
+
+        // [START layout component function]
         // Switch the screen - SettingActivity
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -100,13 +108,14 @@ public class PrivacyActivity extends AppCompatActivity {
                 updateUI();
             }
         });
-
-        switchStatus.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        // Switch user privacy setting
+        switchState.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             // Flag to differentiate user actions from programmatic changes
 
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (!isUserChange) {
+                    // Avoid recirculation
                     return; // Ignore programmatic changes
                 }
 
@@ -116,7 +125,7 @@ public class PrivacyActivity extends AppCompatActivity {
                         .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                status.setText(isChecked ? "Private" : "Public");
+                                state.setText(isChecked ? "Private" : "Public");
                                 savePrivacySetting(); // Save the new privacy setting
                             }
                         })
@@ -125,7 +134,7 @@ public class PrivacyActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 // Temporarily disable listener before reverting switch state
                                 isUserChange = false;
-                                switchStatus.setChecked(!isChecked); // Revert to previous state
+                                switchState.setChecked(!isChecked); // Revert to previous state
                                 isUserChange = true; // Re-enable listener after change
                             }
                         });
@@ -134,43 +143,25 @@ public class PrivacyActivity extends AppCompatActivity {
                 builder.create().show();
             }
         });
+        // [END layout component function]
     }
-
+    // [START Method]
+    // handling UI update
+    private void updateUI() {
+        Intent intent = new Intent(PrivacyActivity.this, SettingActivity.class);
+        startActivity(intent);
+        finish();
+    }
+    // handling privacy setting update
     private void savePrivacySetting() {
-
-        userStatus = status.getText().toString();
-        Fdb.runTransaction(new Transaction.Function<Void>() {
-                    @Override
-                    public Void apply(Transaction transaction) throws FirebaseFirestoreException {
-                        DocumentSnapshot snapshot = transaction.get(documentUserRef);
-                        transaction.update(documentUserRef, "privacy", userStatus);
-                        // Success
-                        return null;
-                    }
-                }).addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Toast.makeText(PrivacyActivity.this, "updated", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(PrivacyActivity.this, "failed", Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-        user.setUID(auth.getUid());
-        user.setUsername(userUsername);
-        user.setImageURL(userAvatar);
-        user.setPrivacy(userStatus);
+        user.setPrivacy(state.getText().toString());
         databaseUserRef.setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
-                    Toast.makeText(PrivacyActivity.this, "Data saved successfully!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(PrivacyActivity.this, "Privacy setting saved successfully!", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(PrivacyActivity.this, "Failed to save data.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(PrivacyActivity.this, "Failed to save.", Toast.LENGTH_SHORT).show();
                 }
             }
         }).addOnFailureListener(new OnFailureListener() {
@@ -179,14 +170,6 @@ public class PrivacyActivity extends AppCompatActivity {
                 Toast.makeText(PrivacyActivity.this, "Database error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    // [START Method]
-    // handling UI update
-    private void updateUI() {
-        Intent intent = new Intent(PrivacyActivity.this, SettingActivity.class);
-        startActivity(intent);
-        finish();
     }
     // [END Method]
 }

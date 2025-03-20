@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.linkup.CommunityOperation.ArticleActivity;
 import com.example.linkup.ProfileOperation.CreateProfile;
 import com.example.linkup.ProfileOperation.UpdateProfile;
 import com.example.linkup.R;
@@ -21,9 +22,16 @@ import com.example.linkup.ProfileOperation.SettingActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
 public class ProfileFragment extends Fragment {
@@ -32,11 +40,11 @@ public class ProfileFragment extends Fragment {
     ImageView btnEdit, btnSetting, avatar;
     TextView username, introduction, website, state, btnPost;
     // Firebase features
-    FirebaseAuth auth; // auth
-    FirebaseFirestore Fdb; // firestore db
-    DocumentReference documentUserRef; // firestore db ref
+    FirebaseAuth auth;
+    FirebaseDatabase Rdb; // real-time db
+    DatabaseReference databaseUserRef; // real-time db ref
     // default user info
-    String userUsername, userIntroduction, userWebsite, userAvatar, userState;
+    String userWebsite;
 
     @Nullable
     @Override
@@ -53,39 +61,38 @@ public class ProfileFragment extends Fragment {
         btnSetting = view.findViewById(R.id.btnSetting);
         // [END gain]
 
-        //[START Firebase configuration - get a object]
+        // [START config_firebase]
         auth = FirebaseAuth.getInstance();
-        Fdb = FirebaseFirestore.getInstance();
-        //[END configuration]
+        Rdb = FirebaseDatabase.getInstance();
+        // [END config_firebase]
 
         // [START config_firebase reference]
-        documentUserRef = Fdb.collection("user").document(auth.getUid());
+        databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
         // [END config_firebase reference]
 
         //[Determine whether the user is logging in for the first time]
-        documentUserRef.get()
-                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.getResult().exists()) {
-                            userAvatar = task.getResult().getString("avatar");
-                            userUsername = task.getResult().getString("username");
-                            userIntroduction = task.getResult().getString("introduction");
-                            userWebsite = task.getResult().getString("website");
-                            userState = task.getResult().getString("privacy");
+        databaseUserRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    userWebsite = snapshot.child("website").getValue(String.class);
 
-                            Picasso.get().load(userAvatar).into(avatar);
-                            // Glide.with(getContext()).load(userAvatar).into(avatar);
-                            username.setText(userUsername);
-                            introduction.setText(userIntroduction);
-                            website.setText(userWebsite);
-                            state.setText(userState);
-                        } else {
-                            Intent intent = new Intent(getContext(), CreateProfile.class);
-                            startActivity(intent);
-                        }
-                    }
-                });
+                    // Layout Control
+                    username.setText(snapshot.child("username").getValue(String.class));
+                    Picasso.get().load(snapshot.child("avatarURL").getValue(String.class)).into(avatar);
+                    state.setText(snapshot.child("privacy").getValue(String.class));
+                    website.setText(userWebsite);
+                    introduction.setText(snapshot.child("introduction").getValue(String.class));
+                } else {
+                    updateUI("Create");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(getContext(), "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
 
         // [START layout component function]
         // Switch the screen - Update Profile
@@ -102,7 +109,6 @@ public class ProfileFragment extends Fragment {
                 updateUI("Setting");
             }
         });
-
         // Logout with dialog message
         website.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -112,13 +118,12 @@ public class ProfileFragment extends Fragment {
                     Intent webIntent = new Intent(Intent.ACTION_VIEW);
                     webIntent.setData(Uri.parse(webUrl));
                     startActivity(webIntent);
-                }catch (Exception e){
+                } catch (Exception e) {
                     Toast.makeText(getContext(), "Invalid Link", Toast.LENGTH_SHORT).show();
                 }
             }
         });
         // [END layout component function]
-
         // this line must be finalized
         return view;
     }
@@ -131,6 +136,8 @@ public class ProfileFragment extends Fragment {
             intent = new Intent(getContext(), SettingActivity.class);
         } else if (screen.equals("Update")) {
             intent = new Intent(getContext(), UpdateProfile.class);
+        } else if (screen.equals("Create")) {
+            intent = new Intent(getContext(), CreateProfile.class);
         }
         if (intent != null) {
             startActivity(intent);

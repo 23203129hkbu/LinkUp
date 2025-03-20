@@ -12,23 +12,31 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.linkup.CommunityOperation.ArticleActivity;
 import com.example.linkup.Process.LoginActivity;
 import com.example.linkup.Process.MainActivity;
 import com.example.linkup.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 public class SettingActivity extends AppCompatActivity {
     // layout object
     ImageView btnBack;
-    TextView btnLogout, btnState, btnDeletePF;
+    TextView btnLogout, btnState, btnDeleteAC;
     // Firebase features
-    FirebaseAuth auth; // auth
-    FirebaseFirestore Fdb; // firestore db
-    DocumentReference documentUserRef; // firestore db ref
+    FirebaseAuth auth;
+    FirebaseDatabase Rdb; // real-time db
+    DatabaseReference databaseUserRef; // real-time db ref
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,16 +46,16 @@ public class SettingActivity extends AppCompatActivity {
         btnBack = findViewById(R.id.btnBack);
         btnLogout = findViewById(R.id.btnLogout);
         btnState = findViewById(R.id.btnState);
-        btnDeletePF = findViewById(R.id.btnDeletePF);
+        btnDeleteAC = findViewById(R.id.btnDeleteAC);
         // [END gain]
 
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
-        Fdb = FirebaseFirestore.getInstance();
+        Rdb = FirebaseDatabase.getInstance();
         //[END configuration]
 
         // [START config_firebase reference]
-        documentUserRef = Fdb.collection("user").document(auth.getUid());
+        databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
         // [END config_firebase reference]
 
         // [START layout component function]
@@ -55,7 +63,7 @@ public class SettingActivity extends AppCompatActivity {
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                updateUI("Profile");
+                finish();
             }
         });
         // Logout with dialog message
@@ -82,36 +90,47 @@ public class SettingActivity extends AppCompatActivity {
                 builder.create().show();
             }
         });
-
-        // Switch the screen - Privacy Activity
+        // Switch the screen - Privacy Activaity
         btnState.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 updateUI("Privacy");
             }
         });
-
         // Switch the user state (public, privacy)
-        btnDeletePF.setOnClickListener(new View.OnClickListener() {
+        btnDeleteAC.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(SettingActivity.this);
                 builder.setTitle("Confirmation Notification")
-                        .setMessage("Delete your profile ?")
+                        .setMessage("Delete your account ?")
                         .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 builder.setTitle("Warning")
-                                        .setMessage("Your profile will be deleted and cannot be recovered.\n\nAre you sure you still want to perform this operation?")
+                                        .setMessage("Your account will be deleted and cannot be recovered.\n\nAre you sure you still want to perform this operation?")
                                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
-                                                documentUserRef.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                databaseUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
                                                     @Override
-                                                    public void onComplete(@NonNull Task<Void> task) {
-                                                        Toast.makeText(SettingActivity.this, "Your profile has been deleted", Toast.LENGTH_SHORT).show();
-                                                        Toast.makeText(SettingActivity.this, "You can recreate your profile", Toast.LENGTH_SHORT).show();
-                                                        updateUI("Profile");
+                                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                        if (snapshot.exists()) {
+                                                            // Article is already saved, remove it
+                                                            databaseUserRef.removeValue()
+                                                                    .addOnCompleteListener(task -> {
+                                                                        if (task.isSuccessful()) {
+                                                                            updateUI("Login");
+                                                                            Toast.makeText(SettingActivity.this, "User account deleted", Toast.LENGTH_SHORT).show();
+                                                                        } else {
+                                                                            Toast.makeText(SettingActivity.this, "Failed to remove user AC", Toast.LENGTH_SHORT).show();
+                                                                        }
+                                                                    });
+                                                        }
+                                                    }
+                                                    @Override
+                                                    public void onCancelled(@NonNull DatabaseError error) {
+                                                        Toast.makeText(SettingActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                                                     }
                                                 });
                                             }
@@ -136,7 +155,6 @@ public class SettingActivity extends AppCompatActivity {
                 builder.create().show();
             }
         });
-
         // [END layout component function]
     }
 
@@ -144,9 +162,7 @@ public class SettingActivity extends AppCompatActivity {
     // handling UI update
     private void updateUI(String screen) {
         Intent intent = null;
-        if (screen.equals("Profile")) {
-            intent = new Intent(SettingActivity.this, MainActivity.class);
-        } else if (screen.equals("Login")) {
+        if (screen.equals("Login")) {
             intent = new Intent(SettingActivity.this, LoginActivity.class);
         } else if (screen.equals("Privacy")) {
             intent = new Intent(SettingActivity.this, PrivacyActivity.class);

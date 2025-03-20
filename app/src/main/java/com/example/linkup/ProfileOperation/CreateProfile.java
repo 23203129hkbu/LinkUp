@@ -47,7 +47,6 @@ public class CreateProfile extends AppCompatActivity {
     FirebaseAuth auth;
     FirebaseStorage storage;
     FirebaseDatabase Rdb; // real-time db
-    FirebaseFirestore Fdb; // firestore db
     StorageReference storageRef; // cloud storage ref
     DatabaseReference databaseUserRef; // real-time db ref
     DocumentReference documentUserRef; // firestore db ref
@@ -61,7 +60,7 @@ public class CreateProfile extends AppCompatActivity {
     String userWebsite = "";
     String userIntroduction = "";
     // default img is saved in firebase cloud storage
-    String imageURIString = "https://firebasestorage.googleapis.com/v0/b/link-up-17148.firebasestorage.app/o/defaulticon.png?alt=media&token=249ae5c9-6d08-4f66-beb7-5297fd864738";
+    String imageURL = "https://firebasestorage.googleapis.com/v0/b/link-up-17148.firebasestorage.app/o/defaulticon.png?alt=media&token=249ae5c9-6d08-4f66-beb7-5297fd864738";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,13 +79,11 @@ public class CreateProfile extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
         storage = FirebaseStorage.getInstance();
         Rdb = FirebaseDatabase.getInstance();
-        Fdb = FirebaseFirestore.getInstance();
         // [END config_firebase]
 
         // [START config_firebase reference]
         storageRef = storage.getReference();
         databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
-        documentUserRef = Fdb.collection("user").document(auth.getUid());
         // [END config_firebase reference]
 
         // [START config_dialog]
@@ -106,7 +103,6 @@ public class CreateProfile extends AppCompatActivity {
                 startActivityForResult(Intent.createChooser(intent, "Select Picture"), 10);
             }
         });
-
         // Create Profile
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -124,14 +120,12 @@ public class CreateProfile extends AppCompatActivity {
                         handleImageURI();
                     // Save profile to Database
                     handleProfileToDatabase();
-                    // Save profile (full) to Firestore
-                    handleProfileToFirestore();
                     // update UI
                     updateUI();
                 }
             }
         });
-
+        // [END layout component function]
 
     }
 
@@ -146,7 +140,6 @@ public class CreateProfile extends AppCompatActivity {
 
         }
     }
-
     private void handleImageURI() {
         storageRef.putFile(imageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
             @Override
@@ -155,7 +148,7 @@ public class CreateProfile extends AppCompatActivity {
                     storageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                         @Override
                         public void onSuccess(Uri uri) {
-                            imageURIString = uri.toString(); // uri convert to string
+                            imageURL = uri.toString(); // uri convert to string
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override
@@ -177,12 +170,14 @@ public class CreateProfile extends AppCompatActivity {
             }
         });
     }
-
+    // Ref - update realtime db
     private void handleProfileToDatabase() {
         user.setUID(auth.getUid());
         user.setUsername(userUsername);
-        user.setImageURL(imageURIString);
+        user.setAvatarURL(imageURL);
         user.setPrivacy("Public");
+        user.setWebsite(userWebsite);
+        user.setIntroduction(userIntroduction);
         databaseUserRef.setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
@@ -201,25 +196,6 @@ public class CreateProfile extends AppCompatActivity {
             }
         });
     }
-
-    private void handleProfileToFirestore() {
-        // Prepare the profile data
-        Map<String, String> user_firestore = new HashMap<>();
-        user_firestore.put("uid", auth.getUid());
-        user_firestore.put("username", userUsername);
-        user_firestore.put("avatar", imageURIString); // Use empty string if no image
-        user_firestore.put("website", userWebsite);
-        user_firestore.put("introduction", userIntroduction);
-        user_firestore.put("privacy", "Public");
-        documentUserRef.set(user_firestore)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Toast.makeText(CreateProfile.this, "Profile Created", Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
-
     // handling UI update
     private void updateUI() {
         Toast.makeText(CreateProfile.this, "Profile Created", Toast.LENGTH_SHORT).show();
@@ -232,7 +208,7 @@ public class CreateProfile extends AppCompatActivity {
                 startActivity(intent);
                 finish();
             }
-        },4000);
+        },2000);
     }
     // [END Method]
 }

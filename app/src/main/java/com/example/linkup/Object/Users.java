@@ -2,17 +2,18 @@ package com.example.linkup.Object;
 
 // Data Object (Users) for firebase
 public class Users {
-    String UID, username, imageURL, privacy;
+    String UID, username, avatarURL, privacy, website, introduction;
 
-    public Users() {
-    }
-
-    // for sign up -> firebase
-    public Users(String UID, String username, String imageURL, String privacy) {
+    public Users(String UID, String username, String avatarURL, String privacy, String website, String introduction) {
         this.UID = UID;
         this.username = username;
-        this.imageURL = imageURL;
+        this.avatarURL = avatarURL;
         this.privacy = privacy;
+        this.website = website;
+        this.introduction = introduction;
+    }
+
+    public Users() {
     }
 
     public String getUID() {
@@ -31,12 +32,12 @@ public class Users {
         this.username = username;
     }
 
-    public String getImageURL() {
-        return imageURL;
+    public String getAvatarURL() {
+        return avatarURL;
     }
 
-    public void setImageURL(String imageURL) {
-        this.imageURL = imageURL;
+    public void setAvatarURL(String avatarURL) {
+        this.avatarURL = avatarURL;
     }
 
     public String getPrivacy() {
@@ -47,4 +48,19 @@ public class Users {
         this.privacy = privacy;
     }
 
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
+    }
+
+    public String getIntroduction() {
+        return introduction;
+    }
+
+    public void setIntroduction(String introduction) {
+        this.introduction = introduction;
+    }
 }

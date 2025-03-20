@@ -63,7 +63,7 @@
         android:textSize="@dimen/_15sdp" />
 
     <TextView
-        android:id="@+id/btnDeletePF"
+        android:id="@+id/btnDeleteAC"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/custom_textview"
@@ -72,7 +72,7 @@
         android:fontFamily="@font/poppins_bold"
         android:gravity="left"
         android:padding="@dimen/_10sdp"
-        android:text="Delete Personal Profile"
+        android:text="Delete Personal Account"
         android:textColor="@color/black"
         android:textSize="@dimen/_15sdp" />
 

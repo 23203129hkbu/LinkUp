@@ -23,14 +23,18 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.linkup.Process.MainActivity;
 import com.example.linkup.Object.Users;
+import com.example.linkup.Process.RegistrationActivity;
 import com.example.linkup.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -51,17 +55,14 @@ public class UpdateProfile extends AppCompatActivity {
     FirebaseAuth auth;
     FirebaseStorage storage;
     FirebaseDatabase Rdb; // real-time db
-    FirebaseFirestore Fdb; // firestore db
     StorageReference storageRef; // cloud storage ref
     DatabaseReference databaseUserRef; // real-time db ref
-    DocumentReference documentUserRef; // firestore db ref
     // Dialog
     ProgressDialog progressDialog;
     // Upload Photo
     Uri imageURI;
     // default user info
     Users user = new Users();
-    String userUsername, userIntroduction, userWebsite, userAvatar, userStatus;
     // Prevent user status from disappearing -> real DB -> userStatus
 
 
@@ -83,14 +84,12 @@ public class UpdateProfile extends AppCompatActivity {
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
         storage = FirebaseStorage.getInstance();
-        Fdb = FirebaseFirestore.getInstance();
         Rdb = FirebaseDatabase.getInstance();
         //[END configuration]
 
         // [START config_firebase reference]
         storageRef = storage.getReference();
         databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
-        documentUserRef = Fdb.collection("user").document(auth.getUid());
         // [END config_firebase reference]
 
         // [START config_dialog]
@@ -100,26 +99,33 @@ public class UpdateProfile extends AppCompatActivity {
         // [END config_dialog]
 
         //[Gain User Profile]
-        documentUserRef.get()
-                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.getResult().exists()) {
-                            userAvatar = task.getResult().getString("avatar");
-                            userUsername = task.getResult().getString("username");
-                            userIntroduction = task.getResult().getString("introduction");
-                            userWebsite = task.getResult().getString("website");
-                            userStatus = task.getResult().getString("privacy");
+        databaseUserRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    user.setUID(auth.getUid());
+                    user.setUsername(snapshot.child("username").getValue(String.class));
+                    user.setAvatarURL(snapshot.child("avatarURL").getValue(String.class));
+                    user.setPrivacy(snapshot.child("privacy").getValue(String.class));
+                    user.setWebsite(snapshot.child("website").getValue(String.class));
+                    user.setIntroduction(snapshot.child("introduction").getValue(String.class));
 
-                            Picasso.get().load(userAvatar).into(avatar);
-                            username.setText(userUsername);
-                            introduction.setText(userIntroduction);
-                            website.setText(userWebsite);
-                        } else {
-                            Log.w(TAG, "Personal information cannot be obtained", task.getException());
-                        }
-                    }
-                });
+                    // Layout Control
+                    username.setText(user.getUsername());
+                    Picasso.get().load(user.getAvatarURL()).into(avatar);
+                    website.setText(user.getWebsite());
+                    introduction.setText(user.getIntroduction());
+                } else {
+                    Toast.makeText(UpdateProfile.this, "Registration failed", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(UpdateProfile.this, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.w(TAG, "Personal information cannot be obtained: "+error.getMessage());
+            }
+        });
 
         // [START layout component function]
         // Switch the screen - Profile Fragment
@@ -133,10 +139,10 @@ public class UpdateProfile extends AppCompatActivity {
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                userUsername = username.getText().toString();
-                userWebsite = website.getText().toString();
-                userIntroduction = introduction.getText().toString();
-                if (TextUtils.isEmpty(userUsername)) {
+                user.setUsername(username.getText().toString());
+                user.setWebsite(website.getText().toString());
+                user.setIntroduction(introduction.getText().toString());
+                if (TextUtils.isEmpty(user.getUsername())) {
                     progressDialog.dismiss();
                     Toast.makeText(UpdateProfile.this, "Username is required", Toast.LENGTH_SHORT).show();
                 } else {
@@ -147,16 +153,8 @@ public class UpdateProfile extends AppCompatActivity {
                         handleImageURI();
                     // Update profile to database
                     updateProfileToDatabase();
-                    // Update profile to Firestore
-                    updateProfileToFirestore();
                     // update UI
-                    Handler handler = new Handler();
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            updateUI();
-                        }
-                    }, 4000);
+                    updateUI();
                 }
             }
         });
@@ -194,7 +192,7 @@ public class UpdateProfile extends AppCompatActivity {
                     storageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                         @Override
                         public void onSuccess(Uri uri) {
-                            userAvatar = uri.toString(); // uri convert to string
+                            user.setAvatarURL(uri.toString()); // uri convert to string
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override
@@ -218,16 +216,12 @@ public class UpdateProfile extends AppCompatActivity {
     }
 
     private void updateProfileToDatabase() {
-        user.setUID(auth.getUid());
-        user.setUsername(userUsername);
-        user.setImageURL(userAvatar);
-        user.setPrivacy(userStatus);
         databaseUserRef.setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 progressDialog.dismiss();
                 if (task.isSuccessful()) {
-                    Toast.makeText(UpdateProfile.this, "Data saved successfully!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(UpdateProfile.this, "Data updated successfully!", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(UpdateProfile.this, "Failed to save data.", Toast.LENGTH_SHORT).show();
                 }
@@ -241,37 +235,20 @@ public class UpdateProfile extends AppCompatActivity {
         });
     }
 
-    private void updateProfileToFirestore() {
-        Fdb.runTransaction(new Transaction.Function<Void>() {
-                    @Override
-                    public Void apply(Transaction transaction) throws FirebaseFirestoreException {
-                        DocumentSnapshot snapshot = transaction.get(documentUserRef);
-                        transaction.update(documentUserRef, "avatar", userAvatar);
-                        transaction.update(documentUserRef, "username", userUsername);
-                        transaction.update(documentUserRef, "website", userWebsite);
-                        transaction.update(documentUserRef, "introduction", userIntroduction);
-                        // Success
-                        return null;
-                    }
-                }).addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Toast.makeText(UpdateProfile.this, "updated", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(UpdateProfile.this, "failed", Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
-
+    // [START Method]
     // handling UI update
     private void updateUI() {
-        Intent intent = new Intent(UpdateProfile.this, MainActivity.class);
-        startActivity(intent);
-        finish();
+        Toast.makeText(UpdateProfile.this, "Profile Updated", Toast.LENGTH_SHORT).show();
+        // Delay execution to allow enough time for data to be uploaded
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(UpdateProfile.this, MainActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        },2000);
     }
     // [END Method]
 }
