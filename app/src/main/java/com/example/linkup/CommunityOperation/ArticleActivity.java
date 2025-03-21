@@ -43,7 +43,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 public class ArticleActivity extends AppCompatActivity {
-    ImageView btnClose, btnSave, btnDelete, posterAvatar, btnLike, btnSend;
+    ImageView btnBack, btnSave, btnDelete, posterAvatar, btnLike, btnSend;
     TextView posterName, createdDate, createdTime, headline, content, likes;
     EditText comment;
     RecyclerView commentRV;
@@ -76,7 +76,7 @@ public class ArticleActivity extends AppCompatActivity {
         // [END gain]
 
         // [START gain layout objects]
-        btnClose = findViewById(R.id.btnClose);
+        btnBack = findViewById(R.id.btnBack);
         btnSave = findViewById(R.id.btnSave);
         posterAvatar = findViewById(R.id.posterAvatar);
         posterName = findViewById(R.id.posterName);
@@ -99,9 +99,9 @@ public class ArticleActivity extends AppCompatActivity {
         //[END configuration]
 
         // [START config_firebase reference]
-        databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
+        databaseUserRef = Rdb.getReference().child("user");
         databaseArticleRef = Rdb.getReference().child("article").child(article.getArticleID());
-        databaseSavedArticleRef = Rdb.getReference().child("savedArticle").child(auth.getUid());
+        databaseSavedArticleRef = databaseArticleRef.child("savedUser");
         databaseCommentRef = databaseArticleRef.child("Comment");
         databaseLikeRef = databaseArticleRef.child("Like");
         // [END config_firebase reference]
@@ -113,10 +113,24 @@ public class ArticleActivity extends AppCompatActivity {
         currentTime = new SimpleDateFormat("HH:mm");
         //[END Calender / Date Format configuration]
 
-        // Load / Gain existing article data
+        // [START config_layout]
+        // Load / Gain existing article creator data
+        databaseUserRef.child(article.getUID()).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    // Layout Control
+                    Picasso.get().load(snapshot.child("avatarURL").getValue(String.class)).into(posterAvatar);
+                    posterName.setText(snapshot.child("username").getValue(String.class));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(ArticleActivity.this, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
         // ✅ Now, updating UI elements inside the callback
-//        Picasso.get().load(article.getImageURL()).into(posterAvatar);
-//        posterName.setText(article.getUsername());
         createdDate.setText(article.getDate());
         createdTime.setText(article.getTime());
         headline.setText(article.getHeadline());
@@ -132,7 +146,7 @@ public class ArticleActivity extends AppCompatActivity {
                 btnSave.setVisibility(View.VISIBLE);
                 btnDelete.setVisibility(View.GONE);
                 // Check if the article is already saved
-                databaseSavedArticleRef.child(article.getArticleID()).addValueEventListener(new ValueEventListener() {
+                databaseSavedArticleRef.child(auth.getUid()).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (snapshot.exists()) {
@@ -148,26 +162,8 @@ public class ArticleActivity extends AppCompatActivity {
                     }
                 });
             }
-            // Load Like Button
-
         }
-        // Load / Gain existing user data
-        databaseUserRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    userUsername = snapshot.child("username").getValue(String.class);
-                    userAvatar = snapshot.child("imageURL").getValue(String.class);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(ArticleActivity.this, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        // Load / Gain existing likes
+        // Load Button Like / Gain existing likes
         databaseLikeRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -175,6 +171,8 @@ public class ArticleActivity extends AppCompatActivity {
                 noOfLikes = (int) snapshot.getChildrenCount();
                 likes.setText(String.valueOf(noOfLikes));
                 // Check if the current user has liked the article
+                // There also use .child(....) -> if (snapshot.exists()) {..}
+                // But count the number of likes
                 if (snapshot.hasChild(auth.getUid())) {
                     // User has liked the article
                     btnLike.setImageResource(R.drawable.baseline_favorite_24); // Change to liked icon
@@ -189,8 +187,6 @@ public class ArticleActivity extends AppCompatActivity {
                 Toast.makeText(ArticleActivity.this, "Failed to load likes: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-
-
         // Gain the adapter data object
         databaseCommentRef.orderByChild("date").addValueEventListener(new ValueEventListener() {
             @Override
@@ -223,31 +219,30 @@ public class ArticleActivity extends AppCompatActivity {
                 // Handle possible errors
             }
         });
-
         // Grant value - which view, articles array list
         articleCommentAdapter = new ArticleCommentAdapter(ArticleActivity.this, commentsArrayList);
         // Set up the layout manager, adapter
         commentRV.setLayoutManager(new LinearLayoutManager(ArticleActivity.this));
         commentRV.setHasFixedSize(true);
         commentRV.setAdapter(articleCommentAdapter);
+        // [END config_layout]
 
         // [START layout component function]
         // Switch the screen -  Community Fragment
-        btnClose.setOnClickListener(new View.OnClickListener() {
+        btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 finish();
             }
         });
-
         // Handle save button click (toggle save/remove article)
         btnSave.setOnClickListener(view -> {
-            databaseSavedArticleRef.child(article.getArticleID()).addListenerForSingleValueEvent(new ValueEventListener() {
+            databaseSavedArticleRef.child(auth.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists()) {
                         // Article is already saved, remove it
-                        databaseSavedArticleRef.child(article.getArticleID()).removeValue()
+                        databaseSavedArticleRef.child(auth.getUid()).removeValue()
                                 .addOnCompleteListener(task -> {
                                     if (task.isSuccessful()) {
                                         Toast.makeText(ArticleActivity.this, "Article Removed", Toast.LENGTH_SHORT).show();
@@ -256,8 +251,10 @@ public class ArticleActivity extends AppCompatActivity {
                                     }
                                 });
                     } else {
+                        Users user = new Users();
+                        user.setUID(auth.getUid());
                         // Article is not saved, save it
-                        databaseSavedArticleRef.child(article.getArticleID()).setValue(article)
+                        databaseSavedArticleRef.child(auth.getUid()).setValue(user)
                                 .addOnCompleteListener(task -> {
                                     if (task.isSuccessful()) {
                                         Toast.makeText(ArticleActivity.this, "Article Saved", Toast.LENGTH_SHORT).show();
@@ -333,13 +330,13 @@ public class ArticleActivity extends AppCompatActivity {
             });
         });
 
-        // Like the article
+        // Like/Unlike the article
         btnLike.setOnClickListener(view -> {
             databaseLikeRef.child(auth.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists()) {
-                        // Article is already saved, remove it
+                        // Article is already liked, remove it
                         databaseLikeRef.child(auth.getUid()).removeValue()
                                 .addOnCompleteListener(task -> {
                                     if (task.isSuccessful()) {
@@ -349,8 +346,9 @@ public class ArticleActivity extends AppCompatActivity {
                                     }
                                 });
                     } else {
+                        // uid is being foreign key
                         user.setUID(auth.getUid());
-                        // Article is not saved, save it
+                        // Article is not liked, save it
                         databaseLikeRef.child(auth.getUid()).setValue(user)
                                 .addOnCompleteListener(task -> {
                                     if (task.isSuccessful()) {
@@ -397,8 +395,6 @@ public class ArticleActivity extends AppCompatActivity {
         articleComment.setDate(commentDate);
         articleComment.setTime(commentTime);
         articleComment.setComment(userComment);
-        articleComment.setUsername(userUsername);
-        articleComment.setImageURL(userAvatar);
         // Save comment
         databaseCommentRef.child(CID).setValue(articleComment);
     }

@@ -1,7 +1,10 @@
 package com.example.linkup.Adapter;
 
+import static android.content.ContentValues.TAG;
+
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,7 +37,8 @@ public class ArticleCommentAdapter extends RecyclerView.Adapter<ArticleCommentAd
     ArrayList<ArticleComments> commentsArrayList;
     // Firebase features
     FirebaseAuth auth;
-    FirebaseDatabase Rdb;
+    FirebaseDatabase Rdb; // real-time db
+    DatabaseReference databaseUserRef; // real-time db ref
 
     // Constructor
     public ArticleCommentAdapter(Context context, ArrayList<ArticleComments> commentsArrayList) {
@@ -52,17 +56,38 @@ public class ArticleCommentAdapter extends RecyclerView.Adapter<ArticleCommentAd
         Rdb = FirebaseDatabase.getInstance();
         //[END configuration]
 
+        // [START config_firebase reference]
+        databaseUserRef = Rdb.getReference().child("user");
+        // [END config_firebase reference]
+
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ArticleCommentAdapter.ViewHolder holder, int position) {
         ArticleComments comment = commentsArrayList.get(position);
-
-        Picasso.get().load(comment.getImageURL()).into(holder.netizenAvatar);
+        // [START config_layout]
+        // [Start Gain Article Creator Info]
+        databaseUserRef.child(comment.getUID()).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    // Layout Control
+                    Picasso.get().load(snapshot.child("avatarURL").getValue(String.class)).into(holder.netizenAvatar);
+                    holder.netizenName.setText(snapshot.child("username").getValue(String.class));
+                } else {
+                    Toast.makeText(context, "User data not found", Toast.LENGTH_SHORT).show();
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(context, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.w(TAG, "Personal information cannot be obtained: "+error.getMessage());
+            }
+        });
         holder.comment.setText(comment.getComment());
         holder.date.setText(comment.getDate());
-        holder.netizenName.setText(comment.getUsername());
+        // [END config_layout]
     }
 
     @Override
@@ -71,7 +96,7 @@ public class ArticleCommentAdapter extends RecyclerView.Adapter<ArticleCommentAd
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView netizenAvatar, btnLike;
+        ImageView netizenAvatar;
         TextView netizenName, comment, date;
 
         public ViewHolder(@NonNull View itemView) {
@@ -80,7 +105,6 @@ public class ArticleCommentAdapter extends RecyclerView.Adapter<ArticleCommentAd
             netizenName = itemView.findViewById(R.id.netizenName);
             date = itemView.findViewById(R.id.date);
             comment = itemView.findViewById(R.id.comment);
-            btnLike = itemView.findViewById(R.id.btnLike);
         }
     }
 }

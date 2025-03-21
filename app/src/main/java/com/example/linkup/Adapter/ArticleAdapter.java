@@ -77,7 +77,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                     Picasso.get().load(snapshot.child("avatarURL").getValue(String.class)).into(holder.avatar);
                     holder.username.setText(snapshot.child("username").getValue(String.class));
                 } else {
-                    Toast.makeText(context, "Article Saved", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "User data not found", Toast.LENGTH_SHORT).show();
                 }
             }
             @Override

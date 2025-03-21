@@ -89,7 +89,7 @@ public class UpdateProfile extends AppCompatActivity {
         //[END configuration]
 
         // [START config_firebase reference]
-        storageRef = storage.getReference();
+        storageRef = storage.getReference().child("avatars/" + auth.getUid() + ".jpg");
         databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
         // [END config_firebase reference]
 
@@ -118,7 +118,7 @@ public class UpdateProfile extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(UpdateProfile.this, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                Log.w(TAG, "Personal information cannot be obtained: "+error.getMessage());
+                Log.w(TAG, "Personal information cannot be obtained: " + error.getMessage());
             }
         });
 
@@ -143,11 +143,8 @@ public class UpdateProfile extends AppCompatActivity {
                 } else {
                     progressbar.setVisibility(View.VISIBLE);
                     Toast.makeText(UpdateProfile.this, "Updating...", Toast.LENGTH_SHORT).show();
-                    // handle imageURI To String
-                    if (imageURI != null)
-                        handleImageURI();
-                    // Update profile to database
-                    updateProfileToDatabase();
+                    // handle imageURI To String -> Update profile to database
+                    handleImageURI();
                     // update UI
                     updateUI();
                 }
@@ -180,35 +177,44 @@ public class UpdateProfile extends AppCompatActivity {
     }
 
     private void handleImageURI() {
-        storageRef.putFile(imageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                if (task.isSuccessful()) {
-                    storageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                        @Override
-                        public void onSuccess(Uri uri) {
-                            user.setAvatarURL(uri.toString()); // uri convert to string
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            progressDialog.dismiss();
-                            Toast.makeText(UpdateProfile.this, "Failed to get image URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                } else {
-                    progressDialog.dismiss();
-                    Toast.makeText(UpdateProfile.this, "Image upload failed.", Toast.LENGTH_SHORT).show();
+        if (imageURI != null) {
+            // Upload the file to the specified path
+            storageRef.putFile(imageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        storageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            @Override
+                            public void onSuccess(Uri uri) {
+                                user.setAvatarURL(uri.toString()); // Save the download URL
+                                // Now update the profile in the database after setting the avatarURL
+                                updateProfileToDatabase();
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                progressDialog.dismiss();
+                                Toast.makeText(UpdateProfile.this, "Failed to get image URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    } else {
+                        progressDialog.dismiss();
+                        Toast.makeText(UpdateProfile.this, "Image upload failed.", Toast.LENGTH_SHORT).show();
+                    }
                 }
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                progressDialog.dismiss();
-                Toast.makeText(UpdateProfile.this, "Image upload error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    progressDialog.dismiss();
+                    Toast.makeText(UpdateProfile.this, "Image upload error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            // If no image was selected, directly update the profile
+            updateProfileToDatabase();
+        }
     }
+
     // Update Profile to real time db
     private void updateProfileToDatabase() {
         databaseUserRef.setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -229,6 +235,7 @@ public class UpdateProfile extends AppCompatActivity {
             }
         });
     }
+
     // handling UI update
     private void updateUI() {
         Toast.makeText(UpdateProfile.this, "Profile Updated", Toast.LENGTH_SHORT).show();
@@ -241,7 +248,7 @@ public class UpdateProfile extends AppCompatActivity {
                 startActivity(intent);
                 finish();
             }
-        },2000);
+        }, 2000);
     }
     // [END Method]
 }
