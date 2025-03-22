@@ -42,13 +42,12 @@
         app:cardCornerRadius="75dp"
         app:cardPreventCornerOverlap="false">
 
-        <ImageView
+        <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/avatar"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@drawable/baseline_person_24"
-            android:clickable="true"
-            android:scaleType="fitCenter" />
+            />
 
     </androidx.cardview.widget.CardView>
 

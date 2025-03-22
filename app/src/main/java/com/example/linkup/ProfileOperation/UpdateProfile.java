@@ -46,9 +46,12 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 public class UpdateProfile extends AppCompatActivity {
     // layout object
-    ImageView avatar, btnBack;
+    CircleImageView avatar;
+    ImageView btnBack;
     EditText username, website, introduction;
     Button btnSave, btnUpload;
     ProgressBar progressbar;

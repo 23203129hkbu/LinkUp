@@ -62,7 +62,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical">
 
-            <ImageView
+            <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/posterAvatar"
                 android:layout_width="40dp"
                 android:layout_height="40dp"

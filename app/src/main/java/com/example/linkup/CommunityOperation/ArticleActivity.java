@@ -42,8 +42,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 public class ArticleActivity extends AppCompatActivity {
-    ImageView btnBack, btnSave, btnDelete, posterAvatar, btnLike, btnSend;
+    // layout object
+    CircleImageView posterAvatar;
+    ImageView btnBack, btnSave, btnDelete, btnLike, btnSend;
     TextView posterName, createdDate, createdTime, headline, content, likes;
     EditText comment;
     RecyclerView commentRV;

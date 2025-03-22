@@ -36,10 +36,12 @@ import com.google.firebase.storage.UploadTask;
 import java.util.HashMap;
 import java.util.Map;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 
 public class CreateProfile extends AppCompatActivity {
     // layout object
-    ImageView avatarUpload;
+    CircleImageView avatarUpload;
     EditText username, website, introduction;
     Button btnSave;
     ProgressBar progressbar;

@@ -34,10 +34,13 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 public class ProfileFragment extends Fragment {
     View view;
     // layout object
-    ImageView btnEdit, btnSetting, avatar;
+    CircleImageView avatar;
+    ImageView btnEdit, btnSetting;
     TextView username, introduction, website, state, btnPost;
     // Firebase features
     FirebaseAuth auth;

@@ -9,7 +9,7 @@
     android:layout_marginBottom="4dp">
 
     <!-- User Avatar -->
-    <ImageView
+    <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/netizenAvatar"
         android:layout_width="40dp"
         android:layout_height="40dp"
