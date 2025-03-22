@@ -145,8 +145,7 @@ public class UpdateProfile extends AppCompatActivity {
                     Toast.makeText(UpdateProfile.this, "Updating...", Toast.LENGTH_SHORT).show();
                     // handle imageURI To String -> Update profile to database
                     handleImageURI();
-                    // update UI
-                    updateUI();
+
                 }
             }
         });
@@ -223,6 +222,8 @@ public class UpdateProfile extends AppCompatActivity {
                 progressDialog.dismiss();
                 if (task.isSuccessful()) {
                     Toast.makeText(UpdateProfile.this, "Data updated successfully!", Toast.LENGTH_SHORT).show();
+                    // update UI
+                    updateUI();
                 } else {
                     Toast.makeText(UpdateProfile.this, "Failed to save data.", Toast.LENGTH_SHORT).show();
                 }

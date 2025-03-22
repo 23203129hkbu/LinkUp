@@ -39,12 +39,17 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef, databaseArticleRef, databaseSavedArticleRef; // real-time db ref
+    DatabaseReference databaseUserRef; // real-time db ref
 
     // Constructor
     public ArticleAdapter(Context context, ArrayList<Articles> articlesArrayList) {
         this.context = context;
         this.articlesArrayList = articlesArrayList;
+
+        // [START Firebase configuration - get a object]
+        auth = FirebaseAuth.getInstance();
+        Rdb = FirebaseDatabase.getInstance();
+        // [END configuration]
     }
 
 
@@ -52,21 +57,20 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     @Override
     public ArticleAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.article_item, parent, false);
-        // [START Firebase configuration - get a object]
-        auth = FirebaseAuth.getInstance();
-        Rdb = FirebaseDatabase.getInstance();
-        // [END configuration]
 
-        // [START config_firebase reference]
-        databaseUserRef = Rdb.getReference().child("user");
-        databaseArticleRef = Rdb.getReference().child("article");
-        // [END config_firebase reference]
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ArticleAdapter.ViewHolder holder, int position) {
         Articles article = articlesArrayList.get(position);
+
+        // [START config_firebase reference]
+        // Initialize database references dynamically based on the article
+        databaseUserRef = Rdb.getReference().child("user");
+        DatabaseReference databaseSavedArticleRef = Rdb.getReference().child("article").child(article.getArticleID()).child("savedUser");
+        // [END config_firebase reference]
+
         // [START config_layout]
         // [Start Gain Article Creator Info]
         databaseUserRef.child(article.getUID()).addValueEventListener(new ValueEventListener() {
@@ -88,8 +92,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         });
         holder.date.setText(article.getDate());
         holder.headline.setText(article.getHeadline());
-        // config-databaseSavedArticleRef
-        databaseSavedArticleRef = databaseArticleRef.child(article.getArticleID()).child("savedUser");
+
         // Check if the current user is the creator of the article
         if (article.getUID().equals(auth.getUid())) {
             // Hide save button if the user is the creator
@@ -98,14 +101,10 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
             // Show save button for other users
             holder.btnSave.setVisibility(View.VISIBLE);
             // Check if the article is already saved
-            databaseSavedArticleRef.child(auth.getUid()).addValueEventListener(new ValueEventListener() {
+            databaseSavedArticleRef.child(auth.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.exists()) {
-                        holder.btnSave.setImageResource(R.drawable.baseline_turned_in_24);
-                    } else {
-                        holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
-                    }
+                    holder.btnSave.setImageResource(snapshot.exists() ? R.drawable.baseline_turned_in_24 : R.drawable.baseline_turned_in_not_24);
                 }
 
                 @Override
@@ -123,7 +122,10 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists()) {
-                        // Article is already saved, remove it
+                        // Optimistically update UI
+                        holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
+
+                        // Remove the saved article
                         databaseSavedArticleRef.child(auth.getUid()).removeValue()
                                 .addOnCompleteListener(task -> {
                                     if (task.isSuccessful()) {
@@ -133,10 +135,11 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                                     }
                                 });
                     } else {
-                        Users user = new Users();
-                        user.setUID(auth.getUid());
-                        // Article is not saved, save it
-                        databaseSavedArticleRef.child(auth.getUid()).setValue(user)
+                        // Optimistically update UI
+                        holder.btnSave.setImageResource(R.drawable.baseline_turned_in_24);
+
+                        // Save the article
+                        databaseSavedArticleRef.child(auth.getUid()).setValue(true)
                                 .addOnCompleteListener(task -> {
                                     if (task.isSuccessful()) {
                                         Toast.makeText(context, "Article Saved", Toast.LENGTH_SHORT).show();

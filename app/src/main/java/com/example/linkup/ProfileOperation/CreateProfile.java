@@ -79,7 +79,7 @@ public class CreateProfile extends AppCompatActivity {
         // [END config_firebase]
 
         // [START config_firebase reference]
-        storageRef = storage.getReference();
+        storageRef = storage.getReference().child("avatars/" + auth.getUid() + ".jpg");
         databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
         // [END config_firebase reference]
 
@@ -112,13 +112,8 @@ public class CreateProfile extends AppCompatActivity {
                     Toast.makeText(CreateProfile.this, "Username is required", Toast.LENGTH_SHORT).show();
                 } else {
                     progressbar.setVisibility(View.VISIBLE);
-                    // handle imageURI To String
-                    if (imageURI != null)
-                        handleImageURI();
-                    // Save profile to Database
-                    handleProfileToDatabase();
-                    // update UI
-                    updateUI();
+                    // handle imageURI To String -> Create profile to database
+                    handleImageURI();
                 }
             }
         });
@@ -139,34 +134,43 @@ public class CreateProfile extends AppCompatActivity {
     }
 
     private void handleImageURI() {
-        storageRef.putFile(imageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                if (task.isSuccessful()) {
-                    storageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                        @Override
-                        public void onSuccess(Uri uri) {
-                            imageURL = uri.toString(); // uri convert to string
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            progressDialog.dismiss();
-                            Toast.makeText(CreateProfile.this, "Failed to get image URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                } else {
-                    progressDialog.dismiss();
-                    Toast.makeText(CreateProfile.this, "Image upload failed.", Toast.LENGTH_SHORT).show();
+        if (imageURI != null) {
+            // Upload the file to the specified path
+            storageRef.putFile(imageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        storageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            @Override
+                            public void onSuccess(Uri uri) {
+                                imageURL = uri.toString(); // uri convert to string
+                                // Save the download URL
+                                // Now update the profile in the database after setting the avatarURL
+                                handleProfileToDatabase();
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                progressDialog.dismiss();
+                                Toast.makeText(CreateProfile.this, "Failed to get image URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    } else {
+                        progressDialog.dismiss();
+                        Toast.makeText(CreateProfile.this, "Image upload failed.", Toast.LENGTH_SHORT).show();
+                    }
                 }
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                progressDialog.dismiss();
-                Toast.makeText(CreateProfile.this, "Image upload error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    progressDialog.dismiss();
+                    Toast.makeText(CreateProfile.this, "Image upload error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            // If no image was selected, directly create the profile
+            handleProfileToDatabase();
+        }
     }
 
     // Ref - update realtime db
@@ -183,6 +187,8 @@ public class CreateProfile extends AppCompatActivity {
                 progressDialog.dismiss();
                 if (task.isSuccessful()) {
                     Toast.makeText(CreateProfile.this, "Data saved successfully!", Toast.LENGTH_SHORT).show();
+                    // update UI
+                    updateUI();
                 } else {
                     Toast.makeText(CreateProfile.this, "Failed to save data.", Toast.LENGTH_SHORT).show();
                 }
@@ -208,7 +214,7 @@ public class CreateProfile extends AppCompatActivity {
                 startActivity(intent);
                 finish();
             }
-        }, 2000);
+        }, 4000);
     }
     // [END Method]
 }
