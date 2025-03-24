@@ -1,41 +1,48 @@
-<?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:background="@color/white"
     tools:context=".Fragment.HomeFragment">
 
+    <!-- Top Card with Title -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="70dp"
         android:layout_marginBottom="10dp"
-        android:layout_alignParentTop="true"
-        app:cardBackgroundColor="@color/purple_3">
+        app:cardBackgroundColor="@color/purple_3"
+        app:cardElevation="4dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="left"
+            android:layout_gravity="center_vertical"
             android:layout_marginLeft="@dimen/_15sdp"
-            android:layout_marginTop="@dimen/_15sdp"
             android:text="LINK UP"
             android:textColor="@color/purple_2"
             android:textSize="25sp"
             android:textStyle="bold" />
-
     </androidx.cardview.widget.CardView>
 
+    <!-- RecyclerView for Posts -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/postRV"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginBottom="10dp" />
+
+    <!-- Floating Action Button -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnAdd"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
+        android:layout_gravity="end|bottom"
         android:layout_marginRight="20dp"
         android:layout_marginBottom="20dp"
         android:backgroundTint="@color/purple_3"
-        app:tint="@android:color/white"
-        android:src="@drawable/baseline_add_24_white"/>
-</RelativeLayout>
+        android:src="@drawable/baseline_add_24_white"
+        app:tint="@android:color/white" />
+</LinearLayout>

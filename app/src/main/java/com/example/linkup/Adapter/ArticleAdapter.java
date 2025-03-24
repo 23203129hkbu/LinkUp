@@ -72,6 +72,8 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         // [END config_firebase reference]
 
         // [START config_layout]
+        holder.date.setText(article.getDate());
+        holder.headline.setText(article.getHeadline());
         // [Start Gain Article Creator Info]
         databaseUserRef.child(article.getUID()).addValueEventListener(new ValueEventListener() {
             @Override
@@ -90,8 +92,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                 Log.w(TAG, "Personal information cannot be obtained: "+error.getMessage());
             }
         });
-        holder.date.setText(article.getDate());
-        holder.headline.setText(article.getHeadline());
+
 
         // Check if the current user is the creator of the article
         if (article.getUID().equals(auth.getUid())) {

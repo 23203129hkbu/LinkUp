@@ -2,18 +2,27 @@ package com.example.linkup.Object;
 
 public class Posts {
 
-    String UID,postURL,date,time,type,description;
+    String postID, UID,postURL,date,time,type,description;
 
     public Posts() {
     }
 
-    public Posts(String UID, String postURL, String date, String time, String type, String description) {
+    public Posts(String postID, String UID, String postURL, String date, String time, String type, String description) {
+        this.postID = postID;
         this.UID = UID;
         this.postURL = postURL;
         this.date = date;
         this.time = time;
         this.type = type;
         this.description = description;
+    }
+
+    public String getPostID() {
+        return postID;
+    }
+
+    public void setPostID(String postID) {
+        this.postID = postID;
     }
 
     public String getUID() {

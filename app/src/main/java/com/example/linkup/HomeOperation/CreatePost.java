@@ -229,6 +229,7 @@ public class CreatePost extends AppCompatActivity {
 
     // Ref - update realtime db
     private void handlePostToDatabase() {
+        post.setPostID(postID);
         post.setUID(auth.getUid());
         post.setPostURL(postURL);
         post.setDate(createdDate);

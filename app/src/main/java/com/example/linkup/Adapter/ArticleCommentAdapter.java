@@ -44,6 +44,11 @@ public class ArticleCommentAdapter extends RecyclerView.Adapter<ArticleCommentAd
     public ArticleCommentAdapter(Context context, ArrayList<ArticleComments> commentsArrayList) {
         this.context = context;
         this.commentsArrayList = commentsArrayList;
+
+        //[START Firebase configuration - get a object]
+        auth = FirebaseAuth.getInstance();
+        Rdb = FirebaseDatabase.getInstance();
+        //[END configuration]
     }
 
 
@@ -51,14 +56,6 @@ public class ArticleCommentAdapter extends RecyclerView.Adapter<ArticleCommentAd
     @Override
     public ArticleCommentAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.article_comment_item, parent, false);
-        //[START Firebase configuration - get a object]
-        auth = FirebaseAuth.getInstance();
-        Rdb = FirebaseDatabase.getInstance();
-        //[END configuration]
-
-        // [START config_firebase reference]
-        databaseUserRef = Rdb.getReference().child("user");
-        // [END config_firebase reference]
 
         return new ViewHolder(view);
     }
@@ -66,9 +63,15 @@ public class ArticleCommentAdapter extends RecyclerView.Adapter<ArticleCommentAd
     @Override
     public void onBindViewHolder(@NonNull ArticleCommentAdapter.ViewHolder holder, int position) {
         ArticleComments comment = commentsArrayList.get(position);
+        // [START config_firebase reference]
+        databaseUserRef = Rdb.getReference().child("user").child(comment.getUID());
+        // [END config_firebase reference]
+
         // [START config_layout]
+        holder.comment.setText(comment.getComment());
+        holder.date.setText(comment.getDate());
         // [Start Gain Article Creator Info]
-        databaseUserRef.child(comment.getUID()).addValueEventListener(new ValueEventListener() {
+        databaseUserRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
@@ -85,8 +88,6 @@ public class ArticleCommentAdapter extends RecyclerView.Adapter<ArticleCommentAd
                 Log.w(TAG, "Personal information cannot be obtained: "+error.getMessage());
             }
         });
-        holder.comment.setText(comment.getComment());
-        holder.date.setText(comment.getDate());
         // [END config_layout]
     }
 
