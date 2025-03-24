@@ -39,7 +39,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef,databaseSavedArticleRef; // real-time db ref
+    DatabaseReference databaseUserRef, databaseSavedArticleRef; // real-time db ref
 
     // Constructor
     public ArticleAdapter(Context context, ArrayList<Articles> articlesArrayList) {
@@ -63,7 +63,8 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(@NonNull ArticleAdapter.ViewHolder holder, int position) {
-        Articles article = articlesArrayList.get(position);
+        // Add final to ensure the closure captures the correct object
+        final Articles article = articlesArrayList.get(position);
         // [START config_firebase reference]
         // Initialize database references dynamically based on the article
         databaseUserRef = Rdb.getReference().child("user");
@@ -71,6 +72,8 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         // [END config_firebase reference]
 
         // [START config_layout]
+        holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24); // 默认状态
+        holder.btnSave.setTag(article.getArticleID()); // 绑定唯一标识
         holder.date.setText(article.getDate());
         holder.headline.setText(article.getHeadline());
         // [Start Gain Article Creator Info]
@@ -85,10 +88,11 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                     Toast.makeText(context, "User data not found", Toast.LENGTH_SHORT).show();
                 }
             }
+
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(context, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                Log.w(TAG, "Personal information cannot be obtained: "+error.getMessage());
+                Log.w(TAG, "Personal information cannot be obtained: " + error.getMessage());
             }
         });
 
@@ -104,7 +108,8 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
             databaseSavedArticleRef.child(auth.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    holder.btnSave.setImageResource(snapshot.exists() ? R.drawable.baseline_turned_in_24 : R.drawable.baseline_turned_in_not_24);
+                    if (article.getArticleID().equals(holder.btnSave.getTag()))
+                        holder.btnSave.setImageResource(snapshot.exists() ? R.drawable.baseline_turned_in_24 : R.drawable.baseline_turned_in_not_24);
                 }
 
                 @Override
@@ -118,34 +123,35 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         // [START layout component function]
         // Handle save button click (toggle save/remove article)
         holder.btnSave.setOnClickListener(view -> {
-            databaseSavedArticleRef.child(auth.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+            // 获取当前绑定的文章ID
+            String currentArticleId = (String) holder.btnSave.getTag();
+            if (currentArticleId == null || !currentArticleId.equals(article.getArticleID())) {
+                return; // 防止异步操作导致的错位
+            }
+            DatabaseReference currentRef = Rdb.getReference()
+                    .child("article")
+                    .child(currentArticleId)
+                    .child("savedUser")
+                    .child(auth.getUid());
+
+            currentRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.exists()) {
-                        // Optimistically update UI
-                        holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
+                    if (!currentArticleId.equals(holder.btnSave.getTag())) {
+                        return; // 二次验证防止错位
+                    }
 
-                        // Remove the saved article
-                        databaseSavedArticleRef.child(auth.getUid()).removeValue()
-                                .addOnCompleteListener(task -> {
-                                    if (task.isSuccessful()) {
-                                        Toast.makeText(context, "Article Removed", Toast.LENGTH_SHORT).show();
-                                    } else {
-                                        Toast.makeText(context, "Failed to remove article", Toast.LENGTH_SHORT).show();
-                                    }
+                    if (snapshot.exists()) {
+                        // 移除保存
+                        currentRef.removeValue()
+                                .addOnSuccessListener(aVoid -> {
+                                    holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
                                 });
                     } else {
-                        // Optimistically update UI
-                        holder.btnSave.setImageResource(R.drawable.baseline_turned_in_24);
-
-                        // Save the article
-                        databaseSavedArticleRef.child(auth.getUid()).setValue(true)
-                                .addOnCompleteListener(task -> {
-                                    if (task.isSuccessful()) {
-                                        Toast.makeText(context, "Article Saved", Toast.LENGTH_SHORT).show();
-                                    } else {
-                                        Toast.makeText(context, "Failed to save article", Toast.LENGTH_SHORT).show();
-                                    }
+                        // 添加保存
+                        currentRef.setValue(true)
+                                .addOnSuccessListener(aVoid -> {
+                                    holder.btnSave.setImageResource(R.drawable.baseline_turned_in_24);
                                 });
                     }
                 }

@@ -73,13 +73,15 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull PostAdapter.ViewHolder holder, int position) {
-        Posts post = postsArrayList.get(position);
+        final Posts post = postsArrayList.get(position);
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user").child(post.getUID());
         databaseLikeRef = Rdb.getReference().child("post").child(post.getPostID()).child("likedUser");
         // [END config_firebase reference]
 
         // [START config_layout]
+        holder.btnLike.setImageResource(R.drawable.baseline_favorite_border_24); // 默认状态
+        holder.btnLike.setTag(post.getPostID()); // 绑定唯一标识
         holder.description.setText(post.getDescription());
         holder.dateAndTime.setText(post.getDate()+", "+post.getTime());
         if (post.getType().equals("video")) {
@@ -147,20 +149,37 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         // [START layout component function]
         // Handle save button click (toggle save/remove article)
         holder.btnLike.setOnClickListener(view -> {
-            databaseLikeRef.child(auth.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+            String currentPostId = (String) holder.btnLike.getTag();
+            if (currentPostId == null || !currentPostId.equals(post.getPostID())) {
+                return; // 防止异步操作导致的错位
+            }
+            DatabaseReference currentRef = Rdb.getReference()
+                    .child("post")
+                    .child(post.getPostID())
+                    .child("likedUser")
+                    .child(auth.getUid());
+
+            currentRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (!currentPostId.equals(holder.btnLike.getTag())) {
+                        return; // 二次验证防止错位
+                    }
+
                     if (snapshot.exists()) {
-                        // Article is already liked, remove it
-                        databaseLikeRef.child(auth.getUid()).removeValue();
+                        // 移除保存
+                        currentRef.removeValue()
+                                .addOnSuccessListener(aVoid -> {
+                                    holder.btnLike.setImageResource(R.drawable.baseline_favorite_border_24);
+                                });
                     } else {
-                        // uid is being foreign key
-                        user.setUID(auth.getUid());
-                        // Article is not liked, save it
-                        databaseLikeRef.child(auth.getUid()).setValue(user);
+                        // 添加保存
+                        currentRef.setValue(true)
+                                .addOnSuccessListener(aVoid -> {
+                                    holder.btnLike.setImageResource(R.drawable.baseline_favorite_24);
+                                });
                     }
                 }
-
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
                     Toast.makeText(context, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();

@@ -90,8 +90,6 @@ public class CommunityFragment extends Fragment {
                     }
                     return dateComparison;
                 });
-                // Reverse the list to get the latest articles first
-                Collections.reverse(articlesArrayList);
                 // Notify adapter after sorting
                 articleAdapter.notifyDataSetChanged();
             }
