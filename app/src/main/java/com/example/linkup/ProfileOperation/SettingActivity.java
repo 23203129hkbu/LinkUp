@@ -120,8 +120,8 @@ public class SettingActivity extends AppCompatActivity {
                                                             databaseUserRef.removeValue()
                                                                     .addOnCompleteListener(task -> {
                                                                         if (task.isSuccessful()) {
-                                                                            updateUI("Login");
                                                                             Toast.makeText(SettingActivity.this, "User account deleted", Toast.LENGTH_SHORT).show();
+                                                                            updateUI("Login");
                                                                         } else {
                                                                             Toast.makeText(SettingActivity.this, "Failed to remove user AC", Toast.LENGTH_SHORT).show();
                                                                         }

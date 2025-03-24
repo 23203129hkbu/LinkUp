@@ -14,11 +14,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.linkup.CommunityOperation.ArticleActivity;
+import com.example.linkup.CommunityOperation.CommunityMenu;
 import com.example.linkup.CommunityOperation.MyArticlesActivity;
 import com.example.linkup.Fragment.CommunityFragment;
+import com.example.linkup.HomeOperation.PostMenu;
 import com.example.linkup.Object.ArticleComments;
 import com.example.linkup.Object.Articles;
 import com.example.linkup.Object.Posts;
@@ -84,6 +87,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         holder.btnLike.setTag(post.getPostID()); // 绑定唯一标识
         holder.description.setText(post.getDescription());
         holder.dateAndTime.setText(post.getDate()+", "+post.getTime());
+        if (post.getUID().equals(auth.getUid())) {
+            holder.btnFollow.setVisibility(View.INVISIBLE);
+        } else {
+            holder.btnFollow.setVisibility(View.VISIBLE);
+        }
         if (post.getType().equals("video")) {
             holder.video.setVisibility(View.VISIBLE);
             holder.image.setVisibility(View.INVISIBLE);
@@ -185,6 +193,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                     Toast.makeText(context, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
+        });
+        holder.btnMenu.setOnClickListener(view -> {
+            PostMenu pm = new PostMenu (post.getPostID());
+            pm.show(((AppCompatActivity) context).getSupportFragmentManager(), "bottom");
         });
         // [END layout component function]
     }

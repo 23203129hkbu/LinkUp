@@ -17,23 +17,27 @@ import com.example.linkup.R;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 public class CommunityMenu extends BottomSheetDialogFragment {
-
+    // layout object
     CardView btnMyArticles, btnSavedArticles;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = getLayoutInflater().inflate(R.layout.community_bottom_menu,null);
+        // [START gain layout objects]
         btnMyArticles = view.findViewById(R.id.btnMyArticles );
         btnSavedArticles = view.findViewById(R.id.btnSavedArticles);
+        // [END gain]
 
+        // [START layout component function]
+        // Switch the screen - User's articles
         btnMyArticles.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 updateUI("MyArticles");
             }
         });
-
+        // Switch the screen - saved articles
         btnSavedArticles.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
