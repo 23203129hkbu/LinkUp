@@ -195,7 +195,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             });
         });
         holder.btnMenu.setOnClickListener(view -> {
-            PostMenu pm = new PostMenu (post.getPostID());
+            PostMenu pm = new PostMenu (post.getPostID(),post.getPostURL());
             pm.show(((AppCompatActivity) context).getSupportFragmentManager(), "bottom");
         });
         // [END layout component function]
