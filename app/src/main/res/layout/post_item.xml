@@ -1,16 +1,18 @@
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    app:cardElevation="2dp"
-    app:cardCornerRadius="4dp"
+    app:cardElevation="4dp"
+    app:cardCornerRadius="8dp"
     android:background="@android:color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="12dp">
 
         <!-- Top Section: Profile, Username, Follow Button, Menu -->
         <LinearLayout
@@ -23,8 +25,8 @@
             <!-- Profile Image -->
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/avatar"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:src="@drawable/baseline_person_24" />
 
             <!-- Username -->
@@ -36,7 +38,7 @@
                 android:layout_marginStart="10dp"
                 android:text="Username"
                 android:textColor="@android:color/black"
-                android:textSize="14sp"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
             <!-- Follow Button -->
@@ -58,7 +60,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/baseline_more_vert_24"
-                android:contentDescription="Menu" />
+                android:contentDescription="Menu"
+                android:layout_marginStart="8dp" />
         </LinearLayout>
 
         <!-- Post Media Section -->
@@ -73,6 +76,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
                 android:visibility="gone"
+                app:use_controller="true"
+                app:controller_layout_id="@layout/custom_exoplayer"
                 app:resize_mode="fill" />
 
             <!-- Image -->

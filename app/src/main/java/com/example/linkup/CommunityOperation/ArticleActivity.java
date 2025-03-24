@@ -64,8 +64,6 @@ public class ArticleActivity extends AppCompatActivity {
     // Article - retrieve data form adapter
     Articles article = new Articles();
     ArticleComments articleComment = new ArticleComments();
-    // User
-    Users user = new Users();
     // Comment
     String userComment, commentDate, commentTime;
     // Likes
@@ -255,10 +253,8 @@ public class ArticleActivity extends AppCompatActivity {
                                     }
                                 });
                     } else {
-                        Users user = new Users();
-                        user.setUID(auth.getUid());
                         // Article is not saved, save it
-                        databaseSavedArticleRef.child(auth.getUid()).setValue(user)
+                        databaseSavedArticleRef.child(auth.getUid()).setValue(true)
                                 .addOnCompleteListener(task -> {
                                     if (task.isSuccessful()) {
                                         Toast.makeText(ArticleActivity.this, "Article Saved", Toast.LENGTH_SHORT).show();
@@ -350,10 +346,8 @@ public class ArticleActivity extends AppCompatActivity {
                                     }
                                 });
                     } else {
-                        // uid is being foreign key
-                        user.setUID(auth.getUid());
                         // Article is not liked, save it
-                        databaseLikeRef.child(auth.getUid()).setValue(user)
+                        databaseLikeRef.child(auth.getUid()).setValue(true)
                                 .addOnCompleteListener(task -> {
                                     if (task.isSuccessful()) {
                                         Toast.makeText(ArticleActivity.this, "Liked", Toast.LENGTH_SHORT).show();
