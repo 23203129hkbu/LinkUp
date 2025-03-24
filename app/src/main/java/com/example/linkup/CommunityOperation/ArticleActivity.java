@@ -67,7 +67,7 @@ public class ArticleActivity extends AppCompatActivity {
     // User
     Users user = new Users();
     // Comment
-    String userComment, commentDate, commentTime, userUsername, userAvatar;
+    String userComment, commentDate, commentTime;
     // Likes
     int noOfLikes;
 

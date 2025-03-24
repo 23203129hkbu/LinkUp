@@ -39,7 +39,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef; // real-time db ref
+    DatabaseReference databaseUserRef,databaseSavedArticleRef; // real-time db ref
 
     // Constructor
     public ArticleAdapter(Context context, ArrayList<Articles> articlesArrayList) {
@@ -64,11 +64,10 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull ArticleAdapter.ViewHolder holder, int position) {
         Articles article = articlesArrayList.get(position);
-
         // [START config_firebase reference]
         // Initialize database references dynamically based on the article
         databaseUserRef = Rdb.getReference().child("user");
-        DatabaseReference databaseSavedArticleRef = Rdb.getReference().child("article").child(article.getArticleID()).child("savedUser");
+        databaseSavedArticleRef = Rdb.getReference().child("article").child(article.getArticleID()).child("savedUser");
         // [END config_firebase reference]
 
         // [START config_layout]

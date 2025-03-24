@@ -31,6 +31,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class CommunityFragment extends Fragment {
     View view;
@@ -89,6 +90,8 @@ public class CommunityFragment extends Fragment {
                     }
                     return dateComparison;
                 });
+                // Reverse the list to get the latest articles first
+                Collections.reverse(articlesArrayList);
                 // Notify adapter after sorting
                 articleAdapter.notifyDataSetChanged();
             }

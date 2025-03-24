@@ -22,6 +22,7 @@ import com.example.linkup.Fragment.CommunityFragment;
 import com.example.linkup.Object.ArticleComments;
 import com.example.linkup.Object.Articles;
 import com.example.linkup.Object.Posts;
+import com.example.linkup.Object.Users;
 import com.example.linkup.R;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.SimpleExoPlayer;
@@ -46,7 +47,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef, databasePostRef; // real-time db ref
+    DatabaseReference databaseUserRef, databaseLikeRef; // real-time db ref
+    // User
+    Users user = new Users();
 
     // Constructor
     public PostAdapter(Context context, ArrayList<Posts> postsArrayList) {
@@ -73,6 +76,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         Posts post = postsArrayList.get(position);
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user").child(post.getUID());
+        databaseLikeRef = Rdb.getReference().child("post").child(post.getPostID()).child("likedUser");
         // [END config_firebase reference]
 
         // [START config_layout]
@@ -114,7 +118,56 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                 Log.w(TAG, "Personal information cannot be obtained: "+error.getMessage());
             }
         });
+        // Load Button Like / Gain existing likes
+        databaseLikeRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                // Count total likes
+                int noOfLikes = (int) snapshot.getChildrenCount();
+                holder.likes.setText(String.valueOf(noOfLikes));
+                // Check if the current user has liked the article
+                // There also use .child(....) -> if (snapshot.exists()) {..}
+                // But count the number of likes
+                if (snapshot.hasChild(auth.getUid())) {
+                    // User has liked the article
+                    holder.btnLike.setImageResource(R.drawable.baseline_favorite_24); // Change to liked icon
+                } else {
+                    // User has not liked the article
+                    holder.btnLike.setImageResource(R.drawable.baseline_favorite_border_24); // Change to unliked icon
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(context, "Failed to load likes: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
         // [END config_layout]
+
+        // [START layout component function]
+        // Handle save button click (toggle save/remove article)
+        holder.btnLike.setOnClickListener(view -> {
+            databaseLikeRef.child(auth.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        // Article is already liked, remove it
+                        databaseLikeRef.child(auth.getUid()).removeValue();
+                    } else {
+                        // uid is being foreign key
+                        user.setUID(auth.getUid());
+                        // Article is not liked, save it
+                        databaseLikeRef.child(auth.getUid()).setValue(user);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(context, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+        // [END layout component function]
     }
 
     @Override
