@@ -16,6 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.linkup.Object.Posts;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
@@ -39,7 +40,7 @@ public class ProfileFragment extends Fragment {
     // layout object
     CircleImageView avatar;
     ImageView btnEdit, btnSetting;
-    TextView username, introduction, website, state;
+    TextView username, introduction, website, state, posts;
     // Tabbed View
     SectionsPagerAdapter adapter;
     ViewPager2 tabbedView;
@@ -47,9 +48,10 @@ public class ProfileFragment extends Fragment {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef; // real-time db ref
+    DatabaseReference databaseUserRef, databasePostRef; // real-time db ref
     // default user info
     String userWebsite;
+
 
     @Nullable
     @Override
@@ -64,9 +66,12 @@ public class ProfileFragment extends Fragment {
         state = view.findViewById(R.id.state);
         btnEdit = view.findViewById(R.id.btnEdit);
         btnSetting = view.findViewById(R.id.btnSetting);
+        posts = view.findViewById(R.id.posts);
         // Tabbed view
         tabbedView = view.findViewById(R.id.tabbedView);
         tab = view.findViewById(R.id.tab);
+        // [END gain]
+
         // Setup ViewPager
         adapter = new SectionsPagerAdapter(getActivity());
         tabbedView.setAdapter(adapter);
@@ -78,7 +83,6 @@ public class ProfileFragment extends Fragment {
                 tab.setIcon(R.drawable.baseline_videocam_24);
             }
         }).attach();
-        // [END gain]
 
         // [START config_firebase]
         auth = FirebaseAuth.getInstance();
@@ -87,6 +91,7 @@ public class ProfileFragment extends Fragment {
 
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
+        databasePostRef = Rdb.getReference().child("post");
         // [END config_firebase reference]
 
         //[Determine whether the user is logging in for the first time]
@@ -111,6 +116,26 @@ public class ProfileFragment extends Fragment {
                 Toast.makeText(getContext(), "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+        // Count Posts
+        databasePostRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int numOfPost = 0; // Reset count before counting
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    Posts post = dataSnapshot.getValue(Posts.class);
+                    if (post != null && post.getUID().equals(auth.getUid())) {
+                        numOfPost += 1;
+                    }
+                }
+                posts.setText(String.valueOf(numOfPost)); // Set the count after counting
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Handle possible errors
+            }
+        });
+
 
         // [START layout component function]
         // Switch the screen - Update Profile

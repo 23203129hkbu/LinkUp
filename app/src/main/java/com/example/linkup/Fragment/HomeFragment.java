@@ -41,7 +41,7 @@ public class HomeFragment extends Fragment {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databasePostRef; // real-time db ref ; SavedArticleSortByUser -> SASBU
+    DatabaseReference databasePostRef; // real-time db ref
     // convert article data into RecyclerView by Adapter
     ArrayList<Posts> postsArrayList = new ArrayList<>();
     PostAdapter postAdapter;
@@ -99,7 +99,7 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // Grant value - which view, articles array list
+        // Grant value - which view, posts array list
         postAdapter = new PostAdapter(getContext(), postsArrayList);
         // Set up the layout manager, adapter
         postRV.setLayoutManager(new LinearLayoutManager(getContext()));
