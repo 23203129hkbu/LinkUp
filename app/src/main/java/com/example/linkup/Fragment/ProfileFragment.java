@@ -7,31 +7,29 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.viewpager2.widget.ViewPager2;
 
-import com.example.linkup.CommunityOperation.ArticleActivity;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
+
 import com.example.linkup.ProfileOperation.CreateProfile;
+import com.example.linkup.ProfileOperation.TabbedView.SectionsPagerAdapter;
 import com.example.linkup.ProfileOperation.UpdateProfile;
 import com.example.linkup.R;
 import com.example.linkup.ProfileOperation.SettingActivity;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -41,7 +39,11 @@ public class ProfileFragment extends Fragment {
     // layout object
     CircleImageView avatar;
     ImageView btnEdit, btnSetting;
-    TextView username, introduction, website, state, btnPost;
+    TextView username, introduction, website, state;
+    // Tabbed View
+    SectionsPagerAdapter adapter;
+    ViewPager2 tabbedView;
+    TabLayout tab;
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
@@ -62,6 +64,20 @@ public class ProfileFragment extends Fragment {
         state = view.findViewById(R.id.state);
         btnEdit = view.findViewById(R.id.btnEdit);
         btnSetting = view.findViewById(R.id.btnSetting);
+        // Tabbed view
+        tabbedView = view.findViewById(R.id.tabbedView);
+        tab = view.findViewById(R.id.tab);
+        // Setup ViewPager
+        adapter = new SectionsPagerAdapter(getActivity());
+        tabbedView.setAdapter(adapter);
+        // Use TabLayoutMediator to link TabLayout with ViewPager2
+        new TabLayoutMediator(tab, tabbedView, (tab, position) -> {
+            if (position == 0) {
+                tab.setIcon(R.drawable.baseline_camera_alt_24);  // Set tab icon
+            } else if (position == 1) {
+                tab.setIcon(R.drawable.baseline_videocam_24);
+            }
+        }).attach();
         // [END gain]
 
         // [START config_firebase]
