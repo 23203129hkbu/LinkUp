@@ -72,22 +72,11 @@ public class ProfileFragment extends Fragment {
         tab = view.findViewById(R.id.tab);
         // [END gain]
 
-        // Setup ViewPager
-        adapter = new SectionsPagerAdapter(getActivity());
-        tabbedView.setAdapter(adapter);
-        // Use TabLayoutMediator to link TabLayout with ViewPager2
-        new TabLayoutMediator(tab, tabbedView, (tab, position) -> {
-            if (position == 0) {
-                tab.setIcon(R.drawable.baseline_camera_alt_24);  // Set tab icon
-            } else if (position == 1) {
-                tab.setIcon(R.drawable.baseline_videocam_24);
-            }
-        }).attach();
-
         // [START config_firebase]
         auth = FirebaseAuth.getInstance();
         Rdb = FirebaseDatabase.getInstance();
         // [END config_firebase]
+
 
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
@@ -135,6 +124,18 @@ public class ProfileFragment extends Fragment {
                 // Handle possible errors
             }
         });
+
+        // Setup ViewPager
+        adapter = new SectionsPagerAdapter(getActivity(),auth.getUid());
+        tabbedView.setAdapter(adapter);
+        // Use TabLayoutMediator to link TabLayout with ViewPager2
+        new TabLayoutMediator(tab, tabbedView, (tab, position) -> {
+            if (position == 0) {
+                tab.setIcon(R.drawable.baseline_camera_alt_24);  // Set tab icon
+            } else if (position == 1) {
+                tab.setIcon(R.drawable.baseline_videocam_24);
+            }
+        }).attach();
 
 
         // [START layout component function]

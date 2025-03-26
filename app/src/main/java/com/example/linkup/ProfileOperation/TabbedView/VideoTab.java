@@ -40,6 +40,12 @@ public class VideoTab extends Fragment {
     // convert article data into RecyclerView by Adapter
     ArrayList<Posts> postsArrayList = new ArrayList<>();
     VideoAdapter videoAdapter;
+    // Determine which user it belongs to
+    String uid;
+
+    public VideoTab(String uid) {
+        this.uid = uid;
+    }
 
     @Nullable
     @Override
@@ -67,7 +73,7 @@ public class VideoTab extends Fragment {
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Posts post = dataSnapshot.getValue(Posts.class);
                     // Ensure article is not null before proceeding
-                    if (post != null&&post.getUID().equals(auth.getUid())&&post.getType().equals("video")) {
+                    if (post != null && post.getUID().equals(uid) && post.getType().equals("video")) {
                         postsArrayList.add(post);
                     }
                 }
@@ -94,7 +100,7 @@ public class VideoTab extends Fragment {
         // Grant value - which view, posts array list
         videoAdapter = new VideoAdapter(getContext(), postsArrayList);
         // Set up the layout manager, adapter
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(),3,GridLayoutManager.VERTICAL,false);
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 3, GridLayoutManager.VERTICAL, false);
         videoRV.setLayoutManager(gridLayoutManager);
         videoRV.setHasFixedSize(true);
         videoRV.setAdapter(videoAdapter);

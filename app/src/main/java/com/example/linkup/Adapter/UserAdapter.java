@@ -1,6 +1,7 @@
 package com.example.linkup.Adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.linkup.CommunityOperation.ArticleActivity;
+import com.example.linkup.HomeOperation.UserProfile;
 import com.example.linkup.Object.Posts;
 import com.example.linkup.Object.Users;
 import com.example.linkup.R;
@@ -46,6 +49,14 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         Picasso.get().load(user.getAvatarURL()).into(holder.avatar);
         holder.username.setText(user.getUsername());
         // [END config_layout]
+
+        // Open article details on item click
+        holder.itemView.setOnClickListener(view -> {
+            Intent intent = new Intent(context, UserProfile.class);
+            intent.putExtra("user", user);  // Pass the article object
+            context.startActivity(intent);
+        });
+        // [END layout component function]
     }
 
     @Override

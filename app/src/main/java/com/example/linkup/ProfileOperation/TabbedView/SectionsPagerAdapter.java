@@ -18,9 +18,11 @@ import com.example.linkup.R;
  * one of the sections/tabs/pages.
  */
 public class SectionsPagerAdapter extends FragmentStateAdapter {
+    String uid;
 
-    public SectionsPagerAdapter(FragmentActivity fragmentActivity) {
+    public SectionsPagerAdapter(FragmentActivity fragmentActivity, String uid) {
         super(fragmentActivity);
+        this.uid = uid;
     }
 
     @NonNull
@@ -28,11 +30,11 @@ public class SectionsPagerAdapter extends FragmentStateAdapter {
     public Fragment createFragment(int position) {
         switch (position) {
             case 0:
-                return new ImageTab();
+                return new ImageTab(uid);
             case 1:
-                return new VideoTab();
+                return new VideoTab(uid);
             default:
-                return new ImageTab();
+                return new ImageTab(uid);
         }
     }
 

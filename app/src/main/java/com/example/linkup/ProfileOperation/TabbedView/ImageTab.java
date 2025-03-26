@@ -53,6 +53,12 @@ public class ImageTab extends Fragment {
     // convert article data into RecyclerView by Adapter
     ArrayList<Posts> postsArrayList = new ArrayList<>();
     ImageAdapter imageAdapter;
+    // Determine which user it belongs to
+    String uid;
+
+    public ImageTab(String uid) {
+        this.uid = uid;
+    }
 
     @Nullable
     @Override
@@ -80,7 +86,7 @@ public class ImageTab extends Fragment {
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Posts post = dataSnapshot.getValue(Posts.class);
                     // Ensure article is not null before proceeding
-                    if (post != null&&post.getUID().equals(auth.getUid())&&post.getType().equals("image")) {
+                    if (post != null&&post.getUID().equals(uid)&&post.getType().equals("image")) {
                         postsArrayList.add(post);
                     }
                 }

@@ -26,15 +26,13 @@ public class SearchUser extends AppCompatActivity {
     ImageView btnBack;
     SearchView searchBar;
     RecyclerView userRV;
-
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb;
     DatabaseReference databaseUserRef;
-
     // User list and adapter
-    ArrayList<Users> usersArrayList = new ArrayList<>();
-    ArrayList<Users> filteredUsers = new ArrayList<>();
+    ArrayList<Users> usersArrayList = new ArrayList<>(); // store all user data
+    ArrayList<Users> filteredUsers = new ArrayList<>(); // Update the result (after filter)
     UserAdapter userAdapter;
 
     @Override
@@ -42,15 +40,20 @@ public class SearchUser extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_user);
 
-        // Initialize UI components
+        // [START gain layout objects]
         btnBack = findViewById(R.id.btnBack);
         searchBar = findViewById(R.id.searchBar);
         userRV = findViewById(R.id.userRV);
+        // [END gain]
 
-        // Firebase setup
+        //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
         Rdb = FirebaseDatabase.getInstance();
+        //[END configuration]
+
+        // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user");
+        // [END config_firebase reference]
 
         // Initialize Adapter with an empty list
         userAdapter = new UserAdapter(this, filteredUsers); // Only filteredUsers are shown
@@ -61,6 +64,7 @@ public class SearchUser extends AppCompatActivity {
         // Load users from Firebase (but do not display them initially)
         loadUsers();
 
+        // [START layout component function]
         // Back button action
         btnBack.setOnClickListener(v -> finish());
 
@@ -78,9 +82,10 @@ public class SearchUser extends AppCompatActivity {
                 return true;
             }
         });
+        // [END layout component function]
     }
-
-    // Load users from Firebase
+    // [START Method]
+    // Load users from Firebase only gain all user
     private void loadUsers() {
         databaseUserRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -89,7 +94,7 @@ public class SearchUser extends AppCompatActivity {
 
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Users user = dataSnapshot.getValue(Users.class);
-                    if (user != null) {
+                    if (user != null && !user.getUID().equals(auth.getUid())) {
                         usersArrayList.add(user);
                     }
                 }
@@ -120,4 +125,5 @@ public class SearchUser extends AppCompatActivity {
 
         userAdapter.notifyDataSetChanged(); // Refresh the adapter with the filtered list
     }
+    // [END Method]
 }
