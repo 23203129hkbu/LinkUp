@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -20,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.linkup.Adapter.ArticleAdapter;
 import com.example.linkup.Adapter.PostAdapter;
 import com.example.linkup.HomeOperation.CreatePost;
+import com.example.linkup.HomeOperation.SearchUser;
 import com.example.linkup.Object.Articles;
 import com.example.linkup.Object.Posts;
 import com.example.linkup.R;
@@ -36,13 +38,14 @@ import java.util.ArrayList;
 public class HomeFragment extends Fragment {
     View view;
     // layout object
+    ImageView btnSearch;
     FloatingActionButton btnAdd;
     RecyclerView postRV;
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
     DatabaseReference databasePostRef; // real-time db ref
-    // convert article data into RecyclerView by Adapter
+    // convert post data into RecyclerView by Adapter
     ArrayList<Posts> postsArrayList = new ArrayList<>();
     PostAdapter postAdapter;
 
@@ -53,6 +56,7 @@ public class HomeFragment extends Fragment {
         super.onCreate(savedInstanceState);
         view = inflater.inflate(R.layout.activity_home_fragment, container, false);
         // [START gain layout objects]
+        btnSearch = view.findViewById(R.id.btnSearch);
         btnAdd = view.findViewById(R.id.btnAdd);
         postRV = view.findViewById(R.id.postRV);
         // [END gain]
@@ -107,6 +111,13 @@ public class HomeFragment extends Fragment {
         postRV.setAdapter(postAdapter);
 
         // [START layout component function]
+        // Switch the screen - Search User
+        btnSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateUI("Search");
+            }
+        });
         // Switch the screen - Update Profile
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -123,8 +134,8 @@ public class HomeFragment extends Fragment {
     // handling UI update
     private void updateUI(String screen) {
         Intent intent = null;
-        if (screen.equals("Setting")) {
-           // intent = new Intent(getContext(), SettingActivity.class);
+        if (screen.equals("Search")) {
+            intent = new Intent(getContext(), SearchUser.class);
         } else if (screen.equals("Update")) {
             // intent = new Intent(getContext(), UpdateProfile.class);
         } else if (screen.equals("Create")) {
