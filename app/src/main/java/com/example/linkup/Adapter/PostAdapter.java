@@ -181,8 +181,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                                     holder.btnLike.setImageResource(R.drawable.baseline_favorite_border_24);
                                 });
                     } else {
+                        Users user = new Users();
+                        user.setUID(auth.getUid());
                         // 添加保存
-                        currentRef.setValue(true)
+                        currentRef.setValue(user)
                                 .addOnSuccessListener(aVoid -> {
                                     holder.btnLike.setImageResource(R.drawable.baseline_favorite_24);
                                 });

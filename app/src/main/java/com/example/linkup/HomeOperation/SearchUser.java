@@ -55,38 +55,7 @@ public class SearchUser extends AppCompatActivity {
         databaseUserRef = Rdb.getReference().child("user");
         // [END config_firebase reference]
 
-        // Initialize Adapter with an empty list
-        userAdapter = new UserAdapter(this, filteredUsers); // Only filteredUsers are shown
-        userRV.setLayoutManager(new LinearLayoutManager(this));
-        userRV.setHasFixedSize(true);
-        userRV.setAdapter(userAdapter);
-
         // Load users from Firebase (but do not display them initially)
-        loadUsers();
-
-        // [START layout component function]
-        // Back button action
-        btnBack.setOnClickListener(v -> finish());
-
-        // Search functionality
-        searchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                filterUsers(query);
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                filterUsers(newText);
-                return true;
-            }
-        });
-        // [END layout component function]
-    }
-    // [START Method]
-    // Load users from Firebase only gain all user
-    private void loadUsers() {
         databaseUserRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
@@ -109,12 +78,37 @@ public class SearchUser extends AppCompatActivity {
                 Toast.makeText(SearchUser.this, "Failed to load users: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-    }
 
+        // Initialize Adapter with an empty list
+        userAdapter = new UserAdapter(this, filteredUsers); // Only filteredUsers are shown
+        userRV.setLayoutManager(new LinearLayoutManager(this));
+        userRV.setHasFixedSize(true);
+        userRV.setAdapter(userAdapter);
+
+        // [START layout component function]
+        // Back button action
+        btnBack.setOnClickListener(v -> finish());
+
+        // Search functionality
+        searchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                filterUsers(query);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filterUsers(newText);
+                return true;
+            }
+        });
+        // [END layout component function]
+    }
+    // [START Method]
     // Filter users based on search input
     private void filterUsers(String text) {
         filteredUsers.clear();
-
         if (!text.isEmpty()) {
             for (Users user : usersArrayList) {
                 if (user.getUsername().toLowerCase().contains(text.toLowerCase())) {

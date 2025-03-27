@@ -45,7 +45,7 @@ public class UserProfile extends AppCompatActivity {
     LinearLayout profile, privateAccountHint;
     CircleImageView avatar;
     ImageView btnBack;
-    TextView username, introduction, website, posts, followers, following, btnFollow;
+    TextView username, introduction, website, posts, followers, following, btnFollow, usernameTopBar;
     // Tabbed View
     SectionsPagerAdapter adapter;
     ViewPager2 tabbedView;
@@ -72,6 +72,7 @@ public class UserProfile extends AppCompatActivity {
         // [END gain]
 
         // [START gain layout objects]
+        usernameTopBar = findViewById(R.id.usernameTopBar);
         avatar = findViewById(R.id.avatar);
         username = findViewById(R.id.username);
         website = findViewById(R.id.website);
@@ -110,6 +111,8 @@ public class UserProfile extends AppCompatActivity {
                 if (snapshot.exists()) {
                     userWebsite = snapshot.child("website").getValue(String.class);
                     // Layout Control
+                    Picasso.get().load(snapshot.child("avatarURL").getValue(String.class)).into(avatar);
+                    usernameTopBar.setText(snapshot.child("username").getValue(String.class));
                     if (snapshot.child("privacy").getValue(String.class).equals("Private")){
                         profile.setVisibility(View.GONE);
                         tabbedView.setVisibility(View.GONE);
@@ -118,7 +121,6 @@ public class UserProfile extends AppCompatActivity {
                         privateAC = true;
                     }else{
                         username.setText(snapshot.child("username").getValue(String.class));
-                        Picasso.get().load(snapshot.child("avatarURL").getValue(String.class)).into(avatar);
                         website.setText(userWebsite);
                         introduction.setText(snapshot.child("introduction").getValue(String.class));
                         privateAC = false;
@@ -273,8 +275,11 @@ public class UserProfile extends AppCompatActivity {
     // [START Method]
     // insert one follower and following
     private void insertFollowerAndFollowing() {
-        databaseFollowerRef.child(auth.getUid()).setValue(true);
-        databaseYourFollowingRef.child(user.getUID()).setValue(true);
+        Users user = new Users();
+        user.setUID(auth.getUid());
+        databaseFollowerRef.child(auth.getUid()).setValue(user);
+        user.setUID(user.getUID());
+        databaseYourFollowingRef.child(user.getUID()).setValue(user);
         Toast.makeText(UserProfile.this, "followed this user", Toast.LENGTH_SHORT).show();
 
     }
@@ -286,11 +291,15 @@ public class UserProfile extends AppCompatActivity {
     }
     // Send a Follow request
     private void sendFollowRequest() {
-        databaseRequestedRef.child(auth.getUid()).setValue(true);
+        Users user = new Users();
+        user.setUID(auth.getUid());
+        databaseRequestedRef.child(auth.getUid()).setValue(user);
+        Toast.makeText(UserProfile.this, "Send follow request", Toast.LENGTH_SHORT).show();
     }
     // Cancel Follow request
     private void cancelFollowRequest() {
         databaseRequestedRef.child(auth.getUid()).removeValue();
+        Toast.makeText(UserProfile.this, "Cancel follow request", Toast.LENGTH_SHORT).show();
     }
     // [END Method]
 }

@@ -253,8 +253,10 @@ public class ArticleActivity extends AppCompatActivity {
                                     }
                                 });
                     } else {
+                        Users user = new Users();
+                        user.setUID(auth.getUid());
                         // Article is not saved, save it
-                        databaseSavedArticleRef.child(auth.getUid()).setValue(true)
+                        databaseSavedArticleRef.child(auth.getUid()).setValue(user)
                                 .addOnCompleteListener(task -> {
                                     if (task.isSuccessful()) {
                                         Toast.makeText(ArticleActivity.this, "Article Saved", Toast.LENGTH_SHORT).show();
@@ -346,8 +348,10 @@ public class ArticleActivity extends AppCompatActivity {
                                     }
                                 });
                     } else {
+                        Users user = new Users();
+                        user.setUID(auth.getUid());
                         // Article is not liked, save it
-                        databaseLikeRef.child(auth.getUid()).setValue(true)
+                        databaseLikeRef.child(auth.getUid()).setValue(user)
                                 .addOnCompleteListener(task -> {
                                     if (task.isSuccessful()) {
                                         Toast.makeText(ArticleActivity.this, "Liked", Toast.LENGTH_SHORT).show();

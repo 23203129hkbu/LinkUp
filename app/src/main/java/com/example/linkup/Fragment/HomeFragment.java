@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.linkup.Adapter.ArticleAdapter;
 import com.example.linkup.Adapter.PostAdapter;
 import com.example.linkup.HomeOperation.CreatePost;
+import com.example.linkup.HomeOperation.FollowRequestList;
 import com.example.linkup.HomeOperation.SearchUser;
 import com.example.linkup.HomeOperation.UserProfile;
 import com.example.linkup.Object.Articles;
@@ -125,8 +126,6 @@ public class HomeFragment extends Fragment {
             }
         });
 
-
-
         // Grant value - which view, posts array list
         postAdapter = new PostAdapter(getContext(), postsArrayList);
         // Set up the layout manager, adapter
@@ -149,6 +148,13 @@ public class HomeFragment extends Fragment {
                 updateUI("Create");
             }
         });
+        // Switch the screen - Notification List
+        btnNotification.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateUI("Notification");
+            }
+        });
         // [END layout component function]
 
         // this line must be finalized
@@ -160,8 +166,8 @@ public class HomeFragment extends Fragment {
         Intent intent = null;
         if (screen.equals("Search")) {
             intent = new Intent(getContext(), SearchUser.class);
-        } else if (screen.equals("Update")) {
-            // intent = new Intent(getContext(), UpdateProfile.class);
+        } else if (screen.equals("Notification")) {
+            intent = new Intent(getContext(), FollowRequestList.class);
         } else if (screen.equals("Create")) {
             intent = new Intent(getContext(), CreatePost.class);
         }

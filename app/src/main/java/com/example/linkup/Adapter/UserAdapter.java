@@ -50,6 +50,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         holder.username.setText(user.getUsername());
         // [END config_layout]
 
+        // [START layout component function]
         // Open article details on item click
         holder.itemView.setOnClickListener(view -> {
             Intent intent = new Intent(context, UserProfile.class);

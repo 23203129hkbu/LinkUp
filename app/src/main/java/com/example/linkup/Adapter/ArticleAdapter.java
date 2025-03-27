@@ -148,8 +148,10 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                                     holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
                                 });
                     } else {
+                        Users user = new Users();
+                        user.setUID(auth.getUid());
                         // 添加保存
-                        currentRef.setValue(true)
+                        currentRef.setValue(user)
                                 .addOnSuccessListener(aVoid -> {
                                     holder.btnSave.setImageResource(R.drawable.baseline_turned_in_24);
                                 });
