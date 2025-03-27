@@ -149,6 +149,46 @@
         android:background="@color/black"
         android:layout_marginBottom="@dimen/_10sdp"/>
 
+    <LinearLayout
+        android:id="@+id/privateAccountHint"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone"
+        android:background="@android:color/white">
+
+        <ImageView
+            android:id="@+id/lock_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/baseline_lock_24" />
+
+        <TextView
+            android:id="@+id/private_account"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="This account is private"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp" />
+
+        <TextView
+            android:id="@+id/follow_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Follow this account to see their photos and videos."
+            android:textSize="16sp"
+            android:layout_marginTop="8dp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/profile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -217,32 +257,11 @@
         android:layout_marginBottom="@dimen/_10sdp"
         />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="State"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginStart="20dp"
-        android:layout_marginLeft="20dp"
-        android:textColor="@android:color/darker_gray"
-        />
-
-    <TextView
-        android:id="@+id/state"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        android:layout_marginStart="20dp"
-        android:layout_marginLeft="20dp"
-        android:textColor="@color/black"
-        android:layout_marginBottom="@dimen/_10sdp"/>
-
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@color/black"/>
+    </LinearLayout>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"

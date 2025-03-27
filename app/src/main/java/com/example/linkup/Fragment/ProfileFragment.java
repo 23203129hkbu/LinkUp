@@ -40,7 +40,7 @@ public class ProfileFragment extends Fragment {
     // layout object
     CircleImageView avatar;
     ImageView btnEdit, btnSetting;
-    TextView username, introduction, website, state, posts;
+    TextView username, introduction, website, state, posts, followers, following;
     // Tabbed View
     SectionsPagerAdapter adapter;
     ViewPager2 tabbedView;
@@ -48,7 +48,7 @@ public class ProfileFragment extends Fragment {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef, databasePostRef; // real-time db ref
+    DatabaseReference databaseUserRef, databaseFollowerRef, databaseFollowingRef, databasePostRef; // real-time db ref
     // default user info
     String userWebsite;
 
@@ -67,6 +67,8 @@ public class ProfileFragment extends Fragment {
         btnEdit = view.findViewById(R.id.btnEdit);
         btnSetting = view.findViewById(R.id.btnSetting);
         posts = view.findViewById(R.id.posts);
+        followers = view.findViewById(R.id.followers);
+        following = view.findViewById(R.id.following);
         // Tabbed view
         tabbedView = view.findViewById(R.id.tabbedView);
         tab = view.findViewById(R.id.tab);
@@ -80,6 +82,8 @@ public class ProfileFragment extends Fragment {
 
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
+        databaseFollowerRef = databaseUserRef.child("follower");
+        databaseFollowingRef = databaseUserRef.child("following");
         databasePostRef = Rdb.getReference().child("post");
         // [END config_firebase reference]
 
@@ -117,6 +121,39 @@ public class ProfileFragment extends Fragment {
                     }
                 }
                 posts.setText(String.valueOf(numOfPost)); // Set the count after counting
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Handle possible errors
+            }
+        });
+
+        // Count Followers
+        databaseFollowerRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int numOfFollower = 0;
+                // Count total followers
+                numOfFollower = (int) snapshot.getChildrenCount();
+                followers.setText(String.valueOf(numOfFollower));
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Handle possible errors
+            }
+        });
+
+        // Count Following
+        databaseFollowingRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int numOfFollowing = 0;
+                // Count total following
+                numOfFollowing = (int) snapshot.getChildrenCount();
+                following.setText(String.valueOf(numOfFollowing));
+                // Count followers, following
             }
 
             @Override

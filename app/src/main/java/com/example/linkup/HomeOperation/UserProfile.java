@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,6 +17,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.linkup.CommunityOperation.ArticleActivity;
 import com.example.linkup.Object.Articles;
 import com.example.linkup.Object.Posts;
 import com.example.linkup.Object.Users;
@@ -39,9 +41,10 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class UserProfile extends AppCompatActivity {
     // layout object
+    LinearLayout profile, privateAccountHint;
     CircleImageView avatar;
     ImageView btnBack;
-    TextView username, introduction, website, state, posts, btnFollow;
+    TextView username, introduction, website, posts, followers, following, btnFollow;
     // Tabbed View
     SectionsPagerAdapter adapter;
     ViewPager2 tabbedView;
@@ -49,11 +52,14 @@ public class UserProfile extends AppCompatActivity {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef, databasePostRef; // real-time db ref
+    DatabaseReference databaseUserRef, databaseFollowerRef, databaseFollowingRef, databaseYourFollowingRef, databasePostRef; // real-time db ref
     // Article - retrieve data form adapter
     Users user = new Users();
     // default user info
     String userWebsite;
+    // Checker Followed / UnFollowed / Requested
+    Boolean Followed = false;
+    Boolean Requested = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,13 +73,17 @@ public class UserProfile extends AppCompatActivity {
         username = findViewById(R.id.username);
         website = findViewById(R.id.website);
         introduction = findViewById(R.id.introduction);
-        state = findViewById(R.id.state);
         btnBack = findViewById(R.id.btnBack);
         posts = findViewById(R.id.posts);
+        followers = findViewById(R.id.followers);
+        following = findViewById(R.id.following);
         btnFollow = findViewById(R.id.btnFollow);
         // Tabbed view
         tabbedView = findViewById(R.id.tabbedView);
         tab = findViewById(R.id.tab);
+        // Profile
+        profile = findViewById(R.id.profile);
+        privateAccountHint = findViewById(R.id.privateAccountHint);
         // [END gain]
 
         // [START config_firebase]
@@ -83,21 +93,30 @@ public class UserProfile extends AppCompatActivity {
 
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user").child(user.getUID());
+        databaseFollowerRef = databaseUserRef.child("follower");
+        databaseFollowingRef = databaseUserRef.child("following");
+        databaseYourFollowingRef = Rdb.getReference().child("user").child(auth.getUid()).child("following");
         databasePostRef = Rdb.getReference().child("post");
         // [END config_firebase reference]
 
-        //[Determine whether the user is logging in for the first time]
+        // Load / Gain User Data
         databaseUserRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     userWebsite = snapshot.child("website").getValue(String.class);
                     // Layout Control
-                    username.setText(snapshot.child("username").getValue(String.class));
-                    Picasso.get().load(snapshot.child("avatarURL").getValue(String.class)).into(avatar);
-                    state.setText(snapshot.child("privacy").getValue(String.class));
-                    website.setText(userWebsite);
-                    introduction.setText(snapshot.child("introduction").getValue(String.class));
+                    if (snapshot.child("privacy").getValue(String.class).equals("Private")){
+                        profile.setVisibility(View.GONE);
+                        tabbedView.setVisibility(View.GONE);
+                        tab.setVisibility(View.GONE);
+                        privateAccountHint.setVisibility(View.VISIBLE);
+                    }else{
+                        username.setText(snapshot.child("username").getValue(String.class));
+                        Picasso.get().load(snapshot.child("avatarURL").getValue(String.class)).into(avatar);
+                        website.setText(userWebsite);
+                        introduction.setText(snapshot.child("introduction").getValue(String.class));
+                    }
                 }
             }
 
@@ -118,6 +137,46 @@ public class UserProfile extends AppCompatActivity {
                     }
                 }
                 posts.setText(String.valueOf(numOfPost)); // Set the count after counting
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Handle possible errors
+            }
+        });
+
+        // Count Followers
+        databaseFollowerRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int numOfFollower = 0;
+                // Count total followers
+                numOfFollower = (int) snapshot.getChildrenCount();
+                followers.setText(String.valueOf(numOfFollower));
+                if (snapshot.hasChild(auth.getUid())) {
+                    Followed = true;
+                    btnFollow.setText("Following");
+                }else {
+                    Followed = false;
+                    btnFollow.setText("Follow");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Handle possible errors
+            }
+        });
+
+        // Count Following
+        databaseFollowingRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int numOfFollowing = 0;
+                // Count total following
+                numOfFollowing = (int) snapshot.getChildrenCount();
+                following.setText(String.valueOf(numOfFollowing));
+                // Count followers, following
             }
 
             @Override
@@ -160,10 +219,33 @@ public class UserProfile extends AppCompatActivity {
                 }
             }
         });
+        // Follow / Unfollowed the user
+        btnFollow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (Followed){
+                    removeFollowerAndFollowing();
+                }else{
+                    insertFollowerAndFollowing();
+                }
+            }
+        });
         // [END layout component function]
 
     }
-
     // [START Method]
+    // insert one follower and following
+    private void insertFollowerAndFollowing() {
+        databaseFollowerRef.child(auth.getUid()).setValue(true);
+        databaseYourFollowingRef.child(user.getUID()).setValue(true);
+        Toast.makeText(UserProfile.this, "followed this user", Toast.LENGTH_SHORT).show();
+
+    }
+    // remove one follower and following
+    private void removeFollowerAndFollowing() {
+        databaseFollowerRef.child(auth.getUid()).removeValue();
+        databaseYourFollowingRef.child(user.getUID()).removeValue();
+        Toast.makeText(UserProfile.this, "unfollowed this user", Toast.LENGTH_SHORT).show();
+    }
     // [END Method]
 }
