@@ -12,6 +12,7 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -52,14 +53,16 @@ public class UserProfile extends AppCompatActivity {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef, databaseFollowerRef, databaseFollowingRef, databaseYourFollowingRef, databasePostRef; // real-time db ref
+    DatabaseReference databaseUserRef, databaseFollowerRef, databaseFollowingRef, databaseRequestedRef, databaseYourFollowingRef, databasePostRef; // real-time db ref
     // Article - retrieve data form adapter
     Users user = new Users();
     // default user info
     String userWebsite;
     // Checker Followed / UnFollowed / Requested
-    Boolean Followed = false;
-    Boolean Requested = false;
+    Boolean Followed;
+    Boolean Requested;
+    // Confirm button The next action depends on the account type
+    Boolean privateAC;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,6 +98,7 @@ public class UserProfile extends AppCompatActivity {
         databaseUserRef = Rdb.getReference().child("user").child(user.getUID());
         databaseFollowerRef = databaseUserRef.child("follower");
         databaseFollowingRef = databaseUserRef.child("following");
+        databaseRequestedRef = databaseUserRef.child("requested");
         databaseYourFollowingRef = Rdb.getReference().child("user").child(auth.getUid()).child("following");
         databasePostRef = Rdb.getReference().child("post");
         // [END config_firebase reference]
@@ -111,11 +115,13 @@ public class UserProfile extends AppCompatActivity {
                         tabbedView.setVisibility(View.GONE);
                         tab.setVisibility(View.GONE);
                         privateAccountHint.setVisibility(View.VISIBLE);
+                        privateAC = true;
                     }else{
                         username.setText(snapshot.child("username").getValue(String.class));
                         Picasso.get().load(snapshot.child("avatarURL").getValue(String.class)).into(avatar);
                         website.setText(userWebsite);
                         introduction.setText(snapshot.child("introduction").getValue(String.class));
+                        privateAC = false;
                     }
                 }
             }
@@ -154,11 +160,32 @@ public class UserProfile extends AppCompatActivity {
                 numOfFollower = (int) snapshot.getChildrenCount();
                 followers.setText(String.valueOf(numOfFollower));
                 if (snapshot.hasChild(auth.getUid())) {
+                    // Set Background Color
+                    btnFollow.setBackgroundTintList(null);
                     Followed = true;
                     btnFollow.setText("Following");
                 }else {
                     Followed = false;
-                    btnFollow.setText("Follow");
+                    // Check if user have applied once
+                    databaseRequestedRef.child(auth.getUid()).addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if (snapshot.exists()) {
+                                // Set Background Color
+                                btnFollow.setBackgroundTintList(null);
+                                btnFollow.setText("Requested");
+                                Requested = true;
+                            }else{
+                                btnFollow.setBackgroundTintList(ContextCompat.getColorStateList(UserProfile.this,R.color.purple_2));
+                                btnFollow.setText("Follow");
+                                Requested = false;
+                            }
+                        }
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            Toast.makeText(UserProfile.this, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
             }
 
@@ -223,16 +250,26 @@ public class UserProfile extends AppCompatActivity {
         btnFollow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (Followed){
-                    removeFollowerAndFollowing();
+                if (privateAC){
+                    if (Requested){
+                        cancelFollowRequest();
+                    }else{
+                        sendFollowRequest();
+                    }
                 }else{
-                    insertFollowerAndFollowing();
+                    if (Followed){
+                        removeFollowerAndFollowing();
+                    }else{
+                        insertFollowerAndFollowing();
+                    }
                 }
+
             }
         });
         // [END layout component function]
 
     }
+
     // [START Method]
     // insert one follower and following
     private void insertFollowerAndFollowing() {
@@ -246,6 +283,14 @@ public class UserProfile extends AppCompatActivity {
         databaseFollowerRef.child(auth.getUid()).removeValue();
         databaseYourFollowingRef.child(user.getUID()).removeValue();
         Toast.makeText(UserProfile.this, "unfollowed this user", Toast.LENGTH_SHORT).show();
+    }
+    // Send a Follow request
+    private void sendFollowRequest() {
+        databaseRequestedRef.child(auth.getUid()).setValue(true);
+    }
+    // Cancel Follow request
+    private void cancelFollowRequest() {
+        databaseRequestedRef.child(auth.getUid()).removeValue();
     }
     // [END Method]
 }

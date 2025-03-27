@@ -6,11 +6,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -22,6 +24,7 @@ import com.example.linkup.Adapter.ArticleAdapter;
 import com.example.linkup.Adapter.PostAdapter;
 import com.example.linkup.HomeOperation.CreatePost;
 import com.example.linkup.HomeOperation.SearchUser;
+import com.example.linkup.HomeOperation.UserProfile;
 import com.example.linkup.Object.Articles;
 import com.example.linkup.Object.Posts;
 import com.example.linkup.R;
@@ -38,13 +41,13 @@ import java.util.ArrayList;
 public class HomeFragment extends Fragment {
     View view;
     // layout object
-    ImageView btnSearch;
+    ImageView btnSearch, btnNotification;
     FloatingActionButton btnAdd;
     RecyclerView postRV;
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databasePostRef; // real-time db ref
+    DatabaseReference databasePostRef, databaseRequestedRef; // real-time db ref
     // convert post data into RecyclerView by Adapter
     ArrayList<Posts> postsArrayList = new ArrayList<>();
     PostAdapter postAdapter;
@@ -57,6 +60,7 @@ public class HomeFragment extends Fragment {
         view = inflater.inflate(R.layout.activity_home_fragment, container, false);
         // [START gain layout objects]
         btnSearch = view.findViewById(R.id.btnSearch);
+        btnNotification = view.findViewById(R.id.btnNotification);
         btnAdd = view.findViewById(R.id.btnAdd);
         postRV = view.findViewById(R.id.postRV);
         // [END gain]
@@ -68,6 +72,7 @@ public class HomeFragment extends Fragment {
 
         // [START config_firebase reference]
         databasePostRef = Rdb.getReference().child("post");
+        databaseRequestedRef = Rdb.getReference().child("user").child(auth.getUid()).child("requested");
         // [END config_firebase reference]
 
         // Gain the adapter data object
@@ -102,6 +107,25 @@ public class HomeFragment extends Fragment {
                 // Handle possible errors
             }
         });
+        // Determine if there are any tracking requests
+        databaseRequestedRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    // layout control
+                    // Set btnNotification layout
+                    btnNotification.setImageResource(R.drawable.baseline_notifications_active_24);
+                }else{
+                    btnNotification.setImageResource(R.drawable.baseline_notifications_none_24);
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(getContext(), "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
 
         // Grant value - which view, posts array list
         postAdapter = new PostAdapter(getContext(), postsArrayList);

@@ -16,6 +16,9 @@
         android:theme="@style/Theme.LinkUp"
         tools:targetApi="31">
         <activity
+            android:name=".HomeOperation.FollowRequestList"
+            android:exported="false" />
+        <activity
             android:name=".HomeOperation.UserProfile"
             android:exported="false" />
         <activity
