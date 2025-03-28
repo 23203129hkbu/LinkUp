@@ -83,7 +83,7 @@
         android:layout_height="wrap_content"
         android:layout_marginRight="@dimen/_10sdp"
         android:layout_marginLeft="@dimen/_10sdp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="10dp"
         app:boxBackgroundColor="@color/white"
         android:hint="Website">
 
@@ -97,22 +97,6 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="@dimen/_10sdp"
-        android:layout_marginLeft="@dimen/_10sdp"
-        android:text="Self-Introduction"
-        android:background="@color/white"
-        android:paddingStart="15dp"
-        android:padding="5dp"
-        android:paddingLeft="40dp"
-        android:drawableStart="@drawable/baseline_perm_contact_calendar_24"
-        android:drawablePadding="8dp"
-        android:textAlignment="viewStart"
-        android:textColor="@color/black"
-        android:gravity="start"
-        android:textSize="18sp"/>
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
@@ -120,11 +104,15 @@
         android:layout_marginRight="@dimen/_10sdp"
         android:layout_marginLeft="@dimen/_10sdp"
         android:layout_marginBottom="20dp"
+        android:hint="Self-Introduction"
         app:boxBackgroundColor="@color/white">
+
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/introduction"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:gravity="start"
+            android:inputType="textMultiLine"
             android:text=""/>
     </com.google.android.material.textfield.TextInputLayout>
 
