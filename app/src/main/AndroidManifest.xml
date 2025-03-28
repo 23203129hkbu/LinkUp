@@ -16,6 +16,12 @@
         android:theme="@style/Theme.LinkUp"
         tools:targetApi="31">
         <activity
+            android:name=".ProfileOperation.QRCodeScannerActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ProfileOperation.QRCodeGeneratorActivity"
+            android:exported="false" />
+        <activity
             android:name=".HomeOperation.FollowRequestList"
             android:exported="false" />
         <activity
@@ -23,12 +29,6 @@
             android:exported="false" />
         <activity
             android:name=".HomeOperation.SearchUser"
-            android:exported="false" />
-        <activity
-            android:name=".ProfileOperation.TabbedView.VideoTab"
-            android:exported="false" />
-        <activity
-            android:name=".ProfileOperation.TabbedView.ImageTab"
             android:exported="false" />
         <activity
             android:name=".HomeOperation.CreatePost"

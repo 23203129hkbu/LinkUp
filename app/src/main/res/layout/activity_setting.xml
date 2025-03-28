@@ -63,6 +63,34 @@
         android:textSize="@dimen/_15sdp" />
 
     <TextView
+        android:id="@+id/btnScanQRCode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/custom_textview"
+        android:drawableLeft="@drawable/baseline_qr_code_scanner_24"
+        android:drawablePadding="@dimen/_5sdp"
+        android:fontFamily="@font/poppins_bold"
+        android:gravity="left"
+        android:padding="@dimen/_10sdp"
+        android:text="QR Code Scanner"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_15sdp" />
+
+    <TextView
+        android:id="@+id/btnGenQRCode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/custom_textview"
+        android:drawableLeft="@drawable/baseline_qr_code_24"
+        android:drawablePadding="@dimen/_5sdp"
+        android:fontFamily="@font/poppins_bold"
+        android:gravity="left"
+        android:padding="@dimen/_10sdp"
+        android:text="My QR Code"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_15sdp" />
+
+    <TextView
         android:id="@+id/btnDeleteAC"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

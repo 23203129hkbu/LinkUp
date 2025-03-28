@@ -32,7 +32,7 @@ import com.google.firebase.storage.StorageReference;
 public class SettingActivity extends AppCompatActivity {
     // layout object
     ImageView btnBack;
-    TextView btnLogout, btnState, btnDeleteAC;
+    TextView btnLogout, btnState, btnDeleteAC, btnScanQRCode, btnGenQRCode;
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
@@ -47,6 +47,8 @@ public class SettingActivity extends AppCompatActivity {
         btnLogout = findViewById(R.id.btnLogout);
         btnState = findViewById(R.id.btnState);
         btnDeleteAC = findViewById(R.id.btnDeleteAC);
+        btnScanQRCode = findViewById(R.id.btnScanQRCode);
+        btnGenQRCode = findViewById(R.id.btnGenQRCode);
         // [END gain]
 
         //[START Firebase configuration - get a object]
@@ -90,11 +92,26 @@ public class SettingActivity extends AppCompatActivity {
                 builder.create().show();
             }
         });
-        // Switch the screen - Privacy Activaity
+        // Switch the screen - Privacy Activity
         btnState.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 updateUI("Privacy");
+            }
+        });
+        // Switch the screen - QR Code Scanner Activity
+        btnScanQRCode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateUI("Scanner");
+            }
+        });
+
+        // Switch the screen - QR Code Generator Activity
+        btnGenQRCode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateUI("Generator");
             }
         });
         // Switch the user state (public, privacy)
@@ -166,6 +183,10 @@ public class SettingActivity extends AppCompatActivity {
             intent = new Intent(SettingActivity.this, LoginActivity.class);
         } else if (screen.equals("Privacy")) {
             intent = new Intent(SettingActivity.this, PrivacyActivity.class);
+        }else if (screen.equals("Scanner")) {
+            intent = new Intent(SettingActivity.this, QRCodeScannerActivity.class);
+        }else if (screen.equals("Generator")) {
+            intent = new Intent(SettingActivity.this, QRCodeGeneratorActivity.class);
         }
         if (intent != null) {
             startActivity(intent);
