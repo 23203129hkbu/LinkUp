@@ -54,8 +54,7 @@
             android:layout_height="match_parent"
             android:id="@+id/avatar"
             android:background="@drawable/insert_avatar"
-            android:clickable="true"
-            android:scaleType="fitCenter"/>
+            android:clickable="true" />
 
     </androidx.cardview.widget.CardView>
 

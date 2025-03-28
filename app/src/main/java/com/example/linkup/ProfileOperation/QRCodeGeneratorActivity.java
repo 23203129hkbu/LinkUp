@@ -86,23 +86,11 @@ public class QRCodeGeneratorActivity extends AppCompatActivity {
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                updateUI("Setting");
+                finish();
             }
         });
 
         // [END layout component function]
     }
 
-    // [START Method]
-    // handling UI update
-    private void updateUI(String screen) {
-        Intent intent = null;
-        if (screen.equals("Setting")) {
-            intent = new Intent(QRCodeGeneratorActivity.this, SettingActivity.class);
-        }
-        if (intent != null) {
-            startActivity(intent);
-        }
-    }
-    // [END Method]
 }

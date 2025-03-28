@@ -9,10 +9,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.linkup.CommunityOperation.ArticleActivity;
+import com.example.linkup.HomeOperation.UserProfile;
+import com.example.linkup.Object.Users;
 import com.example.linkup.Process.LoginActivity;
 import com.example.linkup.Process.MainActivity;
 import com.example.linkup.R;
@@ -28,6 +31,8 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 
 public class SettingActivity extends AppCompatActivity {
     // layout object
@@ -103,7 +108,12 @@ public class SettingActivity extends AppCompatActivity {
         btnScanQRCode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                updateUI("Scanner");
+                IntentIntegrator intentIntegrator = new IntentIntegrator(SettingActivity.this);
+                intentIntegrator.setOrientationLocked(true);
+                intentIntegrator.setPrompt("Scanner");
+                intentIntegrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE);
+                intentIntegrator.setCameraId(0);
+                intentIntegrator.initiateScan();
             }
         });
 
@@ -183,14 +193,39 @@ public class SettingActivity extends AppCompatActivity {
             intent = new Intent(SettingActivity.this, LoginActivity.class);
         } else if (screen.equals("Privacy")) {
             intent = new Intent(SettingActivity.this, PrivacyActivity.class);
-        }else if (screen.equals("Scanner")) {
-            intent = new Intent(SettingActivity.this, QRCodeScannerActivity.class);
-        }else if (screen.equals("Generator")) {
+        } else if (screen.equals("Generator")) {
             intent = new Intent(SettingActivity.this, QRCodeGeneratorActivity.class);
         }
         if (intent != null) {
             startActivity(intent);
             finish();
+        }
+    }
+    //
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        IntentResult intentResult = IntentIntegrator.parseActivityResult(requestCode,resultCode,data);
+        if (intentResult !=null){
+            String uid = intentResult.getContents();
+            if (uid!=null){
+                Users storedUser = new Users();
+                // Be follower
+                storedUser.setUID(auth.getUid());
+                DatabaseReference databaseFollowerRef = Rdb.getReference().child("user")
+                        .child(uid)
+                        .child("follower");
+                databaseFollowerRef.child(auth.getUid()).setValue(storedUser);
+                // Insert a following
+                storedUser.setUID(uid);
+                DatabaseReference databaseYourFollowingRef = Rdb.getReference().child("user")
+                        .child(auth.getUid())
+                        .child("following");
+                databaseYourFollowingRef.child(uid).setValue(storedUser);
+                Toast.makeText(SettingActivity.this, "followed this user", Toast.LENGTH_SHORT).show();
+            }
+        }else{
+            super.onActivityResult(requestCode,resultCode,data);
         }
     }
     // [END Method]
