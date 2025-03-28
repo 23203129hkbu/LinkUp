@@ -62,24 +62,30 @@ dependencies {
     // Also add the dependency for the Google Play services library and specify its version
     implementation("com.google.android.gms:play-services-auth:21.3.0")
     // Facebook 登入 SDK
-    implementation ("com.facebook.android:facebook-login:latest.release")
+    implementation("com.facebook.android:facebook-login:latest.release")
     //[End Firebase Google / Facebook Login]
     // fix bug java.lang.SecurityException: Unknown calling package name 'com.google.android.gms'.
-    implementation ("com.google.android.gms:play-services-auth:21.0.1") // Latest Google Sign-In
-    implementation ("com.google.firebase:firebase-auth:22.1.1") // Latest Firebase Auth
-    implementation ("com.github.bumptech.glide:glide:4.16.0") // Glide supports fetching, decoding, and displaying video stills, images, and animated GIFs
+    implementation("com.google.android.gms:play-services-auth:21.0.1") // Latest Google Sign-In
+    implementation("com.google.firebase:firebase-auth:22.1.1") // Latest Firebase Auth
+    implementation("com.github.bumptech.glide:glide:4.16.0") // Glide supports fetching, decoding, and displaying video stills, images, and animated GIFs
     // Add ExoPlayer modules
-    implementation ("com.google.android.exoplayer:exoplayer:2.19.1")
+    implementation("com.google.android.exoplayer:exoplayer:2.19.1")
     // ExoPlayer: Core library for media playback
-    implementation ("com.google.android.exoplayer:exoplayer-core:2.19.1")
+    implementation("com.google.android.exoplayer:exoplayer-core:2.19.1")
     // ExoPlayer UI: Provides default UI components for playback
-    implementation ("com.google.android.exoplayer:exoplayer-ui:2.19.1")
+    implementation("com.google.android.exoplayer:exoplayer-ui:2.19.1")
     // ExoPlayer DASH: Support for DASH (Dynamic Adaptive Streaming over HTTP)
-    implementation ("com.google.android.exoplayer:exoplayer-dash:2.19.1")
+    implementation("com.google.android.exoplayer:exoplayer-dash:2.19.1")
     // ExoPlayer HLS: Support for HLS (HTTP Live Streaming)
-    implementation ("com.google.android.exoplayer:exoplayer-hls:2.19.1")
+    implementation("com.google.android.exoplayer:exoplayer-hls:2.19.1")
     // ExoPlayer SmoothStreaming: Support for Microsoft Smooth Streaming
-    implementation ("com.google.android.exoplayer:exoplayer-smoothstreaming:2.19.1")
+    implementation("com.google.android.exoplayer:exoplayer-smoothstreaming:2.19.1")
+    // Scan / Gen QR code
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.2")
+    implementation("androidx.multidex:multidex:2.0.1")
+    implementation("com.google.zxing:core:3.4.1")
+
 
 
 
