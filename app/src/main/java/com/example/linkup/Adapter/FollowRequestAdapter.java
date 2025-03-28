@@ -41,7 +41,7 @@ public class FollowRequestAdapter extends RecyclerView.Adapter<FollowRequestAdap
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef, databaseFollowerRef, databaseFollowingRef, databaseRequestedRef; // real-time db ref
+    DatabaseReference databaseUserRef; // real-time db ref
 
     // Constructor
     public FollowRequestAdapter(Context context, ArrayList<Users> usersArrayList) {
@@ -68,12 +68,12 @@ public class FollowRequestAdapter extends RecyclerView.Adapter<FollowRequestAdap
         final Users user = usersArrayList.get(position);
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user");
-        databaseFollowerRef = Rdb.getReference().child("user").child(auth.getUid()).child("follower");
-        databaseFollowingRef = Rdb.getReference().child("user").child(user.getUID()).child("following");
-        databaseRequestedRef = Rdb.getReference().child("user").child(auth.getUid()).child("requested").child(user.getUID());
         // [END config_firebase reference]
 
         // [START config_layout]
+        // Bind unique identifier
+        holder.btnAccept.setTag(user.getUID());
+        holder.btnReject.setTag(user.getUID());
         // [Start Gain User Info]
         databaseUserRef.child(user.getUID()).addValueEventListener(new ValueEventListener() {
             @Override
@@ -98,18 +98,34 @@ public class FollowRequestAdapter extends RecyclerView.Adapter<FollowRequestAdap
         // [START layout component function]
         // Reject Follow Request
         holder.btnReject.setOnClickListener(view -> {
+            // Get the currently bound article ID
+            String currentUID = (String) holder.btnReject.getTag();
+            if (currentUID == null || !currentUID.equals(user.getUID())) {
+                return; // 防止异步操作导致的错位
+            }
             // Remove the user from the list, regardless of whether they accept or reject it.
-            removeFollowRequest();
+            DatabaseReference databaseRequestedRef = Rdb.getReference().child("user").child(auth.getUid()).child("requested").child(currentUID);
+            databaseRequestedRef.removeValue();
         });
         // Accept Follow Request
         holder.btnAccept.setOnClickListener(view -> {
+            // Get the currently bound article ID
+            String currentUID = (String) holder.btnReject.getTag();
+            if (currentUID == null || !currentUID.equals(user.getUID())) {
+                return; // 防止异步操作导致的错位
+            }
             // Remove the user from the list, regardless of whether they accept or reject it.
-            removeFollowRequest();
+            DatabaseReference databaseRequestedRef = Rdb.getReference().child("user").child(auth.getUid()).child("requested").child(currentUID);
+            databaseRequestedRef.removeValue();
+            // Insert Follower
+            DatabaseReference databaseFollowerRef = Rdb.getReference().child("user").child(auth.getUid()).child("follower");
             Users storedUser = new Users();
-            storedUser.setUID(user.getUID());
-            databaseFollowerRef.child(auth.getUid()).setValue(user);
+            storedUser.setUID(currentUID);
+            databaseFollowerRef.child(currentUID).setValue(storedUser);
+            // Insert Following
+            DatabaseReference databaseFollowingRef = Rdb.getReference().child("user").child(currentUID).child("following");
             storedUser.setUID(auth.getUid());
-            databaseFollowingRef.child(user.getUID()).setValue(user);
+            databaseFollowingRef.child(auth.getUid()).setValue(storedUser);
             Toast.makeText(context, "The user has become your followers", Toast.LENGTH_SHORT).show();
         });
         // Open article details on item click
@@ -120,27 +136,6 @@ public class FollowRequestAdapter extends RecyclerView.Adapter<FollowRequestAdap
         });
         // [END layout component function]
     }
-
-    private void removeFollowRequest() {
-        databaseRequestedRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    // Article is already saved, remove it
-                    databaseRequestedRef.removeValue();
-
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(context, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-
-
     @Override
     public int getItemCount() {
         return usersArrayList.size();

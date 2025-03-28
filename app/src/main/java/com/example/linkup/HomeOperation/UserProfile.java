@@ -59,10 +59,10 @@ public class UserProfile extends AppCompatActivity {
     // default user info
     String userWebsite;
     // Checker Followed / UnFollowed / Requested
-    Boolean Followed;
-    Boolean Requested;
+    Boolean Followed = false;
+    Boolean Requested = false;
     // Confirm button The next action depends on the account type
-    Boolean privateAC;
+    Boolean privateAC = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -112,18 +112,13 @@ public class UserProfile extends AppCompatActivity {
                     userWebsite = snapshot.child("website").getValue(String.class);
                     // Layout Control
                     Picasso.get().load(snapshot.child("avatarURL").getValue(String.class)).into(avatar);
-                    usernameTopBar.setText(snapshot.child("username").getValue(String.class));
+                    username.setText(snapshot.child("username").getValue(String.class));
+                    website.setText(userWebsite);
+                    introduction.setText(snapshot.child("introduction").getValue(String.class));
                     if (snapshot.child("privacy").getValue(String.class).equals("Private")){
-                        profile.setVisibility(View.GONE);
-                        tabbedView.setVisibility(View.GONE);
-                        tab.setVisibility(View.GONE);
-                        privateAccountHint.setVisibility(View.VISIBLE);
                         privateAC = true;
                     }else{
-                        username.setText(snapshot.child("username").getValue(String.class));
-                        website.setText(userWebsite);
-                        introduction.setText(snapshot.child("introduction").getValue(String.class));
-                        privateAC = false;
+                        loadUserProfile();
                     }
                 }
             }
@@ -162,11 +157,12 @@ public class UserProfile extends AppCompatActivity {
                 numOfFollower = (int) snapshot.getChildrenCount();
                 followers.setText(String.valueOf(numOfFollower));
                 if (snapshot.hasChild(auth.getUid())) {
-                    // Set Background Color
                     btnFollow.setBackgroundTintList(null);
                     Followed = true;
                     btnFollow.setText("Following");
+                    loadUserProfile();
                 }else {
+                    hideUserProfile();
                     Followed = false;
                     // Check if user have applied once
                     databaseRequestedRef.child(auth.getUid()).addValueEventListener(new ValueEventListener() {
@@ -252,34 +248,49 @@ public class UserProfile extends AppCompatActivity {
         btnFollow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (privateAC){
-                    if (Requested){
-                        cancelFollowRequest();
-                    }else{
-                        sendFollowRequest();
-                    }
-                }else{
-                    if (Followed){
-                        removeFollowerAndFollowing();
+                if (Followed) {
+                    removeFollowerAndFollowing();
+                } else {
+                    if (privateAC) {
+                        if (Requested) {
+                            cancelFollowRequest();
+                        } else {
+                            sendFollowRequest();
+                        }
                     }else{
                         insertFollowerAndFollowing();
                     }
                 }
-
             }
         });
         // [END layout component function]
 
     }
 
+
     // [START Method]
+
+    // load User Profile
+    private void loadUserProfile() {
+        profile.setVisibility(View.VISIBLE);
+        tabbedView.setVisibility(View.VISIBLE);
+        tab.setVisibility(View.VISIBLE);
+        privateAccountHint.setVisibility(View.GONE);
+    }
+    // hide User Profile
+    private void hideUserProfile() {
+        profile.setVisibility(View.GONE);
+        tabbedView.setVisibility(View.GONE);
+        tab.setVisibility(View.GONE);
+        privateAccountHint.setVisibility(View.VISIBLE);
+    }
     // insert one follower and following
     private void insertFollowerAndFollowing() {
-        Users user = new Users();
-        user.setUID(auth.getUid());
-        databaseFollowerRef.child(auth.getUid()).setValue(user);
-        user.setUID(user.getUID());
-        databaseYourFollowingRef.child(user.getUID()).setValue(user);
+        Users storedUser = new Users();
+        storedUser.setUID(auth.getUid());
+        databaseFollowerRef.child(auth.getUid()).setValue(storedUser);
+        storedUser.setUID(user.getUID());
+        databaseYourFollowingRef.child(user.getUID()).setValue(storedUser);
         Toast.makeText(UserProfile.this, "followed this user", Toast.LENGTH_SHORT).show();
 
     }
