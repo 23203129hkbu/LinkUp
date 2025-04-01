@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +23,7 @@ import com.example.linkup.CommunityOperation.CommunityMenu;
 import com.example.linkup.CommunityOperation.MyArticlesActivity;
 import com.example.linkup.Fragment.CommunityFragment;
 import com.example.linkup.HomeOperation.PostMenu;
+import com.example.linkup.HomeOperation.UserProfile;
 import com.example.linkup.Object.ArticleComments;
 import com.example.linkup.Object.Articles;
 import com.example.linkup.Object.Posts;
@@ -51,8 +53,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
     DatabaseReference databaseUserRef, databaseLikeRef; // real-time db ref
-    // User
-    Users user = new Users();
 
     // Constructor
     public PostAdapter(Context context, ArrayList<Posts> postsArrayList) {
@@ -200,6 +200,14 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             PostMenu pm = new PostMenu (post.getPostID(),post.getPostURL());
             pm.show(((AppCompatActivity) context).getSupportFragmentManager(), "bottom");
         });
+        // Open article details on item click
+        holder.userProfile.setOnClickListener(view -> {
+            Intent intent = new Intent(context, UserProfile.class);
+            Users user = new Users();
+            user.setUID(post.getUID());
+            intent.putExtra("user", user);  // Pass the article object
+            context.startActivity(intent);
+        });
         // [END layout component function]
     }
 
@@ -209,6 +217,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
+        LinearLayout userProfile;
         CircleImageView avatar;
         TextView username, btnFollow, likes, comments, description, dateAndTime;
         ImageView btnMenu, image, btnLike, btnComment;
@@ -216,6 +225,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
+            userProfile = itemView.findViewById(R.id.userProfile);
             avatar = itemView.findViewById(R.id.avatar);
             username = itemView.findViewById(R.id.username);
             btnFollow = itemView.findViewById(R.id.btnFollow);

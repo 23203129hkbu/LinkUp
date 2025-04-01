@@ -42,7 +42,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class UserProfile extends AppCompatActivity {
     // layout object
-    LinearLayout profile, privateAccountHint;
+    LinearLayout profile, privateAccountHint, btnFollowers, btnFollowing;
     CircleImageView avatar;
     ImageView btnBack;
     TextView username, introduction, website, posts, followers, following, btnFollow, usernameTopBar;
@@ -88,6 +88,8 @@ public class UserProfile extends AppCompatActivity {
         // Profile
         profile = findViewById(R.id.profile);
         privateAccountHint = findViewById(R.id.privateAccountHint);
+        btnFollowers = findViewById(R.id.btnFollowers);
+        btnFollowing = findViewById(R.id.btnFollowing);
         // [END gain]
 
         // [START config_firebase]
@@ -97,10 +99,10 @@ public class UserProfile extends AppCompatActivity {
 
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user").child(user.getUID());
-        databaseFollowerRef = databaseUserRef.child("follower");
-        databaseFollowingRef = databaseUserRef.child("following");
-        databaseRequestedRef = databaseUserRef.child("requested");
-        databaseYourFollowingRef = Rdb.getReference().child("user").child(auth.getUid()).child("following");
+        databaseFollowerRef = Rdb.getReference().child("follower").child(user.getUID());
+        databaseFollowingRef = Rdb.getReference().child("following").child(user.getUID());
+        databaseRequestedRef = Rdb.getReference().child("requested").child(user.getUID());
+        databaseYourFollowingRef = Rdb.getReference().child("following").child(auth.getUid());
         databasePostRef = Rdb.getReference().child("post");
         // [END config_firebase reference]
 
@@ -228,6 +230,28 @@ public class UserProfile extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 finish();
+            }
+        });
+        // Switch the screen - User Followers
+        btnFollowers.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (Followed){
+                    Intent intent = new Intent(UserProfile.this, FollowerActivity.class);
+                    intent.putExtra("user", user);  // Pass the article object
+                    startActivity(intent);
+                }
+            }
+        });
+        // Switch the screen - User Following
+        btnFollowing.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (Followed){
+                    Intent intent = new Intent(UserProfile.this, FollowingActivity.class);
+                    intent.putExtra("user", user);  // Pass the article object
+                    startActivity(intent);
+                }
             }
         });
         // Logout with dialog message

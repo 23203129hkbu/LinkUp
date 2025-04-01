@@ -55,26 +55,30 @@ public class SavedArticlesActivity extends AppCompatActivity {
 
         // [START config_firebase reference]
         databaseArticleRef = Rdb.getReference().child("article");
+        databaseSavedArticleRef = Rdb.getReference().child("savedArticle").child(auth.getUid());
         // [END config_firebase reference]
 
-        databaseArticleRef.orderByChild("date").addValueEventListener(new ValueEventListener() {
+        databaseSavedArticleRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot savedArticlesSnapshot) {
                 articlesArrayList.clear();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Articles article = dataSnapshot.getValue(Articles.class);
 
-                    if (article != null) {
-                        databaseSavedArticleRef = databaseArticleRef.child(article.getArticleID()).child("savedUser");
+                for (DataSnapshot savedArticleSnapshot : savedArticlesSnapshot.getChildren()) {
+                    String articleID = savedArticleSnapshot.getKey();
 
-                        databaseSavedArticleRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    if (articleID != null) {
+                        databaseArticleRef.child(articleID).addValueEventListener(new ValueEventListener() {
                             @Override
-                            public void onDataChange(@NonNull DataSnapshot savedSnapshot) {
-                                if (savedSnapshot.hasChild(auth.getUid())) {
+                            public void onDataChange(@NonNull DataSnapshot articleSnapshot) {
+                                if (articleSnapshot.exists()) {
+                                    Articles article = articleSnapshot.getValue(Articles.class);
                                     articlesArrayList.add(article);
+                                } else {
+                                    // If the article is deleted, remove the corresponding save record
+                                    databaseSavedArticleRef.child(articleID).removeValue();
                                 }
 
-                                // Sort the articles after all have been processed
+                                // 排序文章
                                 articlesArrayList.sort((a1, a2) -> {
                                     int dateComparison = a2.getDate().compareTo(a1.getDate());
                                     if (dateComparison == 0) {
@@ -83,13 +87,12 @@ public class SavedArticlesActivity extends AppCompatActivity {
                                     return dateComparison;
                                 });
 
-                                // Notify adapter only once after the loop completes
                                 articleAdapter.notifyDataSetChanged();
                             }
 
                             @Override
                             public void onCancelled(@NonNull DatabaseError error) {
-                                Toast.makeText(SavedArticlesActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(SavedArticlesActivity.this, "Error fetching article: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
@@ -98,9 +101,10 @@ public class SavedArticlesActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(SavedArticlesActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(SavedArticlesActivity.this, "Error fetching saved articles: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+
 
         // Grant value - which view, articles array list
         articleAdapter = new ArticleAdapter(SavedArticlesActivity.this, articlesArrayList);

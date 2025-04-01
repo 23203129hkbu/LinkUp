@@ -83,7 +83,7 @@ public class CommunityFragment extends Fragment {
                 // Sort the articles after all have been added to the list
                 articlesArrayList.sort((a1, a2) -> {
                     // First, compare by date
-                    int dateComparison = a2.getDate().compareTo(a1.getDate());
+                    int dateComparison = a1.getDate().compareTo(a1.getDate());
                     if (dateComparison == 0) {
                         // If dates are equal, compare by time
                         return a2.getTime().compareTo(a1.getTime());

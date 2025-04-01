@@ -65,7 +65,7 @@ public class QRCodeGeneratorActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(QRCodeGeneratorActivity.this, "載入失敗：" + error.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(QRCodeGeneratorActivity.this, "Load failed：" + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
 

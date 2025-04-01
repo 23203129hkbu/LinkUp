@@ -68,12 +68,10 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         // [START config_firebase reference]
         // Initialize database references dynamically based on the article
         databaseUserRef = Rdb.getReference().child("user");
-        databaseSavedArticleRef = Rdb.getReference().child("article").child(article.getArticleID()).child("savedUser");
+        databaseSavedArticleRef = Rdb.getReference().child("savedArticle").child(auth.getUid());
         // [END config_firebase reference]
 
         // [START config_layout]
-        holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24); // 默认状态
-        holder.btnSave.setTag(article.getArticleID()); // 绑定唯一标识
         holder.date.setText(article.getDate());
         holder.headline.setText(article.getHeadline());
         // [Start Gain Article Creator Info]
@@ -104,63 +102,92 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         } else {
             // Show save button for other users
             holder.btnSave.setVisibility(View.VISIBLE);
-            // Check if the article is already saved
-            databaseSavedArticleRef.child(auth.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (article.getArticleID().equals(holder.btnSave.getTag()))
-                        holder.btnSave.setImageResource(snapshot.exists() ? R.drawable.baseline_turned_in_24 : R.drawable.baseline_turned_in_not_24);
-                }
+            // Check saved state of the article
+            // ArticleAdapter.java
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    Toast.makeText(context, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
+            // Inside onBindViewHolder, for non-creator users:
+            if (article.getUID().equals(auth.getUid())) {
+                // Hide save button if the user is the creator
+                holder.btnSave.setVisibility(View.GONE);
+            } else {
+                // Show save button for other users
+                holder.btnSave.setVisibility(View.VISIBLE);
+                databaseSavedArticleRef.child(article.getArticleID()).addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            // Check if the article still exists in the main articles node
+                            DatabaseReference articleRef = Rdb.getReference().child("article").child(article.getArticleID());
+                            articleRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot articleSnapshot) {
+                                    if (articleSnapshot.exists()) {
+                                        // Article exists, update UI to saved state
+                                        holder.btnSave.setImageResource(R.drawable.baseline_turned_in_24);
+                                    } else {
+                                        // Article does not exist, remove from saved and update UI
+                                        databaseSavedArticleRef.child(article.getArticleID()).removeValue();
+                                        holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+                                    Log.e(TAG, "Error checking article existence: " + error.getMessage());
+                                }
+                            });
+                        } else {
+                            // Not saved, update UI
+                            holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(context, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
         }
         // [END config_layout]
 
         // [START layout component function]
         // Handle save button click (toggle save/remove article)
         holder.btnSave.setOnClickListener(view -> {
-            // 获取当前绑定的文章ID
-            String currentArticleId = (String) holder.btnSave.getTag();
-            if (currentArticleId == null || !currentArticleId.equals(article.getArticleID())) {
-                return; // 防止异步操作导致的错位
-            }
-            DatabaseReference currentRef = Rdb.getReference()
-                    .child("article")
-                    .child(currentArticleId)
-                    .child("savedUser")
-                    .child(auth.getUid());
+            String articleID = article.getArticleID();
+            DatabaseReference savedArticleRef = databaseSavedArticleRef.child(articleID);
 
-            currentRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            savedArticleRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (!currentArticleId.equals(holder.btnSave.getTag())) {
-                        return; // 二次验证防止错位
-                    }
-
                     if (snapshot.exists()) {
-                        // 移除保存
-                        currentRef.removeValue()
-                                .addOnSuccessListener(aVoid -> {
-                                    holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
-                                });
+                        // Article is already saved, unsave it
+                        savedArticleRef.removeValue().addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
+                                Toast.makeText(context, "Article unsaved", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(context, "Failed to unsave article", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     } else {
-                        Users user = new Users();
-                        user.setUID(auth.getUid());
-                        // 添加保存
-                        currentRef.setValue(user)
-                                .addOnSuccessListener(aVoid -> {
-                                    holder.btnSave.setImageResource(R.drawable.baseline_turned_in_24);
-                                });
+                        Articles article = new Articles();
+                        article.setArticleID(articleID);
+                        // Article is not saved, save it
+                        savedArticleRef.setValue(article).addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                holder.btnSave.setImageResource(R.drawable.baseline_turned_in_24);
+                                Toast.makeText(context, "Article saved", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(context, "Failed to save article", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
                 }
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
-                    Toast.makeText(context, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Save/unsave operation failed: " + error.getMessage());
                 }
             });
         });

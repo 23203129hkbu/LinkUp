@@ -1,10 +1,13 @@
 package com.example.linkup.CommunityOperation;
 
+import static androidx.fragment.app.FragmentManager.TAG;
+
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -103,9 +106,10 @@ public class ArticleActivity extends AppCompatActivity {
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user");
         databaseArticleRef = Rdb.getReference().child("article").child(article.getArticleID());
-        databaseSavedArticleRef = databaseArticleRef.child("savedUser");
-        databaseCommentRef = databaseArticleRef.child("Comment");
-        databaseLikeRef = databaseArticleRef.child("Like");
+        databaseSavedArticleRef = Rdb.getReference().child("savedArticle").child(auth.getUid()).child(article.getArticleID());
+        databaseLikeRef = Rdb.getReference().child("likedArticle").child(article.getArticleID());
+        databaseCommentRef = databaseArticleRef.child("commentArticle").child(article.getArticleID());
+
         // [END config_firebase reference]
 
         //[START Calender / Date Format configuration]
@@ -148,7 +152,7 @@ public class ArticleActivity extends AppCompatActivity {
                 btnSave.setVisibility(View.VISIBLE);
                 btnDelete.setVisibility(View.GONE);
                 // Check if the article is already saved
-                databaseSavedArticleRef.child(auth.getUid()).addValueEventListener(new ValueEventListener() {
+                databaseSavedArticleRef.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (snapshot.exists()) {
@@ -170,6 +174,7 @@ public class ArticleActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 // Count total likes
+                int noOfLikes = 0;
                 noOfLikes = (int) snapshot.getChildrenCount();
                 likes.setText(String.valueOf(noOfLikes));
                 // Check if the current user has liked the article
@@ -239,12 +244,12 @@ public class ArticleActivity extends AppCompatActivity {
         });
         // Handle save button click (toggle save/remove article)
         btnSave.setOnClickListener(view -> {
-            databaseSavedArticleRef.child(auth.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+            databaseSavedArticleRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists()) {
                         // Article is already saved, remove it
-                        databaseSavedArticleRef.child(auth.getUid()).removeValue()
+                        databaseSavedArticleRef.removeValue()
                                 .addOnCompleteListener(task -> {
                                     if (task.isSuccessful()) {
                                         Toast.makeText(ArticleActivity.this, "Article Removed", Toast.LENGTH_SHORT).show();
@@ -253,10 +258,10 @@ public class ArticleActivity extends AppCompatActivity {
                                     }
                                 });
                     } else {
-                        Users user = new Users();
-                        user.setUID(auth.getUid());
+                        Articles storedArticle = new Articles();
+                        storedArticle.setArticleID(article.getArticleID());
                         // Article is not saved, save it
-                        databaseSavedArticleRef.child(auth.getUid()).setValue(user)
+                        databaseSavedArticleRef.setValue(storedArticle)
                                 .addOnCompleteListener(task -> {
                                     if (task.isSuccessful()) {
                                         Toast.makeText(ArticleActivity.this, "Article Saved", Toast.LENGTH_SHORT).show();
@@ -282,46 +287,51 @@ public class ArticleActivity extends AppCompatActivity {
                     if (snapshot.exists()) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(ArticleActivity.this);
                         builder.setTitle("Confirmation Notification")
-                                .setMessage("Delete your article ?")
-                                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        builder.setTitle("Warning")
-                                                .setMessage("Your article will be deleted and cannot be recovered.\n\nAre you sure you still want to perform this operation?")
-                                                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(DialogInterface dialog, int which) {
-                                                        databaseArticleRef.removeValue().addOnCompleteListener(task -> {
-                                                            if (task.isSuccessful()) {
-                                                                Toast.makeText(ArticleActivity.this, "Article Deleted", Toast.LENGTH_SHORT).show();
-                                                                finish();
-                                                            } else {
-                                                                Toast.makeText(ArticleActivity.this, "Failed to deleted article", Toast.LENGTH_SHORT).show();
+                                .setMessage("Delete your article?")
+                                .setPositiveButton("Confirm", (dialog, which) -> {
+                                    builder.setTitle("Warning")
+                                            .setMessage("Your article will be deleted and cannot be recovered.\n\nAre you sure you still want to perform this operation?")
+                                            .setPositiveButton("Yes", (dialog1, which1) -> {
+                                                // Delete article and related data
+                                                // ArticleActivity.java
+
+// Inside the delete confirmation dialog's onClickListener:
+                                                databaseArticleRef.removeValue().addOnCompleteListener(task -> {
+                                                    if (task.isSuccessful()) {
+                                                        // Remove from all users' saved articles
+                                                        DatabaseReference savedRef = FirebaseDatabase.getInstance().getReference("savedArticle");
+                                                        savedRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                                            @Override
+                                                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                                for (DataSnapshot userSnapshot : snapshot.getChildren()) {
+                                                                    userSnapshot.getRef().child(article.getArticleID()).removeValue();
+                                                                }
+                                                            }
+
+                                                            @Override
+                                                            public void onCancelled(@NonNull DatabaseError error) {
                                                             }
                                                         });
-                                                    }
-                                                })
-                                                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(DialogInterface dialog, int which) {
-
+                                                        Toast.makeText(ArticleActivity.this, "Article Deleted", Toast.LENGTH_SHORT).show();
+                                                        finish();
+                                                    } else {
+                                                        Toast.makeText(ArticleActivity.this, "Failed to delete article", Toast.LENGTH_SHORT).show();
                                                     }
                                                 });
-                                        // this line to show the dialog
-                                        builder.create().show();
-                                    }
-                                })
-                                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
 
-                                    }
+                                                // Remove likes and comments
+                                                databaseLikeRef.removeValue();
+                                                databaseCommentRef.removeValue();
+                                            })
+                                            .setNegativeButton("No", (dialog12, which12) -> {
+                                            });
+                                    builder.create().show();
+                                })
+                                .setNegativeButton("Cancel", (dialog, which) -> {
                                 });
-                        // this line to show the dialog
                         builder.create().show();
                     } else {
-                        // Article is not saved, save it
-                        Toast.makeText(ArticleActivity.this, "Article does not exist ", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ArticleActivity.this, "Article does not exist", Toast.LENGTH_SHORT).show();
                     }
                 }
 

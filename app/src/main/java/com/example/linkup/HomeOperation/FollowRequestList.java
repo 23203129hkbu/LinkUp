@@ -55,7 +55,7 @@ public class FollowRequestList extends AppCompatActivity {
         //[END configuration]
 
         // [START config_firebase reference]
-        databaseRequestedRef = Rdb.getReference().child("user").child(auth.getUid()).child("requested");
+        databaseRequestedRef = Rdb.getReference().child("requested").child(auth.getUid());
         // [END config_firebase reference]
 
         // Load users from Firebase

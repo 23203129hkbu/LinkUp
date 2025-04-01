@@ -82,8 +82,8 @@ public class ProfileFragment extends Fragment {
 
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
-        databaseFollowerRef = databaseUserRef.child("follower");
-        databaseFollowingRef = databaseUserRef.child("following");
+        databaseFollowerRef = Rdb.getReference().child("follower").child(auth.getUid());
+        databaseFollowingRef = Rdb.getReference().child("following").child(auth.getUid());
         databasePostRef = Rdb.getReference().child("post");
         // [END config_firebase reference]
 

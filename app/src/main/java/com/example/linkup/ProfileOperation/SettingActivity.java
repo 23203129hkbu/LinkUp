@@ -212,15 +212,11 @@ public class SettingActivity extends AppCompatActivity {
                 Users storedUser = new Users();
                 // Be follower
                 storedUser.setUID(auth.getUid());
-                DatabaseReference databaseFollowerRef = Rdb.getReference().child("user")
-                        .child(uid)
-                        .child("follower");
+                DatabaseReference databaseFollowerRef = Rdb.getReference().child("follower").child(uid);
                 databaseFollowerRef.child(auth.getUid()).setValue(storedUser);
                 // Insert a following
                 storedUser.setUID(uid);
-                DatabaseReference databaseYourFollowingRef = Rdb.getReference().child("user")
-                        .child(auth.getUid())
-                        .child("following");
+                DatabaseReference databaseYourFollowingRef = Rdb.getReference().child("following").child(auth.getUid());
                 databaseYourFollowingRef.child(uid).setValue(storedUser);
                 Toast.makeText(SettingActivity.this, "followed this user", Toast.LENGTH_SHORT).show();
             }
