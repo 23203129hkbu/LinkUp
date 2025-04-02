@@ -115,13 +115,11 @@ public class UserProfile extends AppCompatActivity {
                     // Layout Control
                     Picasso.get().load(snapshot.child("avatarURL").getValue(String.class)).into(avatar);
                     username.setText(snapshot.child("username").getValue(String.class));
+                    usernameTopBar.setText(snapshot.child("username").getValue(String.class));
                     website.setText(userWebsite);
                     introduction.setText(snapshot.child("introduction").getValue(String.class));
-                    if (snapshot.child("privacy").getValue(String.class).equals("Private")){
-                        privateAC = true;
-                    }else{
-                        loadUserProfile();
-                    }
+                    privateAC = snapshot.child("privacy").getValue(String.class).equals("Private");
+                    loadProfile();
                 }
             }
 
@@ -151,42 +149,21 @@ public class UserProfile extends AppCompatActivity {
         });
 
         // Count Followers
+        // Check Followers
         databaseFollowerRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                int numOfFollower = 0;
-                // Count total followers
-                numOfFollower = (int) snapshot.getChildrenCount();
+                int numOfFollower = (int) snapshot.getChildrenCount();
                 followers.setText(String.valueOf(numOfFollower));
                 if (snapshot.hasChild(auth.getUid())) {
-                    btnFollow.setBackgroundTintList(null);
                     Followed = true;
+                    btnFollow.setBackgroundTintList(null);
                     btnFollow.setText("Following");
-                    loadUserProfile();
-                }else {
-                    hideUserProfile();
+                } else {
                     Followed = false;
-                    // Check if user have applied once
-                    databaseRequestedRef.child(auth.getUid()).addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            if (snapshot.exists()) {
-                                // Set Background Color
-                                btnFollow.setBackgroundTintList(null);
-                                btnFollow.setText("Requested");
-                                Requested = true;
-                            }else{
-                                btnFollow.setBackgroundTintList(ContextCompat.getColorStateList(UserProfile.this,R.color.purple_2));
-                                btnFollow.setText("Follow");
-                                Requested = false;
-                            }
-                        }
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-                            Toast.makeText(UserProfile.this, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    checkFollowRequest();
                 }
+                loadProfile();
             }
 
             @Override
@@ -194,6 +171,7 @@ public class UserProfile extends AppCompatActivity {
                 // Handle possible errors
             }
         });
+
 
         // Count Following
         databaseFollowingRef.addValueEventListener(new ValueEventListener() {
@@ -291,8 +269,42 @@ public class UserProfile extends AppCompatActivity {
 
     }
 
-
     // [START Method]
+
+    private void loadProfile() {
+        if (privateAC){
+            if (Followed) {
+                loadUserProfile(); // if following
+            }else{
+                hideUserProfile();
+            }
+        }else {
+            loadUserProfile(); // User is following or account is public
+        }
+    }
+
+    // Helper method to check if a follow request exists
+    private void checkFollowRequest() {
+        databaseRequestedRef.child(auth.getUid()).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    btnFollow.setBackgroundTintList(null);
+                    btnFollow.setText("Requested");
+                    Requested = true;
+                } else {
+                    btnFollow.setBackgroundTintList(ContextCompat.getColorStateList(UserProfile.this, R.color.purple_2));
+                    btnFollow.setText("Follow");
+                    Requested = false;
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(UserProfile.this, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
     // load User Profile
     private void loadUserProfile() {
@@ -328,13 +340,31 @@ public class UserProfile extends AppCompatActivity {
     private void sendFollowRequest() {
         Users user = new Users();
         user.setUID(auth.getUid());
-        databaseRequestedRef.child(auth.getUid()).setValue(user);
-        Toast.makeText(UserProfile.this, "Send follow request", Toast.LENGTH_SHORT).show();
+        databaseRequestedRef.child(auth.getUid()).setValue(user)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        btnFollow.setBackgroundTintList(null);
+                        btnFollow.setText("Requested");
+                        Requested = true;
+                        Toast.makeText(UserProfile.this, "Send follow request", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(UserProfile.this, "Failed to send request", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
     // Cancel Follow request
     private void cancelFollowRequest() {
-        databaseRequestedRef.child(auth.getUid()).removeValue();
-        Toast.makeText(UserProfile.this, "Cancel follow request", Toast.LENGTH_SHORT).show();
+        databaseRequestedRef.child(auth.getUid()).removeValue()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        btnFollow.setBackgroundTintList(ContextCompat.getColorStateList(UserProfile.this, R.color.purple_2));
+                        btnFollow.setText("Follow");
+                        Requested = false;
+                        Toast.makeText(UserProfile.this, "Cancel follow request", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(UserProfile.this, "Failed to cancel request", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
     // [END Method]
 }

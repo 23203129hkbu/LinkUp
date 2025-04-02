@@ -10,8 +10,8 @@
     tools:context=".Process.LoginActivity">
 
     <ImageView
-        android:layout_width="@dimen/_180sdp"
-        android:layout_height="@dimen/_180sdp"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
         android:layout_gravity="center"
         android:layout_marginTop="@dimen/_20sdp"
         app:srcCompat="@drawable/icon" />

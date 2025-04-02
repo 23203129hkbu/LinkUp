@@ -12,9 +12,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.linkup.R;
 
+// ✅
 public class SplashActivity extends AppCompatActivity {
     // layout object
-    ImageView icon;
+    ImageView splashIcon;
     TextView appName, slogan;
     // animation
     Animation anim_1, anim_2, anim_3;
@@ -24,8 +25,8 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
         // [START gain layout (activity_splash.xml)_objects]
-        icon = findViewById(R.id.splashicon);
-        appName = findViewById(R.id.appname);
+        splashIcon = findViewById(R.id.splashIcon);
+        appName = findViewById(R.id.appName);
         slogan = findViewById(R.id.slogan);
         // [END gain]
 
@@ -36,7 +37,7 @@ public class SplashActivity extends AppCompatActivity {
         // [END gain]
 
         // [START assign animation to layout object]
-        icon.setAnimation(anim_1);
+        splashIcon.setAnimation(anim_1);
         appName.setAnimation(anim_2);
         slogan.setAnimation(anim_3);
         // [END assign]

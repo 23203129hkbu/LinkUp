@@ -24,6 +24,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
+// ✅
 public class RegistrationActivity extends AppCompatActivity {
     // layout object
     EditText email, pwd, conPwd;
@@ -46,6 +47,10 @@ public class RegistrationActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registration);
+        // [START config_firebase]
+        auth = FirebaseAuth.getInstance();
+        // [END config_firebase]
+
         // [START gain layout objects]
         email = findViewById(R.id.email);
         pwd = findViewById(R.id.pwd);
@@ -55,10 +60,6 @@ public class RegistrationActivity extends AppCompatActivity {
         btnLogin = findViewById(R.id.btnLogin);
         progressBar = findViewById(R.id.progressbar);
         // [END gain]
-
-        // [START config_firebase]
-        auth = FirebaseAuth.getInstance();
-        // [END config_firebase]
 
         // [START config_dialog]
         progressDialog = new ProgressDialog(this);

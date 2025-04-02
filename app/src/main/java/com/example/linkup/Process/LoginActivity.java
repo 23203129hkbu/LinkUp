@@ -26,6 +26,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
+// ✅
 public class LoginActivity extends AppCompatActivity {
     // layout object
     Button btnLogin, btnGoogleLogin, btnFacebookLogin;
@@ -47,6 +48,10 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        // [START config_firebase]
+        auth = FirebaseAuth.getInstance();
+        // [END config_firebase]
+
         // [START gain layout objects]
         btnLogin = findViewById(R.id.btnLogin);
         email = findViewById(R.id.email);
@@ -57,10 +62,6 @@ public class LoginActivity extends AppCompatActivity {
         btnFacebookLogin = findViewById(R.id.btnFacebookLogin);
         progressbar = findViewById(R.id.progressbar);
         // [END gain]
-
-        // [START config_firebase]
-        auth = FirebaseAuth.getInstance();
-        // [END config_firebase]
 
         // [START config_dialog]
         progressDialog = new ProgressDialog(this); // create new dialog
@@ -144,7 +145,6 @@ public class LoginActivity extends AppCompatActivity {
                 updateUI("Facebook");
             }
         });
-
         // [END layout component function]
     }
 
@@ -154,12 +154,12 @@ public class LoginActivity extends AppCompatActivity {
         Intent intent = null;
         if (screen.equals("Main")) {
             intent = new Intent(LoginActivity.this, MainActivity.class);
+        } else if (screen.equals("Registration")) {
+            intent = new Intent(LoginActivity.this, RegistrationActivity.class);
         } else if (screen.equals("Google")) {
             intent = new Intent(LoginActivity.this, GoogleSignInActivity.class);
         } else if (screen.equals("Facebook")) {
             intent = new Intent(LoginActivity.this, FacebookSignInActivity.class);
-        } else if (screen.equals("Registration")){
-            intent = new Intent(LoginActivity.this, RegistrationActivity.class);
         }
         if (intent != null) {
             startActivity(intent);

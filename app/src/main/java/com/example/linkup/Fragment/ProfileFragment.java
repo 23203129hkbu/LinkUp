@@ -100,7 +100,7 @@ public class ProfileFragment extends Fragment {
                     website.setText(userWebsite);
                     introduction.setText(snapshot.child("introduction").getValue(String.class));
                 } else {
-                    updateUI("Create");
+                    // updateUI("Create");
                 }
             }
 

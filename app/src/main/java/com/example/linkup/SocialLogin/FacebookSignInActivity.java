@@ -24,6 +24,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.Arrays;
 
+// ✅
 public class FacebookSignInActivity extends Activity {
 
     private static final String TAG = "FacebookLogin";

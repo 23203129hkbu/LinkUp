@@ -166,6 +166,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                             if (task.isSuccessful()) {
                                 holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
                                 Toast.makeText(context, "Article unsaved", Toast.LENGTH_SHORT).show();
+
                             } else {
                                 Toast.makeText(context, "Failed to unsave article", Toast.LENGTH_SHORT).show();
                             }
@@ -183,6 +184,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                             }
                         });
                     }
+
                 }
 
                 @Override

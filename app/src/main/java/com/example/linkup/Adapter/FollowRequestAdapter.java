@@ -41,7 +41,7 @@ public class FollowRequestAdapter extends RecyclerView.Adapter<FollowRequestAdap
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef; // real-time db ref
+    DatabaseReference databaseUserRef, databaseFollowerRef, databaseFollowingRef, databaseRequestedRef; // real-time db ref
 
     // Constructor
     public FollowRequestAdapter(Context context, ArrayList<Users> usersArrayList) {
@@ -68,6 +68,9 @@ public class FollowRequestAdapter extends RecyclerView.Adapter<FollowRequestAdap
         final Users user = usersArrayList.get(position);
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user");
+        databaseFollowerRef = Rdb.getReference().child("follower").child(auth.getUid());
+        databaseFollowingRef = Rdb.getReference().child("following").child(user.getUID());
+        databaseRequestedRef = Rdb.getReference().child("requested").child(auth.getUid());
         // [END config_firebase reference]
 
         // [START config_layout]
@@ -104,8 +107,8 @@ public class FollowRequestAdapter extends RecyclerView.Adapter<FollowRequestAdap
                 return; // 防止异步操作导致的错位
             }
             // Remove the user from the list, regardless of whether they accept or reject it.
-            DatabaseReference databaseRequestedRef = Rdb.getReference().child("user").child(auth.getUid()).child("requested").child(currentUID);
-            databaseRequestedRef.removeValue();
+            DatabaseReference currentRef  = databaseRequestedRef.child(currentUID);
+            currentRef.removeValue();
         });
         // Accept Follow Request
         holder.btnAccept.setOnClickListener(view -> {
@@ -115,17 +118,17 @@ public class FollowRequestAdapter extends RecyclerView.Adapter<FollowRequestAdap
                 return; // 防止异步操作导致的错位
             }
             // Remove the user from the list, regardless of whether they accept or reject it.
-            DatabaseReference databaseRequestedRef = Rdb.getReference().child("user").child(auth.getUid()).child("requested").child(currentUID);
-            databaseRequestedRef.removeValue();
+            DatabaseReference currentRef  = databaseRequestedRef.child(currentUID);
+            currentRef.removeValue();
             // Insert Follower
-            DatabaseReference databaseFollowerRef = Rdb.getReference().child("user").child(auth.getUid()).child("follower");
+            currentRef = databaseFollowerRef.child(currentUID);
             Users storedUser = new Users();
             storedUser.setUID(currentUID);
-            databaseFollowerRef.child(currentUID).setValue(storedUser);
+            currentRef.setValue(storedUser);
             // Insert Following
-            DatabaseReference databaseFollowingRef = Rdb.getReference().child("user").child(currentUID).child("following");
+            currentRef = databaseFollowingRef.child(auth.getUid());
             storedUser.setUID(auth.getUid());
-            databaseFollowingRef.child(auth.getUid()).setValue(storedUser);
+            currentRef.setValue(storedUser);
             Toast.makeText(context, "The user has become your followers", Toast.LENGTH_SHORT).show();
         });
         // Open article details on item click

@@ -48,9 +48,10 @@ public class HomeFragment extends Fragment {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databasePostRef, databaseRequestedRef; // real-time db ref
+    DatabaseReference databaseUserRef, databasePostRef, databaseRequestedRef, databaseFollowingRef; // real-time db ref
     // convert post data into RecyclerView by Adapter
     ArrayList<Posts> postsArrayList = new ArrayList<>();
+    ArrayList<String> followingUIDs = new ArrayList<>();
     PostAdapter postAdapter;
 
 
@@ -72,42 +73,50 @@ public class HomeFragment extends Fragment {
         //[END configuration]
 
         // [START config_firebase reference]
+        databaseUserRef = Rdb.getReference().child("user");
         databasePostRef = Rdb.getReference().child("post");
+        databaseFollowingRef = Rdb.getReference().child("following").child(auth.getUid());
         databaseRequestedRef = Rdb.getReference().child("requested").child(auth.getUid());
         // [END config_firebase reference]
 
-        // Gain the adapter data object
-        databasePostRef.orderByChild("date").addValueEventListener(new ValueEventListener() {
+        // Load Post
+        databaseFollowingRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                postsArrayList.clear();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Posts post = dataSnapshot.getValue(Posts.class);
-                    // Ensure article is not null before proceeding
-                    if (post != null) {
-                        postsArrayList.add(post);
-                    }
+            public void onDataChange(@NonNull DataSnapshot followingSnapshot) {
+                followingUIDs.clear();
+                for (DataSnapshot snap : followingSnapshot.getChildren()) {
+                    followingUIDs.add(snap.getKey());
                 }
 
-                // Sort the articles after all have been added to the list
-                postsArrayList.sort((a1, a2) -> {
-                    // First, compare by date
-                    int dateComparison = a2.getDate().compareTo(a1.getDate());
-                    if (dateComparison == 0) {
-                        // If dates are equal, compare by time
-                        return a2.getTime().compareTo(a1.getTime());
+                databasePostRef.orderByChild("date").addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        postsArrayList.clear();
+                        ArrayList<Posts> tempPostsList = new ArrayList<>();
+
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                            Posts post = dataSnapshot.getValue(Posts.class);
+                            if (post != null) {
+                                tempPostsList.add(post);
+                            }
+                        }
+
+                        filterVisiblePosts(tempPostsList);
                     }
-                    return dateComparison;
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                    }
                 });
-                // Notify adapter after sorting
-                postAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                // Handle possible errors
             }
         });
+
+
+
         // Determine if there are any tracking requests
         databaseRequestedRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -116,10 +125,11 @@ public class HomeFragment extends Fragment {
                     // layout control
                     // Set btnNotification layout
                     btnNotification.setImageResource(R.drawable.baseline_notifications_active_24);
-                }else{
+                } else {
                     btnNotification.setImageResource(R.drawable.baseline_notifications_none_24);
                 }
             }
+
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(getContext(), "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
@@ -160,6 +170,39 @@ public class HomeFragment extends Fragment {
         // this line must be finalized
         return view;
     }
+
+    private void filterVisiblePosts(ArrayList<Posts> allPosts) {
+        ArrayList<Posts> filtered = new ArrayList<>();
+        int totalToCheck = allPosts.size();
+        final int[] checkedCount = {0};
+
+        for (Posts post : allPosts) {
+            String postUID = post.getUID();
+            if (followingUIDs.contains(postUID) || postUID.equals(auth.getUid())) {
+                filtered.add(post);
+                checkedCount[0]++;
+                if (checkedCount[0] == totalToCheck) finalizePosts(filtered);
+            } else {
+                databaseUserRef.child(postUID).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot userSnapshot) {
+                        checkedCount[0]++;
+                        if (userSnapshot.exists() && "Public".equals(userSnapshot.child("privacy").getValue(String.class))) {
+                            filtered.add(post);
+                        }
+                        if (checkedCount[0] == totalToCheck) finalizePosts(filtered);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        checkedCount[0]++;
+                        if (checkedCount[0] == totalToCheck) finalizePosts(filtered);
+                    }
+                });
+            }
+        }
+    }
+
     // [START Method]
     // handling UI update
     private void updateUI(String screen) {
@@ -174,6 +217,28 @@ public class HomeFragment extends Fragment {
         if (intent != null) {
             startActivity(intent);
         }
+    }
+    // 檢查是否所有貼文已讀取完成
+    private boolean isAllPostsLoaded(ArrayList<Posts> tempPostsList, DataSnapshot snapshot) {
+        return tempPostsList.size() == snapshot.getChildrenCount();
+    }
+
+    // 排序並更新 RecyclerView
+    private void finalizePosts(ArrayList<Posts> tempPostsList) {
+        // 排序：日期最新優先
+        tempPostsList.sort((a1, a2) -> {
+            int dateComparison = a2.getDate().compareTo(a1.getDate());
+            if (dateComparison == 0) {
+                return a2.getTime().compareTo(a1.getTime());
+            }
+            return dateComparison;
+        });
+
+        postsArrayList.clear();
+        postsArrayList.addAll(tempPostsList);
+
+        // 通知適配器更新
+        postAdapter.notifyDataSetChanged();
     }
     // [END Method]
 }

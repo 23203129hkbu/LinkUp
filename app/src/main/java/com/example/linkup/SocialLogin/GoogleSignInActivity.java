@@ -20,6 +20,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
 
+// ✅
 /**
  * Demonstrate Firebase Authentication using a Google ID Token.
  */

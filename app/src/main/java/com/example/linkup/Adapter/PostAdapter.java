@@ -52,13 +52,14 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef, databaseLikeRef; // real-time db ref
+    DatabaseReference databaseUserRef, databaseLikeRef, databaseFollowingRef, databaseFollowerRef; // real-time db ref
+    // following checker
+    Boolean checker;
 
     // Constructor
     public PostAdapter(Context context, ArrayList<Posts> postsArrayList) {
         this.context = context;
         this.postsArrayList = postsArrayList;
-
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
         Rdb = FirebaseDatabase.getInstance();
@@ -79,18 +80,35 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         final Posts post = postsArrayList.get(position);
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user").child(post.getUID());
-        databaseLikeRef = Rdb.getReference().child("post").child(post.getPostID()).child("likedUser");
+        databaseLikeRef = Rdb.getReference().child("likedPost");
+        databaseFollowingRef = Rdb.getReference().child("following").child(auth.getUid());
+        databaseFollowerRef = Rdb.getReference().child("follower").child(post.getUID());
         // [END config_firebase reference]
 
         // [START config_layout]
         holder.btnLike.setImageResource(R.drawable.baseline_favorite_border_24); // 默认状态
         holder.btnLike.setTag(post.getPostID()); // 绑定唯一标识
         holder.description.setText(post.getDescription());
-        holder.dateAndTime.setText(post.getDate()+", "+post.getTime());
+        holder.dateAndTime.setText(post.getDate()+" "+post.getTime());
         if (post.getUID().equals(auth.getUid())) {
             holder.btnFollow.setVisibility(View.INVISIBLE);
         } else {
             holder.btnFollow.setVisibility(View.VISIBLE);
+            databaseFollowingRef.child(post.getUID()).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot followingSnapshot) {
+                    if (followingSnapshot.exists()){
+                        checker = true;
+                        holder.btnFollow.setText("Following");
+                    }else{
+                        checker = false;
+                        holder.btnFollow.setText("Follow");
+                    }
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                }
+            });
         }
         if (post.getType().equals("video")) {
             holder.video.setVisibility(View.VISIBLE);
@@ -129,7 +147,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             }
         });
         // Load Button Like / Gain existing likes
-        databaseLikeRef.addValueEventListener(new ValueEventListener() {
+        databaseLikeRef.child(post.getPostID()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 // Count total likes
@@ -161,11 +179,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             if (currentPostId == null || !currentPostId.equals(post.getPostID())) {
                 return; // 防止异步操作导致的错位
             }
-            DatabaseReference currentRef = Rdb.getReference()
-                    .child("post")
-                    .child(post.getPostID())
-                    .child("likedUser")
-                    .child(auth.getUid());
+            DatabaseReference currentRef = databaseLikeRef.child(currentPostId).child(auth.getUid());
 
             currentRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
@@ -200,13 +214,42 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             PostMenu pm = new PostMenu (post.getPostID(),post.getPostURL());
             pm.show(((AppCompatActivity) context).getSupportFragmentManager(), "bottom");
         });
+        // Follow / UnFollow user
+        databaseFollowingRef.child(post.getUID()).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot followingSnapshot) {
+                boolean isFollowing = followingSnapshot.exists();
+                holder.btnFollow.setText(isFollowing ? "Following" : "Follow");
+
+                holder.btnFollow.setOnClickListener(view -> {
+                    if (isFollowing) {
+                        databaseFollowingRef.child(post.getUID()).removeValue();
+                        databaseFollowerRef.child(auth.getUid()).removeValue();
+                        Toast.makeText(context, "Unfollowed this user", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Users storedUser = new Users();
+                        storedUser.setUID(post.getUID());
+                        databaseFollowingRef.child(post.getUID()).setValue(storedUser);
+                        storedUser.setUID(auth.getUid());
+                        databaseFollowerRef.child(auth.getUid()).setValue(storedUser);
+                        Toast.makeText(context, "Followed this user", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+        // If the creator of the post is the user, can't move on to the user profile
         // Open article details on item click
         holder.userProfile.setOnClickListener(view -> {
-            Intent intent = new Intent(context, UserProfile.class);
             Users user = new Users();
             user.setUID(post.getUID());
-            intent.putExtra("user", user);  // Pass the article object
-            context.startActivity(intent);
+            if (!user.getUID().equals(auth.getUid())){
+                Intent intent = new Intent(context, UserProfile.class);
+                intent.putExtra("user", user);  // Pass the article object
+                context.startActivity(intent);
+            }
         });
         // [END layout component function]
     }

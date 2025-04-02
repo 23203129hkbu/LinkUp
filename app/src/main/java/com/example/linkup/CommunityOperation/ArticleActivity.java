@@ -295,7 +295,7 @@ public class ArticleActivity extends AppCompatActivity {
                                                 // Delete article and related data
                                                 // ArticleActivity.java
 
-// Inside the delete confirmation dialog's onClickListener:
+                                                // Inside the delete confirmation dialog's onClickListener:
                                                 databaseArticleRef.removeValue().addOnCompleteListener(task -> {
                                                     if (task.isSuccessful()) {
                                                         // Remove from all users' saved articles
@@ -318,7 +318,6 @@ public class ArticleActivity extends AppCompatActivity {
                                                         Toast.makeText(ArticleActivity.this, "Failed to delete article", Toast.LENGTH_SHORT).show();
                                                     }
                                                 });
-
                                                 // Remove likes and comments
                                                 databaseLikeRef.removeValue();
                                                 databaseCommentRef.removeValue();
