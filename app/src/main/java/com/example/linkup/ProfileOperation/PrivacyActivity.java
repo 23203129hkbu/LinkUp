@@ -36,6 +36,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Transaction;
 import com.squareup.picasso.Picasso;
 
+// ✅
 public class PrivacyActivity extends AppCompatActivity {
     // layout object
     ImageView btnBack;
@@ -47,7 +48,8 @@ public class PrivacyActivity extends AppCompatActivity {
     DatabaseReference databaseUserRef; // real-time db ref
     // default user info
     Users user = new Users();
-    private boolean isUserChange = true;
+    Boolean cancel = false;
+    String userState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,32 +70,35 @@ public class PrivacyActivity extends AppCompatActivity {
         databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
         // [END config_firebase reference]
 
+        // [START config_layout]
         //[Gain User Data]
         databaseUserRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    user = snapshot.getValue(Users.class);
                     // Layout Control
+                    user = snapshot.getValue(Users.class);
                     state.setText(user.getPrivacy());
                     // State initialization
                     if (user.getPrivacy().equals("Private")) {
-                        // Prevent message frames from popping up
-                        isUserChange = false; // Do Not Remove
                         switchState.setChecked(true);
-                        isUserChange = true; // Do Not Remove
+                        userState = "Public";
+                    }else{
+                        switchState.setChecked(false);
+                        userState = "Private";
                     }
+
                 } else {
                     Toast.makeText(PrivacyActivity.this, "Modification failed", Toast.LENGTH_SHORT).show();
                 }
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(PrivacyActivity.this, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                 Log.w(TAG, "Personal data cannot be obtained: "+error.getMessage());
             }
         });
+        // [END config_layout]
 
         // [START layout component function]
         // Switch the screen - SettingActivity
@@ -106,34 +111,28 @@ public class PrivacyActivity extends AppCompatActivity {
         // Switch user privacy setting
         switchState.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             // Flag to differentiate user actions from programmatic changes
-
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (!isUserChange) {
-                    // Avoid recirculation
-                    return; // Ignore programmatic changes
+                if (cancel) {
+                    cancel = false; // Reset the flag
+                    return; // Exit early to avoid showing the dialog
                 }
-
                 AlertDialog.Builder builder = new AlertDialog.Builder(PrivacyActivity.this);
                 builder.setTitle("Confirmation Notification")
                         .setMessage("Toggle account privacy status?")
                         .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                state.setText(isChecked ? "Private" : "Public");
                                 savePrivacySetting(); // Save the new privacy setting
                             }
                         })
                         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                // Temporarily disable listener before reverting switch state
-                                isUserChange = false;
-                                switchState.setChecked(!isChecked); // Revert to previous state
-                                isUserChange = true; // Re-enable listener after change
+                                cancel = true; // Set the flag to prevent triggering listener
+                                switchState.setChecked(user.getPrivacy().equals("Private"));
                             }
                         });
-
                 // Show the dialog
                 builder.create().show();
             }
@@ -149,7 +148,7 @@ public class PrivacyActivity extends AppCompatActivity {
     }
     // handling privacy setting update
     private void savePrivacySetting() {
-        user.setPrivacy(state.getText().toString());
+        user.setPrivacy(userState);
         databaseUserRef.setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {

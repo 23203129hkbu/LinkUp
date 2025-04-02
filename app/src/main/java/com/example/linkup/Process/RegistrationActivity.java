@@ -31,7 +31,7 @@ public class RegistrationActivity extends AppCompatActivity {
     CheckBox cbxPwd;
     Button btnSignUp;
     TextView btnLogin;
-    ProgressBar progressBar;
+    ProgressBar progressbar;
     // Limitation / Case handling
     String emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+";
     // Dialog
@@ -58,7 +58,7 @@ public class RegistrationActivity extends AppCompatActivity {
         cbxPwd = findViewById(R.id.cbxPwd);
         btnSignUp = findViewById(R.id.btnSignUp);
         btnLogin = findViewById(R.id.btnLogin);
-        progressBar = findViewById(R.id.progressbar);
+        progressbar = findViewById(R.id.progressbar);
         // [END gain]
 
         // [START config_dialog]
@@ -91,7 +91,7 @@ public class RegistrationActivity extends AppCompatActivity {
                 userEmail = email.getText().toString();
                 userPwd = pwd.getText().toString();
                 userConPwd = conPwd.getText().toString();
-
+                progressDialog.show(); // Show the dialog first
                 if (TextUtils.isEmpty(userEmail)) {
                     Toast.makeText(RegistrationActivity.this, "Email is required", Toast.LENGTH_SHORT).show();
                 } else if (TextUtils.isEmpty(userPwd)) {
@@ -108,8 +108,7 @@ public class RegistrationActivity extends AppCompatActivity {
                     conPwd.setError("Password and Confirm Password must be match");
                     Toast.makeText(RegistrationActivity.this, "Passwords don't match", Toast.LENGTH_SHORT).show();
                 } else {
-                    progressBar.setVisibility(View.VISIBLE); // Show progress bar
-                    progressDialog.show();
+                    progressbar.setVisibility(View.VISIBLE); // Show progress bar
                     // createUserWithEmailAndPassword -> create the record -> user -> for sign in
                     auth.createUserWithEmailAndPassword(userEmail, userPwd).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                         @Override
@@ -134,7 +133,7 @@ public class RegistrationActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                progressBar.setVisibility(View.VISIBLE);
+                progressbar.setVisibility(View.VISIBLE);
                 updateUI("Login");
             }
         });

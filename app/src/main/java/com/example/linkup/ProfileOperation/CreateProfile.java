@@ -38,7 +38,7 @@ import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-
+// ✅
 public class CreateProfile extends AppCompatActivity {
     // layout object
     CircleImageView avatarUpload;
@@ -65,15 +65,6 @@ public class CreateProfile extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_profile);
-        // [START gain layout objects]
-        avatarUpload = findViewById(R.id.avatar);
-        username = findViewById(R.id.username);
-        website = findViewById(R.id.website);
-        introduction = findViewById(R.id.introduction);
-        btnSave = findViewById(R.id.btnSave);
-        progressbar = findViewById(R.id.progressbar);
-        // [END gain]
-
         // [START config_firebase]
         auth = FirebaseAuth.getInstance();
         storage = FirebaseStorage.getInstance();
@@ -84,6 +75,15 @@ public class CreateProfile extends AppCompatActivity {
         storageRef = storage.getReference().child("avatars/" + auth.getUid() + ".jpg");
         databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
         // [END config_firebase reference]
+
+        // [START gain layout objects]
+        avatarUpload = findViewById(R.id.avatar);
+        username = findViewById(R.id.username);
+        website = findViewById(R.id.website);
+        introduction = findViewById(R.id.introduction);
+        btnSave = findViewById(R.id.btnSave);
+        progressbar = findViewById(R.id.progressbar);
+        // [END gain]
 
         // [START config_dialog]
         progressDialog = new ProgressDialog(this);
@@ -109,6 +109,7 @@ public class CreateProfile extends AppCompatActivity {
                 userUsername = username.getText().toString();
                 userWebsite = website.getText().toString();
                 userIntroduction = introduction.getText().toString();
+                progressDialog.show(); // Show the dialog first
                 if (TextUtils.isEmpty(userUsername)) {
                     progressDialog.dismiss();
                     Toast.makeText(CreateProfile.this, "Username is required", Toast.LENGTH_SHORT).show();
@@ -128,16 +129,16 @@ public class CreateProfile extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 10 && data != null) {
+        if (requestCode == 10 && resultCode == RESULT_OK && data != null && data.getData() != null) {
             imageURI = data.getData();
             avatarUpload.setImageURI(imageURI);
-
+        } else {
+            Toast.makeText(this, "No image selected", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void handleImageURI() {
         if (imageURI != null) {
-            // Upload the file to the specified path
             storageRef.putFile(imageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
@@ -145,21 +146,21 @@ public class CreateProfile extends AppCompatActivity {
                         storageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
                             public void onSuccess(Uri uri) {
-                                imageURL = uri.toString(); // uri convert to string
-                                // Save the download URL
-                                // Now update the profile in the database after setting the avatarURL
+                                imageURL = uri.toString(); // Update imageURL with uploaded image
                                 handleProfileToDatabase();
                             }
                         }).addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
                                 progressDialog.dismiss();
-                                Toast.makeText(CreateProfile.this, "Failed to get image URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(CreateProfile.this, "Failed to get image URL, using default image", Toast.LENGTH_SHORT).show();
+                                handleProfileToDatabase(); // Proceed with default image
                             }
                         });
                     } else {
                         progressDialog.dismiss();
-                        Toast.makeText(CreateProfile.this, "Image upload failed.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(CreateProfile.this, "Image upload failed, using default image", Toast.LENGTH_SHORT).show();
+                        handleProfileToDatabase(); // Proceed with default image
                     }
                 }
             }).addOnFailureListener(new OnFailureListener() {
@@ -167,11 +168,11 @@ public class CreateProfile extends AppCompatActivity {
                 public void onFailure(@NonNull Exception e) {
                     progressDialog.dismiss();
                     Toast.makeText(CreateProfile.this, "Image upload error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    handleProfileToDatabase(); // Proceed with default image
                 }
             });
         } else {
-            // If no image was selected, directly create the profile
-            handleProfileToDatabase();
+            handleProfileToDatabase(); // No image selected, use default
         }
     }
 
@@ -187,9 +188,9 @@ public class CreateProfile extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 progressDialog.dismiss();
+                progressbar.setVisibility(View.GONE); // Hide progress bar
                 if (task.isSuccessful()) {
                     Toast.makeText(CreateProfile.this, "Data saved successfully!", Toast.LENGTH_SHORT).show();
-                    // update UI
                     updateUI();
                 } else {
                     Toast.makeText(CreateProfile.this, "Failed to save data.", Toast.LENGTH_SHORT).show();
@@ -199,6 +200,7 @@ public class CreateProfile extends AppCompatActivity {
             @Override
             public void onFailure(@NonNull Exception e) {
                 progressDialog.dismiss();
+                progressbar.setVisibility(View.GONE); // Hide progress bar
                 Toast.makeText(CreateProfile.this, "Database error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
@@ -207,16 +209,9 @@ public class CreateProfile extends AppCompatActivity {
     // handling UI update
     private void updateUI() {
         Toast.makeText(CreateProfile.this, "Profile Created", Toast.LENGTH_SHORT).show();
-        // Delay execution to allow enough time for data to be uploaded
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Intent intent = new Intent(CreateProfile.this, MainActivity.class);
-                startActivity(intent);
-                finish();
-            }
-        }, 4000);
+        Intent intent = new Intent(CreateProfile.this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
     // [END Method]
 }

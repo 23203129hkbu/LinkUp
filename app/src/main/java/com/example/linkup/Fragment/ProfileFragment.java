@@ -82,12 +82,13 @@ public class ProfileFragment extends Fragment {
 
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
+        databasePostRef = Rdb.getReference().child("post");
         databaseFollowerRef = Rdb.getReference().child("follower").child(auth.getUid());
         databaseFollowingRef = Rdb.getReference().child("following").child(auth.getUid());
-        databasePostRef = Rdb.getReference().child("post");
         // [END config_firebase reference]
 
-        //[Determine whether the user is logging in for the first time]
+        // [START config_layout]
+        // [Gain User Profile]
         databaseUserRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -99,8 +100,6 @@ public class ProfileFragment extends Fragment {
                     state.setText(snapshot.child("privacy").getValue(String.class));
                     website.setText(userWebsite);
                     introduction.setText(snapshot.child("introduction").getValue(String.class));
-                } else {
-                    // updateUI("Create");
                 }
             }
 
@@ -113,14 +112,10 @@ public class ProfileFragment extends Fragment {
         databasePostRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                int numOfPost = 0; // Reset count before counting
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Posts post = dataSnapshot.getValue(Posts.class);
-                    if (post != null && post.getUID().equals(auth.getUid())) {
-                        numOfPost += 1;
-                    }
-                }
-                posts.setText(String.valueOf(numOfPost)); // Set the count after counting
+                int numOfPost = 0;
+                // Count total followers
+                numOfPost = (int) snapshot.getChildrenCount();
+                posts.setText(String.valueOf(numOfPost));
             }
 
             @Override
@@ -128,7 +123,6 @@ public class ProfileFragment extends Fragment {
                 // Handle possible errors
             }
         });
-
         // Count Followers
         databaseFollowerRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -144,7 +138,6 @@ public class ProfileFragment extends Fragment {
                 // Handle possible errors
             }
         });
-
         // Count Following
         databaseFollowingRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -153,7 +146,6 @@ public class ProfileFragment extends Fragment {
                 // Count total following
                 numOfFollowing = (int) snapshot.getChildrenCount();
                 following.setText(String.valueOf(numOfFollowing));
-                // Count followers, following
             }
 
             @Override
@@ -161,6 +153,7 @@ public class ProfileFragment extends Fragment {
                 // Handle possible errors
             }
         });
+        // [END config_layout]
 
         // Setup ViewPager
         adapter = new SectionsPagerAdapter(getActivity(),auth.getUid());

@@ -48,6 +48,7 @@ import com.squareup.picasso.Picasso;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+// ✅
 public class UpdateProfile extends AppCompatActivity {
     // layout object
     CircleImageView avatar;
@@ -74,17 +75,6 @@ public class UpdateProfile extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_update_profile);
-        // [START gain layout objects]
-        avatar = findViewById(R.id.avatar);
-        username = findViewById(R.id.username);
-        website = findViewById(R.id.website);
-        introduction = findViewById(R.id.introduction);
-        btnSave = findViewById(R.id.btnSave);
-        btnBack = findViewById(R.id.btnBack);
-        btnUpload = findViewById(R.id.btnUpload);
-        progressbar = findViewById(R.id.progressbar);
-        // [END gain]
-
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
         storage = FirebaseStorage.getInstance();
@@ -96,13 +86,25 @@ public class UpdateProfile extends AppCompatActivity {
         databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
         // [END config_firebase reference]
 
+        // [START gain layout objects]
+        avatar = findViewById(R.id.avatar);
+        username = findViewById(R.id.username);
+        website = findViewById(R.id.website);
+        introduction = findViewById(R.id.introduction);
+        btnSave = findViewById(R.id.btnSave);
+        btnBack = findViewById(R.id.btnBack);
+        btnUpload = findViewById(R.id.btnUpload);
+        progressbar = findViewById(R.id.progressbar);
+        // [END gain]
+
         // [START config_dialog]
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Saving...");
         progressDialog.setCancelable(false);
         // [END config_dialog]
 
-        //[Gain User Profile]
+        // [START config_layout]
+        // [Gain User Profile]
         databaseUserRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -114,7 +116,7 @@ public class UpdateProfile extends AppCompatActivity {
                     website.setText(user.getWebsite());
                     introduction.setText(user.getIntroduction());
                 } else {
-                    Toast.makeText(UpdateProfile.this, "Updated failed", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(UpdateProfile.this, "Failed to load profile", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -124,6 +126,7 @@ public class UpdateProfile extends AppCompatActivity {
                 Log.w(TAG, "Personal information cannot be obtained: " + error.getMessage());
             }
         });
+        // [END config_layout]
 
         // [START layout component function]
         // Switch the screen - Profile Fragment
@@ -140,6 +143,8 @@ public class UpdateProfile extends AppCompatActivity {
                 user.setUsername(username.getText().toString());
                 user.setWebsite(website.getText().toString());
                 user.setIntroduction(introduction.getText().toString());
+
+                progressDialog.show(); // Show the dialog before dismissing it
                 if (TextUtils.isEmpty(user.getUsername())) {
                     progressDialog.dismiss();
                     Toast.makeText(UpdateProfile.this, "Username is required", Toast.LENGTH_SHORT).show();
@@ -171,16 +176,16 @@ public class UpdateProfile extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 10 && data != null) {
+        if (requestCode == 10 && resultCode == RESULT_OK && data != null && data.getData() != null) {
             imageURI = data.getData();
             avatar.setImageURI(imageURI);
-
+        } else {
+            Toast.makeText(this, "No image selected", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void handleImageURI() {
         if (imageURI != null) {
-            // Upload the file to the specified path
             storageRef.putFile(imageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
@@ -188,8 +193,7 @@ public class UpdateProfile extends AppCompatActivity {
                         storageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
                             public void onSuccess(Uri uri) {
-                                user.setAvatarURL(uri.toString()); // Save the download URL
-                                // Now update the profile in the database after setting the avatarURL
+                                user.setAvatarURL(uri.toString()); // Update avatar URL
                                 updateProfileToDatabase();
                             }
                         }).addOnFailureListener(new OnFailureListener() {
@@ -197,11 +201,13 @@ public class UpdateProfile extends AppCompatActivity {
                             public void onFailure(@NonNull Exception e) {
                                 progressDialog.dismiss();
                                 Toast.makeText(UpdateProfile.this, "Failed to get image URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                updateProfileToDatabase(); // Use existing avatar URL
                             }
                         });
                     } else {
                         progressDialog.dismiss();
-                        Toast.makeText(UpdateProfile.this, "Image upload failed.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(UpdateProfile.this, "Image upload failed", Toast.LENGTH_SHORT).show();
+                        updateProfileToDatabase(); // Use existing avatar URL
                     }
                 }
             }).addOnFailureListener(new OnFailureListener() {
@@ -209,11 +215,11 @@ public class UpdateProfile extends AppCompatActivity {
                 public void onFailure(@NonNull Exception e) {
                     progressDialog.dismiss();
                     Toast.makeText(UpdateProfile.this, "Image upload error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    updateProfileToDatabase(); // Use existing avatar URL
                 }
             });
         } else {
-            // If no image was selected, directly update the profile
-            updateProfileToDatabase();
+            updateProfileToDatabase(); // No new image selected, use existing avatar URL
         }
     }
 
@@ -223,18 +229,19 @@ public class UpdateProfile extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 progressDialog.dismiss();
+                progressbar.setVisibility(View.GONE); // Hide progress bar
                 if (task.isSuccessful()) {
-                    Toast.makeText(UpdateProfile.this, "Data updated successfully!", Toast.LENGTH_SHORT).show();
-                    // update UI
+                    Toast.makeText(UpdateProfile.this, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
                     updateUI();
                 } else {
-                    Toast.makeText(UpdateProfile.this, "Failed to save data.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(UpdateProfile.this, "Failed to update profile.", Toast.LENGTH_SHORT).show();
                 }
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
                 progressDialog.dismiss();
+                progressbar.setVisibility(View.GONE); // Hide progress bar
                 Toast.makeText(UpdateProfile.this, "Database error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
@@ -242,17 +249,9 @@ public class UpdateProfile extends AppCompatActivity {
 
     // handling UI update
     private void updateUI() {
-        Toast.makeText(UpdateProfile.this, "Profile Updated", Toast.LENGTH_SHORT).show();
-        // Delay execution to allow enough time for data to be uploaded
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Intent intent = new Intent(UpdateProfile.this, MainActivity.class);
-                startActivity(intent);
-                finish();
-            }
-        }, 2000);
+        Intent intent = new Intent(UpdateProfile.this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
     // [END Method]
 }

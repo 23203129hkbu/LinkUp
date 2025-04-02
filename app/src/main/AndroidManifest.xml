@@ -26,7 +26,8 @@
             android:exported="false" />
         <activity
             android:name=".ProfileOperation.QRCodeGeneratorActivity"
-            android:exported="false" />
+            android:exported="false"
+            />
         <activity
             android:name=".HomeOperation.FollowRequestList"
             android:exported="false" />

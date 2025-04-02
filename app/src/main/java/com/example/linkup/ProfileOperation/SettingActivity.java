@@ -34,6 +34,7 @@ import com.google.firebase.storage.StorageReference;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
+// ✅
 public class SettingActivity extends AppCompatActivity {
     // layout object
     ImageView btnBack;
@@ -47,6 +48,15 @@ public class SettingActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
+        //[START Firebase configuration - get a object]
+        auth = FirebaseAuth.getInstance();
+        Rdb = FirebaseDatabase.getInstance();
+        //[END configuration]
+
+        // [START config_firebase reference]
+        databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
+        // [END config_firebase reference]
+
         // [START gain layout objects]
         btnBack = findViewById(R.id.btnBack);
         btnLogout = findViewById(R.id.btnLogout);
@@ -56,14 +66,6 @@ public class SettingActivity extends AppCompatActivity {
         btnGenQRCode = findViewById(R.id.btnGenQRCode);
         // [END gain]
 
-        //[START Firebase configuration - get a object]
-        auth = FirebaseAuth.getInstance();
-        Rdb = FirebaseDatabase.getInstance();
-        //[END configuration]
-
-        // [START config_firebase reference]
-        databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
-        // [END config_firebase reference]
 
         // [START layout component function]
         // Switch the screen - Profile
@@ -109,11 +111,11 @@ public class SettingActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 IntentIntegrator intentIntegrator = new IntentIntegrator(SettingActivity.this);
-                intentIntegrator.setOrientationLocked(true);
-                intentIntegrator.setPrompt("Scanner");
-                intentIntegrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE);
-                intentIntegrator.setCameraId(0);
-                intentIntegrator.initiateScan();
+                intentIntegrator.setOrientationLocked(true)// Lock the screen in portrait mode
+                        .setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
+                        .setPrompt("")
+                        .setCameraId(0)
+                        .initiateScan();
             }
         });
 
