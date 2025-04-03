@@ -117,7 +117,7 @@ public class CommunityFragment extends Fragment {
                 updateUI();
             }
         });
-        // Switch the screen - Community Post
+        // Switch the screen - Community Menu
         btnMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

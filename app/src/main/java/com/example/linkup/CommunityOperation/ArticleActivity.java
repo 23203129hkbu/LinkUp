@@ -338,6 +338,19 @@ public class ArticleActivity extends AppCompatActivity {
                 }
             });
         });
+        // Update article
+        // Switch the screen - Community Menu
+        btnEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                UpdateCommunityPost updateForm = new UpdateCommunityPost();
+                // Pass data to the bottom sheet if needed, for example:
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("article", article);
+                updateForm.setArguments(bundle);
+                updateForm.show(getSupportFragmentManager(), "bottom");
+            }
+        });
         // Like/Unlike the article
         btnLike.setOnClickListener(view -> {
             databaseLikeRef.child(auth.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
