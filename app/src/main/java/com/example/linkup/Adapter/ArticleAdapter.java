@@ -32,6 +32,7 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
+// ✅
 public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHolder> {
     // layout object
     Context context;
@@ -65,6 +66,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     public void onBindViewHolder(@NonNull ArticleAdapter.ViewHolder holder, int position) {
         // Add final to ensure the closure captures the correct object
         final Articles article = articlesArrayList.get(position);
+
         // [START config_firebase reference]
         // Initialize database references dynamically based on the article
         databaseUserRef = Rdb.getReference().child("user");
@@ -72,6 +74,14 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         // [END config_firebase reference]
 
         // [START config_layout]
+        // Check if the current user is the creator of the article
+        if (article.getUID().equals(auth.getUid())) {
+            // Hide save button if the user is the creator
+            holder.btnSave.setVisibility(View.GONE);
+        } else {
+            // Show save button for other users
+            holder.btnSave.setVisibility(View.VISIBLE);
+        }
         holder.date.setText(article.getDate());
         holder.headline.setText(article.getHeadline());
         // [Start Gain Article Creator Info]
@@ -93,100 +103,56 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                 Log.w(TAG, "Personal information cannot be obtained: " + error.getMessage());
             }
         });
-
-
-        // Check if the current user is the creator of the article
-        if (article.getUID().equals(auth.getUid())) {
-            // Hide save button if the user is the creator
-            holder.btnSave.setVisibility(View.GONE);
-        } else {
-            // Show save button for other users
-            holder.btnSave.setVisibility(View.VISIBLE);
-            // Check saved state of the article
-            // ArticleAdapter.java
-
-            // Inside onBindViewHolder, for non-creator users:
-            if (article.getUID().equals(auth.getUid())) {
-                // Hide save button if the user is the creator
-                holder.btnSave.setVisibility(View.GONE);
-            } else {
-                // Show save button for other users
-                holder.btnSave.setVisibility(View.VISIBLE);
-                databaseSavedArticleRef.child(article.getArticleID()).addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (snapshot.exists()) {
-                            // Check if the article still exists in the main articles node
-                            DatabaseReference articleRef = Rdb.getReference().child("article").child(article.getArticleID());
-                            articleRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot articleSnapshot) {
-                                    if (articleSnapshot.exists()) {
-                                        // Article exists, update UI to saved state
-                                        holder.btnSave.setImageResource(R.drawable.baseline_turned_in_24);
-                                    } else {
-                                        // Article does not exist, remove from saved and update UI
-                                        databaseSavedArticleRef.child(article.getArticleID()).removeValue();
-                                        holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
-                                    }
-                                }
-
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError error) {
-                                    Log.e(TAG, "Error checking article existence: " + error.getMessage());
-                                }
-                            });
-                        } else {
-                            // Not saved, update UI
-                            holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(context, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
+        // Check saved state of the article
+        databaseSavedArticleRef.child(article.getArticleID()).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    // Saved
+                    holder.btnSave.setImageResource(R.drawable.baseline_turned_in_24);
+                } else {
+                    // Unsaved
+                    holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
+                }
             }
-        }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(context, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
         // [END config_layout]
 
         // [START layout component function]
         // Handle save button click (toggle save/remove article)
         holder.btnSave.setOnClickListener(view -> {
-            String articleID = article.getArticleID();
-            DatabaseReference savedArticleRef = databaseSavedArticleRef.child(articleID);
-
-            savedArticleRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            databaseSavedArticleRef.child(article.getArticleID()).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists()) {
-                        // Article is already saved, unsave it
-                        savedArticleRef.removeValue().addOnCompleteListener(task -> {
+                        // Article is already saved, unsaved it
+                        databaseSavedArticleRef.child(article.getArticleID()).removeValue().addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
-                                holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
                                 Toast.makeText(context, "Article unsaved", Toast.LENGTH_SHORT).show();
-
                             } else {
-                                Toast.makeText(context, "Failed to unsave article", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(context, "Failed to unsaved article", Toast.LENGTH_SHORT).show();
                             }
                         });
                     } else {
-                        Articles article = new Articles();
-                        article.setArticleID(articleID);
+                        Articles storedArticle = new Articles();
+                        storedArticle.setArticleID(article.getArticleID());
                         // Article is not saved, save it
-                        savedArticleRef.setValue(article).addOnCompleteListener(task -> {
+                        databaseSavedArticleRef.child(article.getArticleID()).setValue(storedArticle).addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
-                                holder.btnSave.setImageResource(R.drawable.baseline_turned_in_24);
                                 Toast.makeText(context, "Article saved", Toast.LENGTH_SHORT).show();
                             } else {
                                 Toast.makeText(context, "Failed to save article", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
-
+                    // * When every save changes -> Notify of changes to data set
+                    notifyDataSetChanged();
                 }
-
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
                     Log.e(TAG, "Save/unsave operation failed: " + error.getMessage());

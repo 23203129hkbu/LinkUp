@@ -40,6 +40,7 @@ import com.google.firebase.storage.StorageReference;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+// ✅
 public class CreateCommunityPost extends AppCompatActivity {
     // layout object
     ImageView btnBack, btnCreate;
@@ -52,8 +53,8 @@ public class CreateCommunityPost extends AppCompatActivity {
     // Dialog
     ProgressDialog progressDialog;
     // Calendar & DateFormat
-    Calendar date, time;
-    SimpleDateFormat currentDate, currentTime;
+    Calendar date;
+    SimpleDateFormat currentDate;
     // Article-Info
     Articles article = new Articles();
     String articleID,articleHeadline, articleContent, createdDate, createdTime;
@@ -62,14 +63,6 @@ public class CreateCommunityPost extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_community_post);
-        // [START gain layout objects]
-        btnBack = findViewById(R.id.btnBack);
-        btnCreate = findViewById(R.id.btnCreate);
-        headline = findViewById(R.id.headline);
-        content = findViewById(R.id.content);
-        progressbar = findViewById(R.id.progressbar);
-        // [END gain]
-
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
         Rdb = FirebaseDatabase.getInstance();
@@ -79,11 +72,17 @@ public class CreateCommunityPost extends AppCompatActivity {
         databaseArticleRef = Rdb.getReference().child("article");
         // [END config_firebase reference]
 
+        // [START gain layout objects]
+        btnBack = findViewById(R.id.btnBack);
+        btnCreate = findViewById(R.id.btnCreate);
+        headline = findViewById(R.id.headline);
+        content = findViewById(R.id.content);
+        progressbar = findViewById(R.id.progressbar);
+        // [END gain]
+
         //[START Calender / Date Format configuration]
         date = Calendar.getInstance();
-        time = Calendar.getInstance();
-        currentDate = new SimpleDateFormat("dd-MM-yy");
-        currentTime = new SimpleDateFormat("HH:mm");
+        currentDate = new SimpleDateFormat("dd-MM-yy HH:mm");
         //[END Calender / Date Format configuration]
 
         // [START config_dialog]
@@ -107,7 +106,6 @@ public class CreateCommunityPost extends AppCompatActivity {
                 articleHeadline = headline.getText().toString();
                 articleContent = content.getText().toString();
                 createdDate = currentDate.format(date.getTime());
-                createdTime = currentTime.format(time.getTime());
 
                 if ((TextUtils.isEmpty(articleHeadline))) {
                     Toast.makeText(CreateCommunityPost.this, "Headline is required", Toast.LENGTH_SHORT).show();
@@ -115,10 +113,10 @@ public class CreateCommunityPost extends AppCompatActivity {
                     Toast.makeText(CreateCommunityPost.this, "Content is required", Toast.LENGTH_SHORT).show();
                 } else {
                     progressbar.setVisibility(View.VISIBLE);
+                    // Show progress dialog
+                    progressDialog.show();
                     // Create Article
                     CreateArticle();
-                    // Update UI
-                    updateUI();
                 }
             }
         });
@@ -129,14 +127,7 @@ public class CreateCommunityPost extends AppCompatActivity {
     // handling UI update
     private void updateUI() {
         Toast.makeText(CreateCommunityPost.this, "Article Created", Toast.LENGTH_SHORT).show();
-        // Delay execution to allow enough time for data to be uploaded
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                finish();
-            }
-        },2000);
+        finish();
     }
     // Create article
     private void CreateArticle() {
@@ -148,9 +139,23 @@ public class CreateCommunityPost extends AppCompatActivity {
         article.setHeadline(articleHeadline);
         article.setContent(articleContent);
         article.setDate(createdDate);
-        article.setTime(createdTime);
         // Save article
-        databaseArticleRef.child(articleID).setValue(article);
+        databaseArticleRef.child(articleID).setValue(article).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                progressDialog.dismiss();
+                if (task.isSuccessful()) {
+                    Toast.makeText(CreateCommunityPost.this, "Article created successfully!", Toast.LENGTH_SHORT).show();
+                    updateUI();
+                } else {
+                    Toast.makeText(CreateCommunityPost.this, "Failed to create article.", Toast.LENGTH_SHORT).show();
+                }
+                progressbar.setVisibility(View.GONE);
+            }
+        }).addOnFailureListener(e -> {
+            Toast.makeText(CreateCommunityPost.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            progressbar.setVisibility(View.GONE);
+        });
     }
     // [END Method]
 }

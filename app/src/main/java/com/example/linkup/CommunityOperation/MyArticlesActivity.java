@@ -28,6 +28,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
+// ✅
 public class MyArticlesActivity extends AppCompatActivity {
     // layout object
     ImageView btnBack;
@@ -44,11 +45,6 @@ public class MyArticlesActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_articles);
-        // [START gain layout objects]
-        btnBack = findViewById(R.id.btnBack);
-        articleRV = findViewById(R.id.articleRV);
-        // [END gain]
-
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
         Rdb = FirebaseDatabase.getInstance();
@@ -58,7 +54,15 @@ public class MyArticlesActivity extends AppCompatActivity {
         databaseArticleRef = Rdb.getReference().child("article");
         // [END config_firebase reference]
 
-        // Gain the adapter data object
+        // [START gain layout objects]
+        btnBack = findViewById(R.id.btnBack);
+        articleRV = findViewById(R.id.articleRV);
+        // [END gain]
+
+
+
+        // [START config_layout]
+        // Pass data into arrayList , then article adapter received
         databaseArticleRef.orderByChild("date").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -70,15 +74,10 @@ public class MyArticlesActivity extends AppCompatActivity {
                         articlesArrayList.add(article);
                     }
                 }
-
-                // Sort the articles after all have been added to the list
+                // Sort articles by date and time to ensure the newest articles are at the top
                 articlesArrayList.sort((a1, a2) -> {
-                    // First, compare by date
+                    // Compare by date (descending)
                     int dateComparison = a2.getDate().compareTo(a1.getDate());
-                    if (dateComparison == 0) {
-                        // If dates are equal, compare by time
-                        return a2.getTime().compareTo(a1.getTime());
-                    }
                     return dateComparison;
                 });
                 // Notify adapter after sorting
@@ -87,7 +86,7 @@ public class MyArticlesActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                // Handle possible errors
+                Toast.makeText(MyArticlesActivity.this, "Failed to load articles: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -97,6 +96,7 @@ public class MyArticlesActivity extends AppCompatActivity {
         articleRV.setLayoutManager(new LinearLayoutManager(MyArticlesActivity.this));
         articleRV.setHasFixedSize(true);
         articleRV.setAdapter(articleAdapter);
+        // [END config_layout]
 
         // [START layout component function]
         // Switch the screen - Main Screen

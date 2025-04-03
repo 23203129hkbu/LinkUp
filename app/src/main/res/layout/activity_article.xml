@@ -57,24 +57,24 @@
 
         <!-- Profile Info -->
         <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
+            android:layout_width="395dp"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/posterAvatar"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:src="@drawable/baseline_person_24"
                 android:layout_marginRight="8dp"
-                android:contentDescription="Profile Picture" />
+                android:contentDescription="Profile Picture"
+                android:src="@drawable/baseline_person_24" />
 
             <LinearLayout
-                android:orientation="vertical"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1">
+                android:layout_weight="1"
+                android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/posterName"
@@ -94,13 +94,13 @@
                     android:textSize="14sp" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/createdTime"
+            <ImageView
+                android:id="@+id/btnEdit"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Time"
-                android:textColor="@color/gray_5"
-                android:textSize="14sp" />
+                android:layout_height="match_parent"
+                android:layout_gravity="right"
+                android:paddingRight="20dp"
+                android:src="@drawable/baseline_edit_24" />
         </LinearLayout>
 
         <!-- Post Content -->
@@ -143,6 +143,7 @@
                 android:id="@+id/likes"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:padding="5dp"
                 android:text="0"
                 android:textColor="@color/gray_5"
                 android:layout_toEndOf="@id/likeIcon"

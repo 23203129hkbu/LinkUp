@@ -1,6 +1,9 @@
 package com.example.linkup.CommunityOperation;
 
+import static android.content.ContentValues.TAG;
+
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -26,7 +29,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
+// ✅
 public class SavedArticlesActivity extends AppCompatActivity {
     // layout object
     ImageView btnBack;
@@ -43,11 +48,6 @@ public class SavedArticlesActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_saved_articles);
-        // [START gain layout objects]
-        btnBack = findViewById(R.id.btnBack);
-        articleRV = findViewById(R.id.articleRV);
-        // [END gain]
-
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
         Rdb = FirebaseDatabase.getInstance();
@@ -58,53 +58,55 @@ public class SavedArticlesActivity extends AppCompatActivity {
         databaseSavedArticleRef = Rdb.getReference().child("savedArticle").child(auth.getUid());
         // [END config_firebase reference]
 
+        // [START gain layout objects]
+        btnBack = findViewById(R.id.btnBack);
+        articleRV = findViewById(R.id.articleRV);
+        // [END gain]
+
+        // [START config_layout]
+        // Pass data into arrayList , then article adapter received
+        // Fetch saved articles
         databaseSavedArticleRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot savedArticlesSnapshot) {
-                articlesArrayList.clear();
-
-                for (DataSnapshot savedArticleSnapshot : savedArticlesSnapshot.getChildren()) {
-                    String articleID = savedArticleSnapshot.getKey();
-
-                    if (articleID != null) {
-                        databaseArticleRef.child(articleID).addValueEventListener(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot articleSnapshot) {
-                                if (articleSnapshot.exists()) {
-                                    Articles article = articleSnapshot.getValue(Articles.class);
-                                    articlesArrayList.add(article);
-                                } else {
-                                    // If the article is deleted, remove the corresponding save record
-                                    databaseSavedArticleRef.child(articleID).removeValue();
-                                }
-
-                                // 排序文章
-                                articlesArrayList.sort((a1, a2) -> {
-                                    int dateComparison = a2.getDate().compareTo(a1.getDate());
-                                    if (dateComparison == 0) {
-                                        return a2.getTime().compareTo(a1.getTime());
-                                    }
-                                    return dateComparison;
-                                });
-
-                                articleAdapter.notifyDataSetChanged();
-                            }
-
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) {
-                                Toast.makeText(SavedArticlesActivity.this, "Error fetching article: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                HashSet<String> savedArticleIds = new HashSet<>();
+                for (DataSnapshot savedSnapshot : snapshot.getChildren()) {
+                    savedArticleIds.add(savedSnapshot.getKey());
                 }
+
+                databaseArticleRef.orderByChild("date").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        articlesArrayList.clear();
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                            Articles article = dataSnapshot.getValue(Articles.class);
+                            if (article != null && savedArticleIds.contains(article.getArticleID())) {
+                                articlesArrayList.add(article);
+                            }
+                        }
+
+                        // Sort articles by date and time to ensure the newest articles are at the top
+                        articlesArrayList.sort((a1, a2) -> {
+                            // Compare by date (descending)
+                            int dateComparison = a2.getDate().compareTo(a1.getDate());
+                            return dateComparison;
+                        });
+                        // Notify adapter after sorting
+                        articleAdapter.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(SavedArticlesActivity.this, "Failed to load articles: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(SavedArticlesActivity.this, "Error fetching saved articles: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(SavedArticlesActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-
 
         // Grant value - which view, articles array list
         articleAdapter = new ArticleAdapter(SavedArticlesActivity.this, articlesArrayList);
@@ -112,6 +114,7 @@ public class SavedArticlesActivity extends AppCompatActivity {
         articleRV.setLayoutManager(new LinearLayoutManager(SavedArticlesActivity.this));
         articleRV.setHasFixedSize(true);
         articleRV.setAdapter(articleAdapter);
+        // [END config_layout]
 
         // [START layout component function]
         // Switch the screen - Main Screen
@@ -123,5 +126,4 @@ public class SavedArticlesActivity extends AppCompatActivity {
         });
         // [END layout component function]
     }
-
 }

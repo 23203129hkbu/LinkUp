@@ -31,6 +31,7 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
+// ✅
 public class ArticleCommentAdapter extends RecyclerView.Adapter<ArticleCommentAdapter.ViewHolder> {
     // layout object
     Context context;
@@ -51,7 +52,6 @@ public class ArticleCommentAdapter extends RecyclerView.Adapter<ArticleCommentAd
         //[END configuration]
     }
 
-
     @NonNull
     @Override
     public ArticleCommentAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -63,6 +63,7 @@ public class ArticleCommentAdapter extends RecyclerView.Adapter<ArticleCommentAd
     @Override
     public void onBindViewHolder(@NonNull ArticleCommentAdapter.ViewHolder holder, int position) {
         ArticleComments comment = commentsArrayList.get(position);
+
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user").child(comment.getUID());
         // [END config_firebase reference]

@@ -1,5 +1,8 @@
 package com.example.linkup.Fragment;
 
+import static android.content.Intent.getIntent;
+
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -11,6 +14,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -33,6 +37,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.Collections;
 
+// ✅
 public class CommunityFragment extends Fragment {
     View view;
     // layout object
@@ -52,12 +57,6 @@ public class CommunityFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         view = inflater.inflate(R.layout.activity_community_fragment, container, false);
-        // [START gain layout objects]
-        btnAdd = view.findViewById(R.id.btnAdd);
-        btnMenu = view.findViewById(R.id.btnMenu);
-        articleRV = view.findViewById(R.id.articleRV);
-        // [END gain]
-
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
         Rdb = FirebaseDatabase.getInstance();
@@ -67,7 +66,14 @@ public class CommunityFragment extends Fragment {
         databaseArticleRef = Rdb.getReference().child("article");
         // [END config_firebase reference]
 
-        // Gain the adapter data object
+        // [START gain layout objects]
+        btnAdd = view.findViewById(R.id.btnAdd);
+        btnMenu = view.findViewById(R.id.btnMenu);
+        articleRV = view.findViewById(R.id.articleRV);
+        // [END gain]
+
+        // [START config_layout]
+        // Pass data into arrayList , then article adapter received
         databaseArticleRef.orderByChild("date").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -79,15 +85,10 @@ public class CommunityFragment extends Fragment {
                         articlesArrayList.add(article);
                     }
                 }
-
-                // Sort the articles after all have been added to the list
+                // Sort articles by date and time to ensure the newest articles are at the top
                 articlesArrayList.sort((a1, a2) -> {
-                    // First, compare by date
+                    // Compare by date (descending)
                     int dateComparison = a2.getDate().compareTo(a1.getDate());
-                    if (dateComparison == 0) {
-                        // If dates are equal, compare by time
-                        return a2.getTime().compareTo(a1.getTime());
-                    }
                     return dateComparison;
                 });
                 // Notify adapter after sorting
@@ -96,7 +97,7 @@ public class CommunityFragment extends Fragment {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                // Handle possible errors
+                Toast.makeText(getContext(), "Failed to load articles: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -106,6 +107,7 @@ public class CommunityFragment extends Fragment {
         articleRV.setLayoutManager(new LinearLayoutManager(getContext()));
         articleRV.setHasFixedSize(true);
         articleRV.setAdapter(articleAdapter);
+        // [END config_layout]
 
         // [START layout component function]
         // Switch the screen - Create Community Post
@@ -115,7 +117,7 @@ public class CommunityFragment extends Fragment {
                 updateUI();
             }
         });
-        // Switch to menu
+        // Switch the screen - Community Post
         btnMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

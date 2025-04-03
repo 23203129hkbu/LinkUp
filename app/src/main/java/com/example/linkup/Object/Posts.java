@@ -1,5 +1,6 @@
 package com.example.linkup.Object;
 
+// ✅
 public class Posts {
 
     String postID, UID,postURL,date,time,type,description;

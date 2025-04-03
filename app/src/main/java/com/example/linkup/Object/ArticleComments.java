@@ -1,7 +1,8 @@
 package com.example.linkup.Object;
 
+// ✅
 public class ArticleComments {
-    String UID,comment,date,time;
+    String UID,comment,date;
 
     public ArticleComments() {
     }
@@ -10,7 +11,6 @@ public class ArticleComments {
         this.UID = UID;
         this.comment = comment;
         this.date = date;
-        this.time = time;
     }
 
     public String getUID() {
@@ -35,14 +35,6 @@ public class ArticleComments {
 
     public void setDate(String date) {
         this.date = date;
-    }
-
-    public String getTime() {
-        return time;
-    }
-
-    public void setTime(String time) {
-        this.time = time;
     }
 
 }

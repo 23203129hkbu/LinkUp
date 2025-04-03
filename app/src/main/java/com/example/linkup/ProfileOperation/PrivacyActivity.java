@@ -55,12 +55,6 @@ public class PrivacyActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_privacy);
-        // [START gain layout objects]
-        btnBack = findViewById(R.id.btnBack);
-        switchState = findViewById(R.id.switchState);
-        state = findViewById(R.id.state);
-        // [END gain]
-
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
         Rdb = FirebaseDatabase.getInstance();
@@ -70,8 +64,14 @@ public class PrivacyActivity extends AppCompatActivity {
         databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
         // [END config_firebase reference]
 
+        // [START gain layout objects]
+        btnBack = findViewById(R.id.btnBack);
+        switchState = findViewById(R.id.switchState);
+        state = findViewById(R.id.state);
+        // [END gain]
+
         // [START config_layout]
-        //[Gain User Data]
+        // [Gain User Data]
         databaseUserRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {

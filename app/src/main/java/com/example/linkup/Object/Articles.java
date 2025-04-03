@@ -2,20 +2,20 @@ package com.example.linkup.Object;
 
 import java.io.Serializable;
 
+// ✅
 // article object directly through the Intent when setting the click listener for holder
 public class Articles implements Serializable {
-    String articleID,UID,headline,content,date,time;
+    String articleID,UID,headline,content,date;
 
     public Articles() {
     }
 
-    public Articles(String articleID, String UID, String username, String privacy, String headline, String content, String date, String time, String imageURL) {
+    public Articles(String articleID, String UID, String headline, String content, String date) {
         this.articleID = articleID;
         this.UID = UID;
         this.headline = headline;
         this.content = content;
         this.date = date;
-        this.time = time;
     }
 
     public String getArticleID() {
@@ -58,12 +58,5 @@ public class Articles implements Serializable {
         this.date = date;
     }
 
-    public String getTime() {
-        return time;
-    }
-
-    public void setTime(String time) {
-        this.time = time;
-    }
 
 }

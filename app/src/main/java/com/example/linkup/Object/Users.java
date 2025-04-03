@@ -2,6 +2,7 @@ package com.example.linkup.Object;
 
 import java.io.Serializable;
 
+// ✅
 // Data Object (Users) for firebase
 public class Users implements Serializable {
     String UID, username, avatarURL, privacy, website, introduction;
