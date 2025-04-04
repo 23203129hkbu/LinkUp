@@ -14,6 +14,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.linkup.Adapter.FollowerAdapter;
 import com.example.linkup.Adapter.FollowingAdapter;
 import com.example.linkup.Adapter.UserAdapter;
 import com.example.linkup.Object.Users;
@@ -27,7 +28,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-
+// ✅
 public class FollowingActivity extends AppCompatActivity {
     // Layout objects
     ImageView btnBack;
@@ -74,11 +75,6 @@ public class FollowingActivity extends AppCompatActivity {
         databaseFollowingRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!snapshot.exists()) {
-                    Toast.makeText(FollowingActivity.this, "You are not following anyone.", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
                 HashSet<String> followingUIDs = new HashSet<>();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     followingUIDs.add(dataSnapshot.getKey());
@@ -99,6 +95,7 @@ public class FollowingActivity extends AppCompatActivity {
 
                         filteredUsers.addAll(usersArrayList);
                         userAdapter.notifyDataSetChanged();
+                        followingAdapter.notifyDataSetChanged();
                     }
 
                     @Override
@@ -115,10 +112,11 @@ public class FollowingActivity extends AppCompatActivity {
         });
         // Initialize Adapter with an empty list
         userAdapter = new UserAdapter(this, filteredUsers); // Only filteredUsers are shown
+        followingAdapter = new FollowingAdapter(this, filteredUsers); // Only filteredUsers are shown
         followingRV.setLayoutManager(new LinearLayoutManager(this));
         followingRV.setHasFixedSize(true);
         // Depends on whether the profile is used by the user
-        if (user.getUID().equals(auth.getUid())){
+        if (!user.getUID().equals(auth.getUid())){
             followingRV.setAdapter(userAdapter);
         }else {
             followingRV.setAdapter(followingAdapter);
@@ -162,6 +160,7 @@ public class FollowingActivity extends AppCompatActivity {
         }
 
         userAdapter.notifyDataSetChanged(); // Refresh the adapter with the filtered list
+        followingAdapter.notifyDataSetChanged();
     }
     // [END Method]
 }

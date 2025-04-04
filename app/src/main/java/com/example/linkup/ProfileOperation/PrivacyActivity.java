@@ -45,7 +45,7 @@ public class PrivacyActivity extends AppCompatActivity {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef; // real-time db ref
+    DatabaseReference databaseUserRef, databaseRequestedRef; // real-time db ref
     // default user info
     Users user = new Users();
     Boolean isUserChange = true;
@@ -61,6 +61,7 @@ public class PrivacyActivity extends AppCompatActivity {
 
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
+        databaseRequestedRef = Rdb.getReference().child("requested").child(auth.getUid());
         // [END config_firebase reference]
 
         // [START gain layout objects]
@@ -155,6 +156,9 @@ public class PrivacyActivity extends AppCompatActivity {
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
                     Toast.makeText(PrivacyActivity.this, "Privacy setting saved successfully!", Toast.LENGTH_SHORT).show();
+                    if (user.getPrivacy().equals("Public")){
+                        databaseRequestedRef.removeValue();
+                    }
                 } else {
                     Toast.makeText(PrivacyActivity.this, "Failed to save.", Toast.LENGTH_SHORT).show();
                 }

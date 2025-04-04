@@ -38,12 +38,12 @@
     <!-- Accept Button -->
     <TextView
         android:id="@+id/btnAction"
-        android:layout_width="wrap_content"
+        android:layout_width="150dp"
         android:layout_height="36dp"
         android:background="@drawable/custom_textview"
         android:backgroundTint="@color/blue_3"
         android:text="Follow Back"
-        android:textColor="@color/white"
+        android:textColor="@color/black"
         android:textSize="14sp"
         android:gravity="center"
         android:paddingHorizontal="20dp"

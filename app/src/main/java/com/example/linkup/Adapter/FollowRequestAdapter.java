@@ -64,7 +64,10 @@ public class FollowRequestAdapter extends RecyclerView.Adapter<FollowRequestAdap
     @Override
     public void onBindViewHolder(@NonNull FollowRequestAdapter.ViewHolder holder, int position) {
         final Users user = usersArrayList.get(position);
-
+        if (user.getUID() == null) {
+            Toast.makeText(context, "User ID is null", Toast.LENGTH_SHORT).show();
+            return;
+        }
         // [START config_firebase reference]
         DatabaseReference databaseUserRef, databaseFollowerRef, databaseFollowingRef, databaseRequestedRef; // real-time db ref
         databaseUserRef = Rdb.getReference().child("user");

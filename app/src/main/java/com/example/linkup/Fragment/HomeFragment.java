@@ -135,8 +135,6 @@ public class HomeFragment extends Fragment {
             public void onDataChange(@NonNull DataSnapshot postSnapshot) {
                 reloadPosts();
             }
-
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(getContext(), "Failed to load articles: " + error.getMessage(), Toast.LENGTH_SHORT).show();

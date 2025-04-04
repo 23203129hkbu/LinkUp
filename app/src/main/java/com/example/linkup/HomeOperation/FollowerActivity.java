@@ -14,6 +14,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.linkup.Adapter.FollowerAdapter;
 import com.example.linkup.Adapter.FollowingAdapter;
 import com.example.linkup.Adapter.UserAdapter;
 import com.example.linkup.Object.Users;
@@ -28,22 +29,23 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+// ✅
 public class FollowerActivity extends AppCompatActivity {
     // Layout objects
     ImageView btnBack;
     SearchView searchBar;
-    RecyclerView followingRV;
+    RecyclerView followersRV;
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb;
-    DatabaseReference databaseUserRef, databaseFollowingRef;
+    DatabaseReference databaseUserRef, databaseFollowerRef;
     // User Info
     Users user = new Users();
     // User list and adapter
     ArrayList<Users> usersArrayList = new ArrayList<>(); // store all user data
     ArrayList<Users> filteredUsers = new ArrayList<>(); // Update the result (after filter)
     UserAdapter userAdapter;
-    FollowingAdapter followingAdapter;
+    FollowerAdapter followerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,28 +62,23 @@ public class FollowerActivity extends AppCompatActivity {
 
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user");
-        databaseFollowingRef = Rdb.getReference().child("following").child(user.getUID());
+        databaseFollowerRef = Rdb.getReference().child("follower").child(user.getUID());
         // [END config_firebase reference]
 
         // [START gain layout objects]
         btnBack = findViewById(R.id.btnBack);
         searchBar = findViewById(R.id.searchBar);
-        followingRV = findViewById(R.id.followingRV);
+        followersRV = findViewById(R.id.followersRV);
         // [END gain]
 
         // [START config_layout]
         // Load users from Firebase (but do not display them initially)
-        databaseFollowingRef.addValueEventListener(new ValueEventListener() {
+        databaseFollowerRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!snapshot.exists()) {
-                    Toast.makeText(FollowingActivity.this, "You are not following anyone.", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                HashSet<String> followingUIDs = new HashSet<>();
+                HashSet<String> followerUIDs = new HashSet<>();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    followingUIDs.add(dataSnapshot.getKey());
+                    followerUIDs.add(dataSnapshot.getKey());
                 }
 
                 databaseUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -91,37 +88,39 @@ public class FollowerActivity extends AppCompatActivity {
                         filteredUsers.clear();
 
                         for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                            Users following = dataSnapshot.getValue(Users.class);
-                            if (following != null && followingUIDs.contains(following.getUID())) {
-                                usersArrayList.add(following);
+                            Users follower = dataSnapshot.getValue(Users.class);
+                            if (follower!= null && followerUIDs.contains(follower.getUID())) {
+                                usersArrayList.add(follower);
                             }
                         }
 
                         filteredUsers.addAll(usersArrayList);
                         userAdapter.notifyDataSetChanged();
+                        followerAdapter.notifyDataSetChanged();
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(FollowingActivity.this, "Failed to get users: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(FollowerActivity.this, "Failed to get users: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(FollowingActivity.this, "Failed to get following list: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(FollowerActivity.this, "Failed to get following list: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
         // Initialize Adapter with an empty list
         userAdapter = new UserAdapter(this, filteredUsers); // Only filteredUsers are shown
-        followingRV.setLayoutManager(new LinearLayoutManager(this));
-        followingRV.setHasFixedSize(true);
+        followerAdapter = new FollowerAdapter(this, filteredUsers); // Only filteredUsers are shown
+        followersRV.setLayoutManager(new LinearLayoutManager(this));
+        followersRV.setHasFixedSize(true);
         // Depends on whether the profile is used by the user
-        if (user.getUID().equals(auth.getUid())){
-            followingRV.setAdapter(userAdapter);
+        if (!user.getUID().equals(auth.getUid())){
+            followersRV.setAdapter(userAdapter);
         }else {
-            followingRV.setAdapter(followingAdapter);
+            followersRV.setAdapter(followerAdapter);
         }
 
         // [END config_layout]
@@ -162,6 +161,7 @@ public class FollowerActivity extends AppCompatActivity {
         }
 
         userAdapter.notifyDataSetChanged(); // Refresh the adapter with the filtered list
+        followerAdapter.notifyDataSetChanged();
     }
     // [END Method]
 }

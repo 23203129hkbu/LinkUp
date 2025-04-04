@@ -84,7 +84,7 @@ public class UserProfile extends AppCompatActivity {
         databaseFollowingRef = Rdb.getReference().child("following").child(user.getUID());
         databaseYourFollowingRef = Rdb.getReference().child("following").child(auth.getUid());
         // For private Account
-        databaseRequestedRef = Rdb.getReference().child("requested").child(user.getUID());
+        databaseRequestedRef = Rdb.getReference().child("requested").child(user.getUID()).child(auth.getUid());
         // [END config_firebase reference]
 
         // [START gain layout objects]
@@ -197,7 +197,7 @@ public class UserProfile extends AppCompatActivity {
             }
         });
         // If follow request is change -> when private Account allow the user follow
-        databaseRequestedRef.child(auth.getUid()).addValueEventListener(new ValueEventListener() {
+        databaseRequestedRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
@@ -346,7 +346,6 @@ public class UserProfile extends AppCompatActivity {
         storedUser.setUID(user.getUID());
         databaseYourFollowingRef.child(user.getUID()).setValue(storedUser);
         Toast.makeText(UserProfile.this, "followed this user", Toast.LENGTH_SHORT).show();
-
     }
     // remove one follower and following
     private void removeFollowerAndFollowing() {
@@ -359,13 +358,13 @@ public class UserProfile extends AppCompatActivity {
     private void sendFollowRequest() {
         Users storedUser = new Users();
         storedUser.setUID(auth.getUid());
-        databaseRequestedRef.child(auth.getUid()).setValue(storedUser);
+        databaseRequestedRef.setValue(storedUser);
         Toast.makeText(UserProfile.this, "Send follow request", Toast.LENGTH_SHORT).show();
     }
 
     // Cancel Follow request
     private void cancelFollowRequest() {
-        databaseRequestedRef.child(auth.getUid()).removeValue();
+        databaseRequestedRef.removeValue();
         Toast.makeText(UserProfile.this, "Cancel follow request", Toast.LENGTH_SHORT).show();
     }
     // [END Follow,Unfollow,Request Action]
