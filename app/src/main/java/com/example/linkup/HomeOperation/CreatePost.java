@@ -10,6 +10,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,9 +38,11 @@ import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+// ✅
 public class CreatePost extends AppCompatActivity {
     // Layout objects
-    ImageView btnBack, image, btnUpload;
+    LinearLayout btnUpload;
+    ImageView btnBack, image;
     TextView btnPost;
     VideoView video;
     EditText description;
@@ -55,26 +58,16 @@ public class CreatePost extends AppCompatActivity {
     // Media URI
     Uri selectedMediaURI;
     // Calendar & DateFormat
-    Calendar date, time;
-    SimpleDateFormat currentDate, currentTime;
+    Calendar date;
+    SimpleDateFormat currentDate;
     // Post Info
     Posts post = new Posts();
-    String postID,postURL, createdDate, createdTime, type, postDescription;
+    String postID, postURL, createdDate, type, postDescription;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_post);
-
-        // [START gain layout objects]
-        btnBack = findViewById(R.id.btnBack);
-        image = findViewById(R.id.image);
-        btnUpload = findViewById(R.id.btnUpload);
-        btnPost = findViewById(R.id.btnPost);
-        video = findViewById(R.id.video);
-        description = findViewById(R.id.description);
-        progressbar = findViewById(R.id.progressbar);
-        // [END gain]
 
         // [START config_firebase]
         auth = FirebaseAuth.getInstance();
@@ -86,12 +79,20 @@ public class CreatePost extends AppCompatActivity {
         databasePostRef = Rdb.getReference().child("post");
         // [END config_firebase reference]
 
-        //[START Calender / Date Format configuration]
+        // [START gain layout objects]
+        btnBack = findViewById(R.id.btnBack);
+        image = findViewById(R.id.image);
+        btnUpload = findViewById(R.id.btnUpload);
+        btnPost = findViewById(R.id.btnPost);
+        video = findViewById(R.id.video);
+        description = findViewById(R.id.description);
+        progressbar = findViewById(R.id.progressbar);
+        // [END gain]
+
+        // [START Calender / Date Format configuration]
         date = Calendar.getInstance();
-        time = Calendar.getInstance();
-        currentDate = new SimpleDateFormat("dd-MM-yy");
-        currentTime = new SimpleDateFormat("HH:mm");
-        //[END Calender / Date Format configuration]
+        currentDate = new SimpleDateFormat("dd-MM-yy HH:mm");
+        // [END Calender / Date Format configuration]
 
         // [START config_dialog]
         progressDialog = new ProgressDialog(this);
@@ -107,7 +108,6 @@ public class CreatePost extends AppCompatActivity {
                 finish();
             }
         });
-
         // Handle Upload button click
         btnUpload.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -121,7 +121,6 @@ public class CreatePost extends AppCompatActivity {
                 startActivityForResult(Intent.createChooser(intent, "Select Picture or Video"), 1);
             }
         });
-
         // Create Profile
         btnPost.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -129,7 +128,6 @@ public class CreatePost extends AppCompatActivity {
                 postID = databasePostRef.push().getKey();
                 postDescription = description.getText().toString();
                 createdDate = currentDate.format(date.getTime());
-                createdTime = currentTime.format(time.getTime());
 
                 if (TextUtils.isEmpty(postDescription)) {
                     progressDialog.dismiss();
@@ -138,6 +136,7 @@ public class CreatePost extends AppCompatActivity {
                     progressDialog.dismiss();
                     Toast.makeText(CreatePost.this, "Please upload photos or videos", Toast.LENGTH_SHORT).show();
                 } else {
+                    progressDialog.show(); // ✅ Show dialog here
                     progressbar.setVisibility(View.VISIBLE);
                     // handle mediaURI To String -> Create post to database
                     handleMediaURI();
@@ -149,22 +148,8 @@ public class CreatePost extends AppCompatActivity {
     }
 
     // [START Method]
-    // handling UI update
-    private void updateUI() {
-        Toast.makeText(CreatePost.this, "Post Created", Toast.LENGTH_SHORT).show();
-        // Delay execution to allow enough time for data to be uploaded
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                finish();
-            }
-        }, 2000);
-    }
-
-    //
+    // handle video or image URI
     private void handleMediaURI() {
-
         storageRef = storage.getReference().child("posts/" + postID);
         // Upload the file to the specified path
         storageRef.putFile(selectedMediaURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
@@ -199,8 +184,7 @@ public class CreatePost extends AppCompatActivity {
             }
         });
     }
-
-
+    // depend on video or image to do corresponding layout control
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -210,35 +194,47 @@ public class CreatePost extends AppCompatActivity {
             String mediaType = getContentResolver().getType(selectedMediaURI); // Get the MIME type of the selected media
             if (mediaType != null) {
                 if (mediaType.startsWith("image/")) {
+                    type = "image";
                     // The selected media is an image
                     video.setVisibility(View.GONE); // Hide the VideoView
                     image.setVisibility(View.VISIBLE); // Show the ImageView
                     image.setImageURI(selectedMediaURI); // Display the selected image
-                    type = "image";
                 } else if (mediaType.startsWith("video/")) {
+                    type = "video";
                     // The selected media is a video
                     image.setVisibility(View.GONE); // Hide the ImageView
                     video.setVisibility(View.VISIBLE); // Show the VideoView
-                    video.setVideoURI(selectedMediaURI); // Set the video URI
-                    video.start(); // Play the video
-                    type = "video";
+                    try {
+                        video.setVideoURI(selectedMediaURI); // Set the video URI
+                        video.start(); // Play the video
+                    } catch (Exception e) {
+                        Toast.makeText(this, "Error playing video", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
         }
     }
-
     // Ref - update realtime db
     private void handlePostToDatabase() {
         post.setPostID(postID);
         post.setUID(auth.getUid());
         post.setPostURL(postURL);
         post.setDate(createdDate);
-        post.setTime(createdTime);
         post.setType(type);
         post.setDescription(postDescription);
-        databasePostRef.child(postID).setValue(post);
-        // Update UI
-        updateUI();
+        databasePostRef.child(postID).setValue(post).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                progressDialog.dismiss(); // ✅ Dismiss here
+                if (task.isSuccessful()) {
+                    Toast.makeText(CreatePost.this, "Post Created", Toast.LENGTH_SHORT).show();
+                    // Update UI
+                    finish();
+                } else {
+                    Toast.makeText(CreatePost.this, "Failed to save post", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
     // [END Method]
 }

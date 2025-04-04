@@ -48,10 +48,9 @@ public class HomeFragment extends Fragment {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef, databasePostRef, databaseRequestedRef, databaseFollowingRef; // real-time db ref
+    DatabaseReference databasePostRef, databaseRequestedRef; // real-time db ref
     // convert post data into RecyclerView by Adapter
     ArrayList<Posts> postsArrayList = new ArrayList<>();
-    ArrayList<String> followingUIDs = new ArrayList<>();
     PostAdapter postAdapter;
 
 
@@ -60,6 +59,16 @@ public class HomeFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         view = inflater.inflate(R.layout.activity_home_fragment, container, false);
+        //[START Firebase configuration - get a object]
+        auth = FirebaseAuth.getInstance();
+        Rdb = FirebaseDatabase.getInstance();
+        //[END configuration]
+
+        // [START config_firebase reference]
+        databasePostRef = Rdb.getReference().child("post");
+        databaseRequestedRef = Rdb.getReference().child("requested").child(auth.getUid());
+        // [END config_firebase reference]
+
         // [START gain layout objects]
         btnSearch = view.findViewById(R.id.btnSearch);
         btnNotification = view.findViewById(R.id.btnNotification);
@@ -67,63 +76,14 @@ public class HomeFragment extends Fragment {
         postRV = view.findViewById(R.id.postRV);
         // [END gain]
 
-        //[START Firebase configuration - get a object]
-        auth = FirebaseAuth.getInstance();
-        Rdb = FirebaseDatabase.getInstance();
-        //[END configuration]
-
-        // [START config_firebase reference]
-        databaseUserRef = Rdb.getReference().child("user");
-        databasePostRef = Rdb.getReference().child("post");
-        databaseFollowingRef = Rdb.getReference().child("following").child(auth.getUid());
-        databaseRequestedRef = Rdb.getReference().child("requested").child(auth.getUid());
-        // [END config_firebase reference]
-
-        // Load Post
-        databaseFollowingRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot followingSnapshot) {
-                followingUIDs.clear();
-                for (DataSnapshot snap : followingSnapshot.getChildren()) {
-                    followingUIDs.add(snap.getKey());
-                }
-
-                databasePostRef.orderByChild("date").addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        postsArrayList.clear();
-                        ArrayList<Posts> tempPostsList = new ArrayList<>();
-
-                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                            Posts post = dataSnapshot.getValue(Posts.class);
-                            if (post != null) {
-                                tempPostsList.add(post);
-                            }
-                        }
-
-                        filterVisiblePosts(tempPostsList);
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                    }
-                });
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-            }
-        });
-
-
-
-        // Determine if there are any tracking requests
+        // [START config_layout]
+        // Determine if there are any follow requests
         databaseRequestedRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     // layout control
-                    // Set btnNotification layout
+                    // There is a request for attention
                     btnNotification.setImageResource(R.drawable.baseline_notifications_active_24);
                 } else {
                     btnNotification.setImageResource(R.drawable.baseline_notifications_none_24);
@@ -135,13 +95,40 @@ public class HomeFragment extends Fragment {
                 Toast.makeText(getContext(), "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+        // Pass data into arrayList , then article adapter received
+        databasePostRef.orderByChild("date").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                postsArrayList.clear();
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    Posts post = dataSnapshot.getValue(Posts.class);
+                    // Ensure article is not null before proceeding
+                    if (post != null ) {
+                        postsArrayList.add(post);
+                    }
+                }
+                // Sort articles by date and time to ensure the newest articles are at the top
+                postsArrayList.sort((a1, a2) -> {
+                    // Compare by date (descending)
+                    int dateComparison = a2.getDate().compareTo(a1.getDate());
+                    return dateComparison;
+                });
+                // Notify adapter after sorting
+                postAdapter.notifyDataSetChanged();
+            }
 
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(getContext(), "Failed to load articles: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
         // Grant value - which view, posts array list
         postAdapter = new PostAdapter(getContext(), postsArrayList);
         // Set up the layout manager, adapter
         postRV.setLayoutManager(new LinearLayoutManager(getContext()));
         postRV.setHasFixedSize(true);
         postRV.setAdapter(postAdapter);
+        // [END config_layout]
 
         // [START layout component function]
         // Switch the screen - Search User
@@ -151,7 +138,7 @@ public class HomeFragment extends Fragment {
                 updateUI("Search");
             }
         });
-        // Switch the screen - Update Profile
+        // Switch the screen - Create Post
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -171,38 +158,6 @@ public class HomeFragment extends Fragment {
         return view;
     }
 
-    private void filterVisiblePosts(ArrayList<Posts> allPosts) {
-        ArrayList<Posts> filtered = new ArrayList<>();
-        int totalToCheck = allPosts.size();
-        final int[] checkedCount = {0};
-
-        for (Posts post : allPosts) {
-            String postUID = post.getUID();
-            if (followingUIDs.contains(postUID) || postUID.equals(auth.getUid())) {
-                filtered.add(post);
-                checkedCount[0]++;
-                if (checkedCount[0] == totalToCheck) finalizePosts(filtered);
-            } else {
-                databaseUserRef.child(postUID).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot userSnapshot) {
-                        checkedCount[0]++;
-                        if (userSnapshot.exists() && "Public".equals(userSnapshot.child("privacy").getValue(String.class))) {
-                            filtered.add(post);
-                        }
-                        if (checkedCount[0] == totalToCheck) finalizePosts(filtered);
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        checkedCount[0]++;
-                        if (checkedCount[0] == totalToCheck) finalizePosts(filtered);
-                    }
-                });
-            }
-        }
-    }
-
     // [START Method]
     // handling UI update
     private void updateUI(String screen) {
@@ -217,28 +172,6 @@ public class HomeFragment extends Fragment {
         if (intent != null) {
             startActivity(intent);
         }
-    }
-    // 檢查是否所有貼文已讀取完成
-    private boolean isAllPostsLoaded(ArrayList<Posts> tempPostsList, DataSnapshot snapshot) {
-        return tempPostsList.size() == snapshot.getChildrenCount();
-    }
-
-    // 排序並更新 RecyclerView
-    private void finalizePosts(ArrayList<Posts> tempPostsList) {
-        // 排序：日期最新優先
-        tempPostsList.sort((a1, a2) -> {
-            int dateComparison = a2.getDate().compareTo(a1.getDate());
-            if (dateComparison == 0) {
-                return a2.getTime().compareTo(a1.getTime());
-            }
-            return dateComparison;
-        });
-
-        postsArrayList.clear();
-        postsArrayList.addAll(tempPostsList);
-
-        // 通知適配器更新
-        postAdapter.notifyDataSetChanged();
     }
     // [END Method]
 }

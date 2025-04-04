@@ -22,6 +22,7 @@ import java.util.ArrayList;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+// ✅
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     // layout object
     Context context;
@@ -51,7 +52,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         // [END config_layout]
 
         // [START layout component function]
-        // Open article details on item click
+        // Open user profile on item click
         holder.itemView.setOnClickListener(view -> {
             Intent intent = new Intent(context, UserProfile.class);
             intent.putExtra("user", user);  // Pass the article object

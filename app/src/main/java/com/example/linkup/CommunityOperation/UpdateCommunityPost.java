@@ -37,6 +37,7 @@ import com.squareup.picasso.Picasso;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+// ✅
 public class UpdateCommunityPost extends BottomSheetDialogFragment {
     // layout object
     ImageView btnUpdate;
@@ -72,6 +73,11 @@ public class UpdateCommunityPost extends BottomSheetDialogFragment {
         btnUpdate = view.findViewById(R.id.btnUpdate);
         // [END gain]
 
+        //[START Calender / Date Format configuration]
+        date = Calendar.getInstance();
+        currentDate = new SimpleDateFormat("dd-MM-yy HH:mm");
+        //[END Calender / Date Format configuration]
+
         // [START config_dialog]
         progressDialog = new ProgressDialog(getContext());
         progressDialog.setMessage("Updating...");
@@ -97,6 +103,7 @@ public class UpdateCommunityPost extends BottomSheetDialogFragment {
             public void onClick(View v) {
                 article.setHeadline(headline.getText().toString());
                 article.setContent(content.getText().toString());
+                article.setDate(currentDate.format(date.getTime()));
 
                 progressDialog.show(); // Show the dialog before dismissing it
                 if ((TextUtils.isEmpty(article.getHeadline()))) {

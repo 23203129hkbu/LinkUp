@@ -116,6 +116,7 @@
                 android:layout_marginStart="4dp" />
 
             <!-- Comment Icon and Count -->
+            <!--
             <ImageView
                 android:id="@+id/btnComment"
                 android:layout_width="24dp"
@@ -132,6 +133,8 @@
                 android:textSize="14sp"
                 android:textColor="@android:color/black"
                 android:layout_marginStart="4dp" />
+            -->
+
         </LinearLayout>
 
         <!-- Post Description -->
@@ -149,7 +152,7 @@
             android:id="@+id/dateAndTime"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="24-03-25, 09:37"
+            android:text="time"
             android:textSize="12sp"
             android:textColor="@android:color/darker_gray" />
     </LinearLayout>

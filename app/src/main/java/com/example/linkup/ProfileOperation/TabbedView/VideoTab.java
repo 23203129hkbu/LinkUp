@@ -29,6 +29,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
+// ✅
 public class VideoTab extends Fragment {
     View view;
     // layout object
@@ -72,20 +73,16 @@ public class VideoTab extends Fragment {
                 postsArrayList.clear();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Posts post = dataSnapshot.getValue(Posts.class);
-                    // Ensure article is not null before proceeding
+                    // post created by this user , type = video
                     if (post != null && post.getUID().equals(uid) && post.getType().equals("video")) {
                         postsArrayList.add(post);
                     }
                 }
 
-                // Sort the articles after all have been added to the list
+                // Sort the video post
                 postsArrayList.sort((a1, a2) -> {
-                    // First, compare by date
+                    // Compare by date (descending)
                     int dateComparison = a2.getDate().compareTo(a1.getDate());
-                    if (dateComparison == 0) {
-                        // If dates are equal, compare by time
-                        return a2.getTime().compareTo(a1.getTime());
-                    }
                     return dateComparison;
                 });
                 // Notify adapter after sorting

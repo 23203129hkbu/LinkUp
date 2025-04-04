@@ -25,6 +25,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+// ✅
 public class PostMenu extends BottomSheetDialogFragment {
     // layout object
     private String postId; // Added to store the postID
@@ -33,7 +34,7 @@ public class PostMenu extends BottomSheetDialogFragment {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databasePostRef; // real-time db ref ;
+    DatabaseReference databasePostRef, databaseLikeRef; // real-time db ref ;
 
     // Added constructor to accept postID and post URL
     public PostMenu(String postId, String postUrl) {
@@ -45,12 +46,6 @@ public class PostMenu extends BottomSheetDialogFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.post_menu, null);
-        // [START gain layout objects]
-        btnShare = view.findViewById(R.id.btnShare);
-        btnCopy = view.findViewById(R.id.btnCopy);
-        btnDelete = view.findViewById(R.id.btnDelete);
-        // [END gain]
-
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
         Rdb = FirebaseDatabase.getInstance();
@@ -58,7 +53,14 @@ public class PostMenu extends BottomSheetDialogFragment {
 
         // [START config_firebase reference]
         databasePostRef = Rdb.getReference().child("post").child(postId);
+        databaseLikeRef = Rdb.getReference().child("likedPost").child(postId);
         // [END config_firebase reference]
+
+        // [START gain layout objects]
+        btnShare = view.findViewById(R.id.btnShare);
+        btnCopy = view.findViewById(R.id.btnCopy);
+        btnDelete = view.findViewById(R.id.btnDelete);
+        // [END gain]
 
         // [START layout component function]
         // Determine whether the delete button appears
@@ -113,10 +115,11 @@ public class PostMenu extends BottomSheetDialogFragment {
                                         @Override
                                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                                             if (snapshot.exists()) {
-                                                databasePostRef.removeValue()
-                                                        .addOnCompleteListener(task -> {
+                                                databasePostRef.removeValue().addOnCompleteListener(task -> {
                                                             if (task.isSuccessful()) {
                                                                 Toast.makeText(getContext(), "Post deleted", Toast.LENGTH_SHORT).show();
+                                                                // delete related data
+                                                                databaseLikeRef.removeValue();
                                                                 dismiss(); // Close menu
                                                             } else {
                                                                 Toast.makeText(getContext(), "Failed to delete your post", Toast.LENGTH_SHORT).show();

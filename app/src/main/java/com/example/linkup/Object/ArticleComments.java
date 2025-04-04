@@ -7,7 +7,7 @@ public class ArticleComments {
     public ArticleComments() {
     }
 
-    public ArticleComments(String UID, String username, String comment, String date, String time, String imageURL) {
+    public ArticleComments(String UID, String comment, String date) {
         this.UID = UID;
         this.comment = comment;
         this.date = date;

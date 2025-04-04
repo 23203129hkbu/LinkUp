@@ -35,6 +35,7 @@ import com.squareup.picasso.Picasso;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+// ✅
 public class ProfileFragment extends Fragment {
     View view;
     // layout object
@@ -79,7 +80,6 @@ public class ProfileFragment extends Fragment {
         Rdb = FirebaseDatabase.getInstance();
         // [END config_firebase]
 
-
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
         databasePostRef = Rdb.getReference().child("post");
@@ -113,8 +113,14 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 int numOfPost = 0;
-                // Count total followers
-                numOfPost = (int) snapshot.getChildrenCount();
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    Posts post = dataSnapshot.getValue(Posts.class);
+                    // post created by this user
+                    if (post != null && post.getUID().equals(auth.getUid())) {
+                        numOfPost += 1;
+                    }
+                }
+                // Count total posts
                 posts.setText(String.valueOf(numOfPost));
             }
 

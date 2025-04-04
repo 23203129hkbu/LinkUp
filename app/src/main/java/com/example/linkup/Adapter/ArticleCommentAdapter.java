@@ -39,7 +39,7 @@ public class ArticleCommentAdapter extends RecyclerView.Adapter<ArticleCommentAd
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef; // real-time db ref
+
 
     // Constructor
     public ArticleCommentAdapter(Context context, ArrayList<ArticleComments> commentsArrayList) {
@@ -65,6 +65,8 @@ public class ArticleCommentAdapter extends RecyclerView.Adapter<ArticleCommentAd
         ArticleComments comment = commentsArrayList.get(position);
 
         // [START config_firebase reference]
+        // Move the declaration of Ref into onBindViewHolder() to avoid sharing the same variable
+        DatabaseReference databaseUserRef; // real-time db ref
         databaseUserRef = Rdb.getReference().child("user").child(comment.getUID());
         // [END config_firebase reference]
 

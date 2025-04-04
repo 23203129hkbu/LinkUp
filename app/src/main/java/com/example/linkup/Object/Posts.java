@@ -3,17 +3,16 @@ package com.example.linkup.Object;
 // ✅
 public class Posts {
 
-    String postID, UID,postURL,date,time,type,description;
+    String postID, UID, postURL, date, type, description;
 
     public Posts() {
     }
 
-    public Posts(String postID, String UID, String postURL, String date, String time, String type, String description) {
+    public Posts(String postID, String UID, String postURL, String date, String type, String description) {
         this.postID = postID;
         this.UID = UID;
         this.postURL = postURL;
         this.date = date;
-        this.time = time;
         this.type = type;
         this.description = description;
     }
@@ -48,14 +47,6 @@ public class Posts {
 
     public void setDate(String date) {
         this.date = date;
-    }
-
-    public String getTime() {
-        return time;
-    }
-
-    public void setTime(String time) {
-        this.time = time;
     }
 
     public String getType() {

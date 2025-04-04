@@ -40,7 +40,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef, databaseSavedArticleRef; // real-time db ref
+
 
     // Constructor
     public ArticleAdapter(Context context, ArrayList<Articles> articlesArrayList) {
@@ -68,12 +68,15 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         final Articles article = articlesArrayList.get(position);
 
         // [START config_firebase reference]
-        // Initialize database references dynamically based on the article
-        databaseUserRef = Rdb.getReference().child("user");
-        databaseSavedArticleRef = Rdb.getReference().child("savedArticle").child(auth.getUid());
+        // Move the declaration of Ref into onBindViewHolder() to avoid sharing the same variable
+        DatabaseReference databaseUserRef, databaseSavedArticleRef; // real-time db ref
+        databaseUserRef = Rdb.getReference().child("user").child(article.getUID());
+        databaseSavedArticleRef = Rdb.getReference().child("savedArticle").child(auth.getUid()).child(article.getArticleID());
         // [END config_firebase reference]
 
         // [START config_layout]
+        holder.date.setText(article.getDate());
+        holder.headline.setText(article.getHeadline());
         // Check if the current user is the creator of the article
         if (article.getUID().equals(auth.getUid())) {
             // Hide save button if the user is the creator
@@ -82,10 +85,8 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
             // Show save button for other users
             holder.btnSave.setVisibility(View.VISIBLE);
         }
-        holder.date.setText(article.getDate());
-        holder.headline.setText(article.getHeadline());
         // [Start Gain Article Creator Info]
-        databaseUserRef.child(article.getUID()).addValueEventListener(new ValueEventListener() {
+        databaseUserRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
@@ -104,7 +105,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
             }
         });
         // Check saved state of the article
-        databaseSavedArticleRef.child(article.getArticleID()).addValueEventListener(new ValueEventListener() {
+        databaseSavedArticleRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
@@ -126,12 +127,12 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
         // [START layout component function]
         // Handle save button click (toggle save/remove article)
         holder.btnSave.setOnClickListener(view -> {
-            databaseSavedArticleRef.child(article.getArticleID()).addListenerForSingleValueEvent(new ValueEventListener() {
+            databaseSavedArticleRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists()) {
                         // Article is already saved, unsaved it
-                        databaseSavedArticleRef.child(article.getArticleID()).removeValue().addOnCompleteListener(task -> {
+                        databaseSavedArticleRef.removeValue().addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
                                 Toast.makeText(context, "Article unsaved", Toast.LENGTH_SHORT).show();
                             } else {
@@ -142,7 +143,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                         Articles storedArticle = new Articles();
                         storedArticle.setArticleID(article.getArticleID());
                         // Article is not saved, save it
-                        databaseSavedArticleRef.child(article.getArticleID()).setValue(storedArticle).addOnCompleteListener(task -> {
+                        databaseSavedArticleRef.setValue(storedArticle).addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
                                 Toast.makeText(context, "Article saved", Toast.LENGTH_SHORT).show();
                             } else {

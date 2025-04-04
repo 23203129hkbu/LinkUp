@@ -21,6 +21,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
+// ✅
 public class SearchUser extends AppCompatActivity {
     // Layout objects
     ImageView btnBack;
@@ -39,13 +40,6 @@ public class SearchUser extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_user);
-
-        // [START gain layout objects]
-        btnBack = findViewById(R.id.btnBack);
-        searchBar = findViewById(R.id.searchBar);
-        userRV = findViewById(R.id.userRV);
-        // [END gain]
-
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
         Rdb = FirebaseDatabase.getInstance();
@@ -55,6 +49,13 @@ public class SearchUser extends AppCompatActivity {
         databaseUserRef = Rdb.getReference().child("user");
         // [END config_firebase reference]
 
+        // [START gain layout objects]
+        btnBack = findViewById(R.id.btnBack);
+        searchBar = findViewById(R.id.searchBar);
+        userRV = findViewById(R.id.userRV);
+        // [END gain]
+
+        // [START config_layout]
         // Load users from Firebase (but do not display them initially)
         databaseUserRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -67,9 +68,6 @@ public class SearchUser extends AppCompatActivity {
                         usersArrayList.add(user);
                     }
                 }
-
-                // Do not display any users until a search query is entered
-                filteredUsers.clear();
                 userAdapter.notifyDataSetChanged();
             }
 
@@ -78,17 +76,16 @@ public class SearchUser extends AppCompatActivity {
                 Toast.makeText(SearchUser.this, "Failed to load users: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-
         // Initialize Adapter with an empty list
         userAdapter = new UserAdapter(this, filteredUsers); // Only filteredUsers are shown
         userRV.setLayoutManager(new LinearLayoutManager(this));
         userRV.setHasFixedSize(true);
         userRV.setAdapter(userAdapter);
+        // [END config_layout]
 
         // [START layout component function]
         // Back button action
         btnBack.setOnClickListener(v -> finish());
-
         // Search functionality
         searchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -107,6 +104,7 @@ public class SearchUser extends AppCompatActivity {
     }
     // [START Method]
     // Filter users based on search input
+    // essential for case-insensitive searchc
     private void filterUsers(String text) {
         filteredUsers.clear();
         if (!text.isEmpty()) {

@@ -34,6 +34,7 @@ import java.util.ArrayList;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+// ✅
 public class FollowRequestAdapter extends RecyclerView.Adapter<FollowRequestAdapter.ViewHolder> {
     // layout object
     Context context;
@@ -41,7 +42,6 @@ public class FollowRequestAdapter extends RecyclerView.Adapter<FollowRequestAdap
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef, databaseFollowerRef, databaseFollowingRef, databaseRequestedRef; // real-time db ref
 
     // Constructor
     public FollowRequestAdapter(Context context, ArrayList<Users> usersArrayList) {
@@ -53,8 +53,6 @@ public class FollowRequestAdapter extends RecyclerView.Adapter<FollowRequestAdap
         Rdb = FirebaseDatabase.getInstance();
         // [END configuration]
     }
-
-
     @NonNull
     @Override
     public FollowRequestAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -66,17 +64,16 @@ public class FollowRequestAdapter extends RecyclerView.Adapter<FollowRequestAdap
     @Override
     public void onBindViewHolder(@NonNull FollowRequestAdapter.ViewHolder holder, int position) {
         final Users user = usersArrayList.get(position);
+
         // [START config_firebase reference]
+        DatabaseReference databaseUserRef, databaseFollowerRef, databaseFollowingRef, databaseRequestedRef; // real-time db ref
         databaseUserRef = Rdb.getReference().child("user");
-        databaseFollowerRef = Rdb.getReference().child("follower").child(auth.getUid());
-        databaseFollowingRef = Rdb.getReference().child("following").child(user.getUID());
+        databaseFollowerRef = Rdb.getReference().child("follower").child(auth.getUid()).child(user.getUID());
+        databaseFollowingRef = Rdb.getReference().child("following").child(user.getUID()).child(auth.getUid());
         databaseRequestedRef = Rdb.getReference().child("requested").child(auth.getUid());
         // [END config_firebase reference]
 
         // [START config_layout]
-        // Bind unique identifier
-        holder.btnAccept.setTag(user.getUID());
-        holder.btnReject.setTag(user.getUID());
         // [Start Gain User Info]
         databaseUserRef.child(user.getUID()).addValueEventListener(new ValueEventListener() {
             @Override
@@ -101,34 +98,20 @@ public class FollowRequestAdapter extends RecyclerView.Adapter<FollowRequestAdap
         // [START layout component function]
         // Reject Follow Request
         holder.btnReject.setOnClickListener(view -> {
-            // Get the currently bound article ID
-            String currentUID = (String) holder.btnReject.getTag();
-            if (currentUID == null || !currentUID.equals(user.getUID())) {
-                return; // 防止异步操作导致的错位
-            }
-            // Remove the user from the list, regardless of whether they accept or reject it.
-            DatabaseReference currentRef  = databaseRequestedRef.child(currentUID);
-            currentRef.removeValue();
+            databaseRequestedRef.child(user.getUID()).removeValue();
+            Toast.makeText(context, "Reject user follow request", Toast.LENGTH_SHORT).show();
         });
         // Accept Follow Request
         holder.btnAccept.setOnClickListener(view -> {
-            // Get the currently bound article ID
-            String currentUID = (String) holder.btnReject.getTag();
-            if (currentUID == null || !currentUID.equals(user.getUID())) {
-                return; // 防止异步操作导致的错位
-            }
-            // Remove the user from the list, regardless of whether they accept or reject it.
-            DatabaseReference currentRef  = databaseRequestedRef.child(currentUID);
-            currentRef.removeValue();
+            // Remove Follow Request
+            databaseRequestedRef.child(user.getUID()).removeValue();
             // Insert Follower
-            currentRef = databaseFollowerRef.child(currentUID);
             Users storedUser = new Users();
-            storedUser.setUID(currentUID);
-            currentRef.setValue(storedUser);
+            storedUser.setUID(user.getUID());
+            databaseFollowerRef.setValue(storedUser);
             // Insert Following
-            currentRef = databaseFollowingRef.child(auth.getUid());
             storedUser.setUID(auth.getUid());
-            currentRef.setValue(storedUser);
+            databaseFollowingRef.setValue(storedUser);
             Toast.makeText(context, "The user has become your followers", Toast.LENGTH_SHORT).show();
         });
         // Open article details on item click

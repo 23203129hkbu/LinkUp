@@ -34,6 +34,7 @@ import java.util.ArrayList;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+// ✅
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> {
     // layout object
     Context context;

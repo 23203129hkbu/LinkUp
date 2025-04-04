@@ -41,7 +41,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
-
+// ✅
 public class ImageTab extends Fragment {
     View view;
     // layout object
@@ -85,20 +85,16 @@ public class ImageTab extends Fragment {
                 postsArrayList.clear();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Posts post = dataSnapshot.getValue(Posts.class);
-                    // Ensure article is not null before proceeding
-                    if (post != null&&post.getUID().equals(uid)&&post.getType().equals("image")) {
+                    // post created by this user , type = image
+                    if (post != null && post.getUID().equals(uid) && post.getType().equals("image")) {
                         postsArrayList.add(post);
                     }
                 }
 
-                // Sort the articles after all have been added to the list
+                // Sort the image post
                 postsArrayList.sort((a1, a2) -> {
-                    // First, compare by date
+                    // Compare by date (descending)
                     int dateComparison = a2.getDate().compareTo(a1.getDate());
-                    if (dateComparison == 0) {
-                        // If dates are equal, compare by time
-                        return a2.getTime().compareTo(a1.getTime());
-                    }
                     return dateComparison;
                 });
                 // Notify adapter after sorting
@@ -113,7 +109,7 @@ public class ImageTab extends Fragment {
         // Grant value - which view, posts array list
         imageAdapter = new ImageAdapter(getContext(), postsArrayList);
         // Set up the layout manager, adapter
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(),3,GridLayoutManager.VERTICAL,false);
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 3, GridLayoutManager.VERTICAL, false);
         imageRV.setLayoutManager(gridLayoutManager);
         imageRV.setHasFixedSize(true);
         imageRV.setAdapter(imageAdapter);

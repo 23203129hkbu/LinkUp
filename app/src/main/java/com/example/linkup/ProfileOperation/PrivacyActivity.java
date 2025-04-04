@@ -48,8 +48,7 @@ public class PrivacyActivity extends AppCompatActivity {
     DatabaseReference databaseUserRef; // real-time db ref
     // default user info
     Users user = new Users();
-    Boolean cancel = false;
-    String userState;
+    Boolean isUserChange = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,15 +78,14 @@ public class PrivacyActivity extends AppCompatActivity {
                     // Layout Control
                     user = snapshot.getValue(Users.class);
                     state.setText(user.getPrivacy());
-                    // State initialization
                     if (user.getPrivacy().equals("Private")) {
+                        // Prevent message frames from popping up
+                        // Avoid notifications
+                        isUserChange = false; // Do Not Remove
                         switchState.setChecked(true);
-                        userState = "Public";
-                    }else{
-                        switchState.setChecked(false);
-                        userState = "Private";
+                        // Change Normal
+                        isUserChange = true; // Do Not Remove
                     }
-
                 } else {
                     Toast.makeText(PrivacyActivity.this, "Modification failed", Toast.LENGTH_SHORT).show();
                 }
@@ -113,9 +111,9 @@ public class PrivacyActivity extends AppCompatActivity {
             // Flag to differentiate user actions from programmatic changes
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (cancel) {
-                    cancel = false; // Reset the flag
-                    return; // Exit early to avoid showing the dialog
+                if (!isUserChange) {
+                    // Avoid recirculation
+                    return; // Ignore programmatic changes
                 }
                 AlertDialog.Builder builder = new AlertDialog.Builder(PrivacyActivity.this);
                 builder.setTitle("Confirmation Notification")
@@ -123,14 +121,17 @@ public class PrivacyActivity extends AppCompatActivity {
                         .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
+                                state.setText(isChecked ? "Private" : "Public");
                                 savePrivacySetting(); // Save the new privacy setting
                             }
                         })
                         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                cancel = true; // Set the flag to prevent triggering listener
-                                switchState.setChecked(user.getPrivacy().equals("Private"));
+                                // Temporarily disable listener before reverting switch state
+                                isUserChange = false;
+                                switchState.setChecked(!isChecked); // Revert to previous state
+                                isUserChange = true; // Re-enable listener after change
                             }
                         });
                 // Show the dialog
@@ -148,7 +149,7 @@ public class PrivacyActivity extends AppCompatActivity {
     }
     // handling privacy setting update
     private void savePrivacySetting() {
-        user.setPrivacy(userState);
+        user.setPrivacy(state.getText().toString());
         databaseUserRef.setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {

@@ -19,6 +19,7 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
+// ✅
 public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.ViewHolder> {
     // layout object
     Context context;
