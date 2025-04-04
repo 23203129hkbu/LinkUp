@@ -55,7 +55,7 @@ public class UserProfile extends AppCompatActivity {
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
     DatabaseReference databaseUserRef, databaseFollowerRef, databaseFollowingRef, databaseRequestedRef, databaseYourFollowingRef, databasePostRef; // real-time db ref
-    // Article - retrieve data form adapter
+    // User Info
     Users user = new Users();
     String userWebsite; // for url click
     // Checker Followed / UnFollowed / Requested / Public / Private
@@ -239,7 +239,7 @@ public class UserProfile extends AppCompatActivity {
         btnFollowers.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (Followed) {
+                if (Followed || !privateAC ) {
                     Intent intent = new Intent(UserProfile.this, FollowerActivity.class);
                     intent.putExtra("user", user);  // Pass the article object
                     startActivity(intent);
@@ -250,7 +250,7 @@ public class UserProfile extends AppCompatActivity {
         btnFollowing.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (Followed) {
+                if (Followed || !privateAC) {
                     Intent intent = new Intent(UserProfile.this, FollowingActivity.class);
                     intent.putExtra("user", user);  // Pass the article object
                     startActivity(intent);

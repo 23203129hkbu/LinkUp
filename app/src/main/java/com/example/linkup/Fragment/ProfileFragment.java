@@ -85,6 +85,7 @@ public class ProfileFragment extends Fragment {
         // Tabbed view
         tabbedView = view.findViewById(R.id.tabbedView);
         tab = view.findViewById(R.id.tab);
+        // Search Follower, Following
         // [END gain]
 
         // [START config_layout]
