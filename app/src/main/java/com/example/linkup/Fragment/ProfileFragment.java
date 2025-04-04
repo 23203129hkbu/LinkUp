@@ -59,6 +59,18 @@ public class ProfileFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         view = inflater.inflate(R.layout.activity_profile_fragment, container, false);
+        // [START config_firebase]
+        auth = FirebaseAuth.getInstance();
+        Rdb = FirebaseDatabase.getInstance();
+        // [END config_firebase]
+
+        // [START config_firebase reference]
+        databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
+        databasePostRef = Rdb.getReference().child("post");
+        databaseFollowerRef = Rdb.getReference().child("follower").child(auth.getUid());
+        databaseFollowingRef = Rdb.getReference().child("following").child(auth.getUid());
+        // [END config_firebase reference]
+
         // [START gain layout objects]
         avatar = view.findViewById(R.id.avatar);
         username = view.findViewById(R.id.username);
@@ -74,18 +86,6 @@ public class ProfileFragment extends Fragment {
         tabbedView = view.findViewById(R.id.tabbedView);
         tab = view.findViewById(R.id.tab);
         // [END gain]
-
-        // [START config_firebase]
-        auth = FirebaseAuth.getInstance();
-        Rdb = FirebaseDatabase.getInstance();
-        // [END config_firebase]
-
-        // [START config_firebase reference]
-        databaseUserRef = Rdb.getReference().child("user").child(auth.getUid());
-        databasePostRef = Rdb.getReference().child("post");
-        databaseFollowerRef = Rdb.getReference().child("follower").child(auth.getUid());
-        databaseFollowingRef = Rdb.getReference().child("following").child(auth.getUid());
-        // [END config_firebase reference]
 
         // [START config_layout]
         // [Gain User Profile]

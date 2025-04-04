@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.linkup.CommunityOperation.ArticleActivity;
@@ -54,8 +55,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
     // Boolean checker
-    Boolean publicAC; // -> User privacy setting
-    Boolean following; // -> your following
+    Boolean isFollowed; // -> your following
 
 
 
@@ -161,8 +161,26 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                 Toast.makeText(context, "Failed to load likes: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-        // Show Following / Public User post
+        // Check if you are a follower of this post
+        databaseFollowingRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.hasChild(post.getUID())){
+                    isFollowed = true;
+                    holder.btnFollow.setText("Following");
+                } else {
+                    isFollowed = false;
+                    // User has not liked the apost
+                    holder.btnFollow.setText("Follow"); // Change to unliked icon
+                }
+            }
 
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(context, "Failed to load likes: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+        // Show Following / Public User post
         // [END config_layout]
 
         // [START layout component function]
@@ -207,8 +225,23 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             PostMenu pm = new PostMenu (post.getPostID(),post.getPostURL());
             pm.show(((AppCompatActivity) context).getSupportFragmentManager(), "bottom");
         });
+        // Follow // Unfollow user
+        holder.btnFollow.setOnClickListener(view -> {
+            if (isFollowed){
+                databaseFollowerRef.child(auth.getUid()).removeValue();
+                databaseFollowingRef.child(post.getUID()).removeValue();
+                Toast.makeText(context, "unfollowed this user", Toast.LENGTH_SHORT).show();
+            }else{
+                Users storedUser = new Users();
+                storedUser.setUID(auth.getUid());
+                databaseFollowerRef.child(auth.getUid()).setValue(storedUser);
+                storedUser.setUID(post.getUID());
+                databaseFollowingRef.child(post.getUID()).setValue(storedUser);
+                Toast.makeText(context, "followed this user", Toast.LENGTH_SHORT).show();
+            }
+        });
         // If the creator of the post is the user, can't move on to the user profile
-        // Open article details on item click
+        // Open user details on item click
         holder.userProfile.setOnClickListener(view -> {
             Users user = new Users();
             user.setUID(post.getUID());
