@@ -143,7 +143,6 @@ public class FollowingActivity extends AppCompatActivity {
                 return true;
             }
         });
-
         // [END layout component function]
     }
 

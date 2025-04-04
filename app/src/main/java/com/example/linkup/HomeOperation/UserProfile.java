@@ -239,9 +239,9 @@ public class UserProfile extends AppCompatActivity {
         btnFollowers.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (Followed || !privateAC ) {
+                if (Followed || !privateAC) {
                     Intent intent = new Intent(UserProfile.this, FollowerActivity.class);
-                    intent.putExtra("user", user);  // Pass the article object
+                    intent.putExtra("user", user);  // Pass the user object
                     startActivity(intent);
                 }
             }
@@ -252,7 +252,7 @@ public class UserProfile extends AppCompatActivity {
             public void onClick(View v) {
                 if (Followed || !privateAC) {
                     Intent intent = new Intent(UserProfile.this, FollowingActivity.class);
-                    intent.putExtra("user", user);  // Pass the article object
+                    intent.putExtra("user", user);  // Pass the user object
                     startActivity(intent);
                 }
             }

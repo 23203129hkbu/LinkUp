@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,7 +17,11 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.linkup.HomeOperation.FollowerActivity;
+import com.example.linkup.HomeOperation.FollowingActivity;
+import com.example.linkup.HomeOperation.UserProfile;
 import com.example.linkup.Object.Posts;
+import com.example.linkup.Object.Users;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
@@ -39,6 +44,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class ProfileFragment extends Fragment {
     View view;
     // layout object
+    LinearLayout btnFollowers, btnFollowing;
     CircleImageView avatar;
     ImageView btnEdit, btnSetting;
     TextView username, introduction, website, state, posts, followers, following;
@@ -51,7 +57,8 @@ public class ProfileFragment extends Fragment {
     FirebaseDatabase Rdb; // real-time db
     DatabaseReference databaseUserRef, databaseFollowerRef, databaseFollowingRef, databasePostRef; // real-time db ref
     // default user info
-    String userWebsite;
+    // User Info
+    Users user = new Users();
 
 
     @Nullable
@@ -86,6 +93,8 @@ public class ProfileFragment extends Fragment {
         tabbedView = view.findViewById(R.id.tabbedView);
         tab = view.findViewById(R.id.tab);
         // Search Follower, Following
+        btnFollowers = view.findViewById(R.id.btnFollowers);
+        btnFollowing = view.findViewById(R.id.btnFollowing);
         // [END gain]
 
         // [START config_layout]
@@ -94,13 +103,13 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    userWebsite = snapshot.child("website").getValue(String.class);
                     // Layout Control
-                    username.setText(snapshot.child("username").getValue(String.class));
-                    Picasso.get().load(snapshot.child("avatarURL").getValue(String.class)).into(avatar);
-                    state.setText(snapshot.child("privacy").getValue(String.class));
-                    website.setText(userWebsite);
-                    introduction.setText(snapshot.child("introduction").getValue(String.class));
+                    user = snapshot.getValue(Users.class);
+                    username.setText(user.getUsername());
+                    Picasso.get().load(user.getAvatarURL()).into(avatar);
+                    state.setText(user.getPrivacy());
+                    website.setText(user.getWebsite());
+                    introduction.setText(user.getIntroduction());
                 }
             }
 
@@ -163,7 +172,7 @@ public class ProfileFragment extends Fragment {
         // [END config_layout]
 
         // Setup ViewPager
-        adapter = new SectionsPagerAdapter(getActivity(),auth.getUid());
+        adapter = new SectionsPagerAdapter(getActivity(), auth.getUid());
         tabbedView.setAdapter(adapter);
         // Use TabLayoutMediator to link TabLayout with ViewPager2
         new TabLayoutMediator(tab, tabbedView, (tab, position) -> {
@@ -190,12 +199,26 @@ public class ProfileFragment extends Fragment {
                 updateUI("Setting");
             }
         });
+        // Switch the screen - User Followers List
+        btnFollowers.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateUI("Follower");
+            }
+        });
+        // Switch the screen - User Following List
+        btnFollowing.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateUI("Following");
+            }
+        });
         // Logout with dialog message
         website.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 try {
-                    String webUrl = userWebsite;
+                    String webUrl = user.getWebsite();
                     Intent webIntent = new Intent(Intent.ACTION_VIEW);
                     webIntent.setData(Uri.parse(webUrl));
                     startActivity(webIntent);
@@ -219,6 +242,12 @@ public class ProfileFragment extends Fragment {
             intent = new Intent(getContext(), UpdateProfile.class);
         } else if (screen.equals("Create")) {
             intent = new Intent(getContext(), CreateProfile.class);
+        } else if (screen.equals("Follower")) {
+            intent = new Intent(getContext(), FollowerActivity.class);
+            intent.putExtra("user", user);  // Pass the user object
+        }else if (screen.equals("Following")) {
+            intent = new Intent(getContext(), FollowingActivity.class);
+            intent.putExtra("user", user);  // Pass the user object
         }
         if (intent != null) {
             startActivity(intent);

@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.linkup.HomeOperation.UserProfile;
 import com.example.linkup.Object.Users;
 import com.example.linkup.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -23,6 +25,10 @@ public class FollowingAdapter extends RecyclerView.Adapter<FollowingAdapter.View
     // layout object
     Context context;
     ArrayList<Users> usersArrayList;
+
+    // Firebase features
+    FirebaseAuth auth;
+    FirebaseDatabase Rdb; // real-time db
 
     // Constructor
     public FollowingAdapter(Context context, ArrayList<Users> usersArrayList) {
