@@ -122,7 +122,6 @@ public class FollowerActivity extends AppCompatActivity {
         }else {
             followersRV.setAdapter(followerAdapter);
         }
-
         // [END config_layout]
 
         // [START layout component function]

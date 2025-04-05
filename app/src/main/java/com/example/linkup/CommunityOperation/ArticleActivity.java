@@ -69,9 +69,7 @@ public class ArticleActivity extends AppCompatActivity {
     Articles article = new Articles();
     ArticleComments articleComment = new ArticleComments();
     // Comment
-    String userComment, commentDate, commentTime;
-    // Likes
-    int noOfLikes;
+    String userComment, commentDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -404,6 +402,7 @@ public class ArticleActivity extends AppCompatActivity {
         // [END layout component function]
     }
 
+    // [START Method]
     private void CreateComment() {
         // Gain Comment ID from real-time DB - No need to store
         String CID = databaseCommentRef.push().getKey();

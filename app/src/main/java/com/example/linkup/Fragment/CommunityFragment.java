@@ -46,7 +46,7 @@ public class CommunityFragment extends Fragment {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseArticleRef; // real-time db ref ; SavedArticleSortByUser -> SASBU
+    DatabaseReference databaseArticleRef; // real-time db ref ;
     // convert article data into RecyclerView by Adapter
     ArrayList<Articles> articlesArrayList = new ArrayList<>();
     ArticleAdapter articleAdapter;

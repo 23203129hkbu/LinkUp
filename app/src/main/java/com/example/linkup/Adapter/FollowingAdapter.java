@@ -12,6 +12,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.linkup.ChatOperation.ChatRoomActivity;
 import com.example.linkup.HomeOperation.UserProfile;
 import com.example.linkup.Object.Users;
 import com.example.linkup.R;
@@ -70,9 +71,9 @@ public class FollowingAdapter extends RecyclerView.Adapter<FollowingAdapter.View
         // [START layout component function]
         // -> Chat Room
         holder.btnMessage.setOnClickListener(view -> {
-//            Intent intent = new Intent(context, UserProfile.class);
-//            intent.putExtra("user", user);  // Pass the article object
-//            context.startActivity(intent);
+            Intent intent = new Intent(context, ChatRoomActivity.class);
+            intent.putExtra("user", user);  // Pass the article object
+            context.startActivity(intent);
         });
         // -> Unfollow
         holder.btnRemove.setOnClickListener(view -> {

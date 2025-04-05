@@ -103,8 +103,8 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    // Layout Control
                     user = snapshot.getValue(Users.class);
+                    // Layout Control
                     username.setText(user.getUsername());
                     Picasso.get().load(user.getAvatarURL()).into(avatar);
                     state.setText(user.getPrivacy());

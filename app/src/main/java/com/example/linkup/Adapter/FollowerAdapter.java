@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.linkup.ChatOperation.ChatRoomActivity;
 import com.example.linkup.HomeOperation.UserProfile;
 import com.example.linkup.Object.Users;
 import com.example.linkup.R;
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+// ✅
 public class FollowerAdapter extends RecyclerView.Adapter<FollowerAdapter.ViewHolder> {
     // layout object
     Context context;
@@ -132,6 +134,9 @@ public class FollowerAdapter extends RecyclerView.Adapter<FollowerAdapter.ViewHo
         holder.btnAction.setOnClickListener(view -> {
             if (holder.btnAction.getText().toString().equals("Message")){
                 // Move Chat Room
+                Intent intent = new Intent(context, ChatRoomActivity.class);
+                intent.putExtra("user", user);  // Pass the article object
+                context.startActivity(intent);
             }else if (holder.btnAction.getText().toString().equals("Follow Back")){
                 if (!privateAC){
                     // directly follow
