@@ -7,6 +7,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -69,14 +70,33 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         // [START config_layout]
         if (holder.getClass() == senderViewHolder.class) {
             senderViewHolder viewHolder = (senderViewHolder) holder;
-            viewHolder.msgTxt.setText(message.getContent());
             Picasso.get().load(senderImg).into(viewHolder.circleImageView);
+            if (message.getType().equals("text")) {
+                viewHolder.msgTxt.setVisibility(View.VISIBLE);
+                viewHolder.msgImage.setVisibility(View.GONE);
+                // set message
+                viewHolder.msgTxt.setText(message.getContent());
+            } else if (message.getType().equals("image")) {
+                viewHolder.msgTxt.setVisibility(View.GONE);
+                viewHolder.msgImage.setVisibility(View.VISIBLE);
+                // set image
+                Picasso.get().load(message.getContent()).into(viewHolder.msgImage);
+            }
+
         } else {
             reciverViewHolder viewHolder = (reciverViewHolder) holder;
-            viewHolder.msgTxt.setText(message.getContent());
             Picasso.get().load(receiverImg).into(viewHolder.circleImageView);
-
-
+            if (message.getType().equals("text")) {
+                viewHolder.msgTxt.setVisibility(View.VISIBLE);
+                viewHolder.msgImage.setVisibility(View.GONE);
+                // set message
+                viewHolder.msgTxt.setText(message.getContent());
+            } else if (message.getType().equals("image")) {
+                viewHolder.msgTxt.setVisibility(View.GONE);
+                viewHolder.msgImage.setVisibility(View.VISIBLE);
+                // set image
+                Picasso.get().load(message.getContent()).into(viewHolder.msgImage);
+            }
         }
         // [END config_layout]
     }
@@ -97,11 +117,13 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     class senderViewHolder extends RecyclerView.ViewHolder {
         CircleImageView circleImageView;
         TextView msgTxt;
+        ImageView msgImage;
 
         public senderViewHolder(@NonNull View itemView) {
             super(itemView);
             circleImageView = itemView.findViewById(R.id.senderAvatar);
             msgTxt = itemView.findViewById(R.id.senderTxt);
+            msgImage = itemView.findViewById(R.id.senderImage);
 
         }
     }
@@ -109,11 +131,13 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     class reciverViewHolder extends RecyclerView.ViewHolder {
         CircleImageView circleImageView;
         TextView msgTxt;
+        ImageView msgImage;
 
         public reciverViewHolder(@NonNull View itemView) {
             super(itemView);
             circleImageView = itemView.findViewById(R.id.receiverAvatar);
             msgTxt = itemView.findViewById(R.id.receiverTxt);
+            msgImage = itemView.findViewById(R.id.receiverImage);
         }
     }
 

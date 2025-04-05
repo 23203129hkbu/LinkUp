@@ -1,7 +1,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/white">
+    android:background="@color/white"
+    android:layout_marginBottom="5dp">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/senderAvatar"
@@ -33,4 +34,12 @@
         android:text="testing"
         android:textColor="@color/black"
         android:textStyle="bold" />
+    <ImageView
+        android:id="@+id/senderImage"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:visibility="gone"
+        android:layout_toLeftOf="@id/senderAvatar"
+        android:scaleType="centerCrop" />
+
 </RelativeLayout>
