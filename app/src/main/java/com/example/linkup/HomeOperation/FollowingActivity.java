@@ -111,7 +111,7 @@ public class FollowingActivity extends AppCompatActivity {
             }
         });
         // Initialize Adapter with an empty list
-        userAdapter = new UserAdapter(this, filteredUsers); // Only filteredUsers are shown
+        userAdapter = new UserAdapter(this, filteredUsers,"UserProfile"); // Only filteredUsers are shown
         followingAdapter = new FollowingAdapter(this, filteredUsers); // Only filteredUsers are shown
         followingRV.setLayoutManager(new LinearLayoutManager(this));
         followingRV.setHasFixedSize(true);

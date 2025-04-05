@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.linkup.ChatOperation.ChatRoomActivity;
 import com.example.linkup.CommunityOperation.ArticleActivity;
 import com.example.linkup.HomeOperation.UserProfile;
 import com.example.linkup.Object.Posts;
@@ -27,11 +28,13 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     // layout object
     Context context;
     ArrayList<Users> usersArrayList;
+    String location;
 
     // Constructor
-    public UserAdapter(Context context, ArrayList<Users> usersArrayList) {
+    public UserAdapter(Context context, ArrayList<Users> usersArrayList, String location) {
         this.context = context;
         this.usersArrayList = usersArrayList;
+        this.location = location;
     }
 
 
@@ -54,7 +57,12 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         // [START layout component function]
         // Open user profile on item click
         holder.itemView.setOnClickListener(view -> {
-            Intent intent = new Intent(context, UserProfile.class);
+            Intent intent;
+            if (location.equals("ChatRoom")){
+                intent = new Intent(context, ChatRoomActivity.class);
+            }else{
+                intent = new Intent(context, UserProfile.class);
+            }
             intent.putExtra("user", user);  // Pass the article object
             context.startActivity(intent);
         });

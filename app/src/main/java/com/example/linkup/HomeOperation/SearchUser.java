@@ -77,7 +77,7 @@ public class SearchUser extends AppCompatActivity {
             }
         });
         // Initialize Adapter with an empty list
-        userAdapter = new UserAdapter(this, filteredUsers); // Only filteredUsers are shown
+        userAdapter = new UserAdapter(this, filteredUsers,"UserProfile"); // Only filteredUsers are shown
         userRV.setLayoutManager(new LinearLayoutManager(this));
         userRV.setHasFixedSize(true);
         userRV.setAdapter(userAdapter);

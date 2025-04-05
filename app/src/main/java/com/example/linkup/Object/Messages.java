@@ -1,5 +1,6 @@
 package com.example.linkup.Object;
 
+// ✅
 public class Messages {
     String content, UID, type;
     long timestamp;

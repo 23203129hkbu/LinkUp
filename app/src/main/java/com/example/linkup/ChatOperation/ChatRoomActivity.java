@@ -27,6 +27,7 @@ import com.example.linkup.Object.Articles;
 import com.example.linkup.Object.Messages;
 import com.example.linkup.Object.Users;
 import com.example.linkup.R;
+import com.google.android.exoplayer2.C;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -50,7 +51,7 @@ public class ChatRoomActivity extends AppCompatActivity {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseSendUserRef, databaseReceiveUserRef, databaseSenderRef, databaseReceiverRef; // real-time db ref ;
+    DatabaseReference databaseSendUserRef, databaseReceiveUserRef, databaseSenderRef, databaseReceiverRef, databaseBestChatRoomRef; // real-time db ref ;
     // User (receiver) Info
     Users receiver = new Users();
     public static String senderImg;
@@ -81,6 +82,7 @@ public class ChatRoomActivity extends AppCompatActivity {
         databaseReceiveUserRef = Rdb.getReference().child("user").child(receiver.getUID());
         databaseSenderRef = Rdb.getReference().child("chatRoom").child(auth.getUid()).child(receiver.getUID());
         databaseReceiverRef = Rdb.getReference().child("chatRoom").child(receiver.getUID()).child(auth.getUid());
+        databaseBestChatRoomRef = Rdb.getReference().child("likedChatRoom").child(auth.getUid()).child(receiver.getUID());
         // [END config_firebase reference]
 
         // [START gain layout objects]
@@ -98,6 +100,22 @@ public class ChatRoomActivity extends AppCompatActivity {
 
         // [START config_layout]
         // [Gain User Profile]
+        // Check if the chat room is already saved
+        databaseBestChatRoomRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    btnFavorites.setImageResource(R.drawable.baseline_star_24_blue);
+                } else {
+                    btnFavorites.setImageResource(R.drawable.baseline_star_outline_24_gray);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(ChatRoomActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
         // Gain Sender Image
         databaseSendUserRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -163,6 +181,7 @@ public class ChatRoomActivity extends AppCompatActivity {
         // [START layout component function]
         // Back button action
         btnBack.setOnClickListener(v -> finish());
+        // Send Message (Text)
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -176,6 +195,40 @@ public class ChatRoomActivity extends AppCompatActivity {
                     SendMessage(content,"text");
                 }
             }
+        });
+        // Store to be favourite chat room
+        btnFavorites.setOnClickListener(view -> {
+            databaseBestChatRoomRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        // Chat Room is already saved, unsaved it
+                        databaseBestChatRoomRef.removeValue().addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(ChatRoomActivity.this, "chat room unsaved", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(ChatRoomActivity.this, "Failed to unsaved room", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    } else {
+                        Users storedUser = new Users();
+                        storedUser.setUID(receiver.getUID());
+                        // Chat Room is not saved, save it
+                        databaseBestChatRoomRef.setValue(storedUser).addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(ChatRoomActivity.this, "Room saved", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(ChatRoomActivity.this, "Failed to save room", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(ChatRoomActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         });
         // [END layout component function]
     }

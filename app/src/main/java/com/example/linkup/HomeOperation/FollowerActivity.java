@@ -112,7 +112,7 @@ public class FollowerActivity extends AppCompatActivity {
             }
         });
         // Initialize Adapter with an empty list
-        userAdapter = new UserAdapter(this, filteredUsers); // Only filteredUsers are shown
+        userAdapter = new UserAdapter(this, filteredUsers, "UserProfile"); // Only filteredUsers are shown
         followerAdapter = new FollowerAdapter(this, filteredUsers); // Only filteredUsers are shown
         followersRV.setLayoutManager(new LinearLayoutManager(this));
         followersRV.setHasFixedSize(true);

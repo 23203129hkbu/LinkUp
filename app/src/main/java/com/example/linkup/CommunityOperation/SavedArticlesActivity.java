@@ -65,7 +65,7 @@ public class SavedArticlesActivity extends AppCompatActivity {
 
         // [START config_layout]
         // Pass data into arrayList , then article adapter received
-        // Fetch saved articles
+        // Fetch saved articlesd
         databaseSavedArticleRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
