@@ -64,7 +64,7 @@ public class ArticleActivity extends AppCompatActivity {
     ArticleCommentAdapter articleCommentAdapter;
     // Calendar & DateFormat
     Calendar date;
-    SimpleDateFormat currentDate, currentTime;
+    SimpleDateFormat currentDate;
     // ArticleID - retrieve data form adapter
     Articles article = new Articles();
     ArticleComments articleComment = new ArticleComments();
@@ -234,7 +234,7 @@ public class ArticleActivity extends AppCompatActivity {
                 // Handle possible errors
             }
         });
-        // Grant value - which view, articles array list
+        // Grant value - which view, comment array list
         articleCommentAdapter = new ArticleCommentAdapter(ArticleActivity.this, commentsArrayList);
         // Set up the layout manager, adapter
         commentRV.setLayoutManager(new LinearLayoutManager(ArticleActivity.this));

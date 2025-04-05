@@ -57,8 +57,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     // Boolean checker
     Boolean isFollowed; // -> your following
 
-
-
     // Constructor
     public PostAdapter(Context context, ArrayList<Posts> postsArrayList) {
         this.context = context;

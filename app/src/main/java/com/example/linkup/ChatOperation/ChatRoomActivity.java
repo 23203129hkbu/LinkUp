@@ -15,10 +15,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.linkup.Adapter.ArticleCommentAdapter;
+import com.example.linkup.Adapter.MessageAdapter;
 import com.example.linkup.CommunityOperation.ArticleActivity;
 import com.example.linkup.CommunityOperation.UpdateCommunityPost;
+import com.example.linkup.Object.ArticleComments;
+import com.example.linkup.Object.Articles;
 import com.example.linkup.Object.Messages;
 import com.example.linkup.Object.Users;
 import com.example.linkup.R;
@@ -30,6 +35,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -44,15 +50,18 @@ public class ChatRoomActivity extends AppCompatActivity {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef, databaseSenderRef, databaseReceiverRef; // real-time db ref ;
+    DatabaseReference databaseSendUserRef, databaseReceiveUserRef, databaseSenderRef, databaseReceiverRef; // real-time db ref ;
     // User (receiver) Info
     Users receiver = new Users();
+    public static String senderImg;
+    public static String receiverImg;
+    // convert message data into RecyclerView by Adapter
+    ArrayList<Messages> messagesArrayList = new ArrayList<>();
+    MessageAdapter messageAdapter;
     // Message Info
     Messages msg = new Messages();
     String content;
     Date date = new Date();
-    // Sender Room / Receiver Room
-    String senderRoom, receiverRoom;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,15 +76,11 @@ public class ChatRoomActivity extends AppCompatActivity {
         Rdb = FirebaseDatabase.getInstance();
         // [END config_firebase]
 
-        // [Create SenderRoom / ReceiverRoom]
-        senderRoom = auth.getUid() + receiver.getUID();
-        receiverRoom = receiver.getUID() + auth.getUid();
-        // [Created SenderRoom / ReceiverRoom]
-
         // [START config_firebase reference]
-        databaseUserRef = Rdb.getReference().child("user").child(receiver.getUID());
-        databaseSenderRef = Rdb.getReference().child("chatRoom").child(auth.getUid()).child(senderRoom);
-        databaseReceiverRef = Rdb.getReference().child("chatRoom").child(receiver.getUID()).child(receiverRoom);
+        databaseSendUserRef = Rdb.getReference().child("user").child(auth.getUid());
+        databaseReceiveUserRef = Rdb.getReference().child("user").child(receiver.getUID());
+        databaseSenderRef = Rdb.getReference().child("chatRoom").child(auth.getUid()).child(receiver.getUID());
+        databaseReceiverRef = Rdb.getReference().child("chatRoom").child(receiver.getUID()).child(auth.getUid());
         // [END config_firebase reference]
 
         // [START gain layout objects]
@@ -93,14 +98,13 @@ public class ChatRoomActivity extends AppCompatActivity {
 
         // [START config_layout]
         // [Gain User Profile]
-        databaseUserRef.addValueEventListener(new ValueEventListener() {
+        // Gain Sender Image
+        databaseSendUserRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    receiver = snapshot.getValue(Users.class);
-                    // Layout Control
-                    receiverUsername.setText(receiver.getUsername());
-                    Picasso.get().load(receiver.getAvatarURL()).into(receiverAvatar);
+                    // store sender Image
+                    senderImg = snapshot.child("avatarURL").getValue(String.class);
                 }
             }
 
@@ -109,6 +113,51 @@ public class ChatRoomActivity extends AppCompatActivity {
                 Toast.makeText(ChatRoomActivity.this, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+        // Gain Receiver Image / Info
+        databaseReceiveUserRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    receiver = snapshot.getValue(Users.class);
+                    // Layout Control
+                    receiverUsername.setText(receiver.getUsername());
+                    Picasso.get().load(receiver.getAvatarURL()).into(receiverAvatar);
+                    // store receiver Image
+                    receiverImg = receiver.getAvatarURL();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(ChatRoomActivity.this, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+        // Load messages
+        databaseSenderRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                messagesArrayList.clear();
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    Messages message = dataSnapshot.getValue(Messages.class);
+                    // Ensure message is not null before proceeding
+                    if (message != null) {
+                        messagesArrayList.add(message);
+                    }
+                }
+                messageAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Handle possible errors
+            }
+        });
+        // Grant value - which view, comment array list
+        messageAdapter = new MessageAdapter(ChatRoomActivity.this, messagesArrayList);
+        // Set up the layout manager, adapter
+        messageRV.setLayoutManager(new LinearLayoutManager(ChatRoomActivity.this));
+        messageRV.setHasFixedSize(true);
+        messageRV.setAdapter(messageAdapter);
         // [END config_layout]
 
         // [START layout component function]
