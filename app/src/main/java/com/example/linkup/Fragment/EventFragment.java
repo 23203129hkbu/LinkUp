@@ -23,6 +23,7 @@ import com.example.linkup.Adapter.EventAdapter;
 import com.example.linkup.Adapter.PostAdapter;
 import com.example.linkup.CommunityOperation.CommunityMenu;
 import com.example.linkup.EventOperation.CreateEvent;
+import com.example.linkup.EventOperation.EventMenu;
 import com.example.linkup.HomeOperation.CreatePost;
 import com.example.linkup.HomeOperation.FollowRequestList;
 import com.example.linkup.HomeOperation.SearchUser;
@@ -133,8 +134,8 @@ public class EventFragment extends Fragment {
         btnMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                CommunityMenu mu = new CommunityMenu();
-                mu.show(getParentFragmentManager(), "bottom");
+                EventMenu em = new EventMenu();
+                em.show(getParentFragmentManager(), "bottom");
             }
         });
         // [END layout component function]

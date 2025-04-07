@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/btnMyEvents"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="1dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:drawableStart="@drawable/baseline_mode_24"
+            android:drawablePadding="10dp"
+            android:padding="10dp"
+            android:text="My Created Events"
+            android:textColor="@color/black"
+            android:textSize="20sp" />
+
+    </androidx.cardview.widget.CardView>
+
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/btnSavedEvents"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:drawableStart="@drawable/baseline_turned_in_24"
+            android:drawablePadding="10dp"
+            android:padding="10dp"
+            android:text="Saved Events"
+            android:textColor="@color/black"
+            android:textSize="20sp" />
+
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/btnJoinedEvents"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:drawableStart="@drawable/baseline_event_available_24"
+            android:drawablePadding="10dp"
+            android:padding="10dp"
+            android:text="Participated Events"
+            android:textColor="@color/black"
+            android:textSize="20sp" />
+
+    </androidx.cardview.widget.CardView>
+
+
+</LinearLayout>

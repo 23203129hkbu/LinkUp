@@ -21,6 +21,18 @@
         android:theme="@style/Theme.LinkUp"
         tools:targetApi="31">
         <activity
+            android:name=".EventOperation.JoinedEventsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".EventOperation.JoinedEvetnsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".EventOperation.SavedEventsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".EventOperation.MyEventsActivity"
+            android:exported="false" />
+        <activity
             android:name=".EventOperation.CreateEvent"
             android:exported="false" />
         <activity

@@ -34,7 +34,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Send you a follow request"
+            android:text="Invite you to his activities"
             android:textColor="@color/gray_1"
             android:textSize="12sp" />
     </LinearLayout>

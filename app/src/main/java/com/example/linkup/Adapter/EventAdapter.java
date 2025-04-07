@@ -48,9 +48,6 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
     // Boolean checker
-    Boolean isJoined; // -> you already join
-    // avoid over maximum participant
-    int participant, maxParticipant, quota;
     String startDateAndTime, endDateAndTime;
 
 
@@ -82,7 +79,6 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
         // [START config_firebase reference]
         DatabaseReference databaseUserRef,databaseEventRef, databaseParticipantRef, databaseSavedEventRef,databaseIsJoinedRef; // real-time db ref
         databaseUserRef = Rdb.getReference().child("user").child(event.getUID());
-        databaseEventRef = Rdb.getReference().child("event").child(event.getEventID());
         databaseParticipantRef = Rdb.getReference().child("eventParticipant").child(event.getEventID());
         // join / cancel
         databaseIsJoinedRef = Rdb.getReference().child("eventParticipant").child(event.getEventID()).child(auth.getUid());
@@ -94,10 +90,17 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
             // Hide save join button if the user is the creator
             holder.btnJoin.setVisibility(View.GONE);
             holder.btnSave.setVisibility(View.GONE);
+            holder.btnMenu.setVisibility(View.VISIBLE);
         }else{
             // Show save button for other users
             holder.btnSave.setVisibility(View.VISIBLE);
+            if (!event.isPublic()){
+                holder.btnMenu.setVisibility(View.GONE);
+            }else {
+                holder.btnMenu.setVisibility(View.VISIBLE);
+            }
         }
+
         // [Gain Post Creator Info]
         databaseUserRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -117,65 +120,12 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
             }
         });
         // [Gain Event Info]
-        databaseEventRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    maxParticipant = snapshot.child("participantLimit").getValue(int.class);
-                    // combine data to config layout
-                    startDateAndTime = snapshot.child("startDate").getValue(String.class)+", "+  snapshot.child("startTime").getValue(String.class);
-                    endDateAndTime = snapshot.child("endDate").getValue(String.class)+", "+  snapshot.child("endTime").getValue(String.class);
-                    // Layout Control (directly)
-                    holder.eventName.setText(snapshot.child("eventName").getValue(String.class));
-                    holder.location.setText(snapshot.child("location").getValue(String.class));
-                    holder.participantLimit.setText("Participants: "+ (snapshot.child("participantLimit").getValue(int.class)));
-                    holder.description.setText(snapshot.child("description").getValue(String.class));
-                    holder.startDateTime.setText("Start: "+startDateAndTime);
-                    holder.endDateTime.setText("End: "+endDateAndTime);
-                    // Regardless of whether a player has successfully participated in the event or not
-                    if (!event.isPublic()){
-                        holder.btnMenu.setVisibility(View.GONE);
-                    }
-                    /*
-                    To avoid the worst-case scenario, when the upper limit is changed
-                    and the other party does not update at the same time,
-                    a list with more people than the upper limit will appear.
-                    */
-                    databaseParticipantRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            if (snapshot.exists()) {
-                                participant = (int) snapshot.getChildrenCount();
-                                quota = maxParticipant - participant;
-                                if (quota == 0){
-                                    holder.eventStatusAndQuota.setText("Remaining quota: Full");
-                                    holder.btnJoin.setVisibility(View.GONE);
-                                }else{
-                                    holder.eventStatusAndQuota.setText("Remaining quota: "+ quota);
-                                    if (!event.getUID().equals(auth.getUid())){
-                                        holder.btnJoin.setVisibility(View.VISIBLE);
-                                    }
-                                }
-                            } else {
-                                Toast.makeText(context, "User data not found", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-                            Toast.makeText(context, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                            Log.w(TAG, "Personal information cannot be obtained: "+error.getMessage());
-                        }
-                    });
-                } else {
-                    Toast.makeText(context, "User data not found", Toast.LENGTH_SHORT).show();
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(context, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                Log.w(TAG, "Personal information cannot be obtained: "+error.getMessage());
-            }
-        });
+        holder.eventName.setText(event.getEventName());
+        holder.location.setText(event.getLocation());
+        holder.startDateTime.setText("Start: " + event.getStartDate() + ", " + event.getStartTime());
+        holder.endDateTime.setText("End: " + event.getEndDate() + ", " + event.getEndTime());
+        holder.description.setText(event.getDescription());
+        holder.participantLimit.setText("Participants: " + event.getParticipantLimit());
         // [Gain Event Quota / Count Join number of people]
         databaseIsJoinedRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -194,34 +144,38 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
                 Log.w(TAG, "Personal information cannot be obtained: "+error.getMessage());
             }
         });
+        // Calculate remaining quota
         databaseParticipantRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    participant = (int) snapshot.getChildrenCount();
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                        Users user = dataSnapshot.getValue(Users.class);
-                        // post created by this user
-                        if (user != null) {
-                            participant += 1;
-                        }
-                    }
-                    quota = maxParticipant - participant;
-                    if (quota == 0){
-                        holder.eventStatusAndQuota.setText("Remaining quota: Full");
-                    }else{
-                        holder.eventStatusAndQuota.setText("Remaining quota: "+ quota);
-                    }
+                int participantCount = (int) snapshot.getChildrenCount(); // Count actual participants
+                int maxParticipants = event.getParticipantLimit(); // Retrieve max participants
+                int remainingQuota = maxParticipants - participantCount;
+
+                // Update UI based on remaining quota
+                if (remainingQuota <= 0) {
+                    holder.eventStatusAndQuota.setText("Remaining quota: Full");
+                    holder.eventStatusAndQuota.setTextColor(ContextCompat.getColor(context, R.color.red_3));
+                    holder.btnJoin.setVisibility(View.GONE); // Hide join button if full
                 } else {
-                    Toast.makeText(context, "User data not found", Toast.LENGTH_SHORT).show();
+                    holder.eventStatusAndQuota.setText("Remaining quota: " + remainingQuota);
+                    holder.eventStatusAndQuota.setTextColor(ContextCompat.getColor(context, R.color.green_1));
+                    if (event.getUID().equals(auth.getUid())){
+                        // Hide save join button if the user is the creator
+                        holder.btnJoin.setVisibility(View.GONE);
+                    }else{
+                        holder.btnJoin.setVisibility(View.VISIBLE);
+                    }
+                     // Show join button if quota available
                 }
             }
+
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(context, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                Log.w(TAG, "Personal information cannot be obtained: "+error.getMessage());
+                Log.e(TAG, "Failed to load participant data: " + error.getMessage());
             }
         });
+
         // Check saved state of the event
         databaseSavedEventRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -296,6 +250,41 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
                         Users storedUser = new Users();
                         storedUser.setUID(auth.getUid());
                         databaseIsJoinedRef.setValue(storedUser).addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(context, "Event saved", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(context, "Failed to save event", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                    // * When every save changes -> Notify of changes to data set
+                    notifyDataSetChanged();
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Log.e(TAG, "Save/unsave operation failed: " + error.getMessage());
+                }
+            });
+        });
+        // Handle save button click (toggle save/remove event)
+        holder.btnMenu.setOnClickListener(view -> {
+            databaseSavedEventRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        // event is already saved, unsaved it
+                        databaseSavedEventRef.removeValue().addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(context, "Event unsaved", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(context, "Failed to unsaved event", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    } else {
+                        Events storedEvent = new Events();
+                        storedEvent.setEventID(event.getEventID());
+                        // Article is not saved, save it
+                        databaseSavedEventRef.setValue(storedEvent).addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
                                 Toast.makeText(context, "Event saved", Toast.LENGTH_SHORT).show();
                             } else {
