@@ -1,15 +1,14 @@
 package com.example.linkup.Object;
 
 public class Events {
-    String eventID, UID, eventName, description, startDate, startTime, endDate, endTime,location;
-    double gpsLat, gpsLng;
+    String eventID, UID, eventName, description, startDate, startTime, endDate, endTime, location;
     int participantLimit;
     boolean isPublic;
 
     public Events() {
     }
 
-    public Events(String eventID, String UID, String eventName, String description, String startDate, String startTime, String endDate, String endTime, String location, double gpsLat, double gpsLng, int participantLimit, boolean isPublic) {
+    public Events(String eventID, String UID, String eventName, String description, String startDate, String startTime, String endDate, String endTime, String location, int participantLimit, boolean isPublic) {
         this.eventID = eventID;
         this.UID = UID;
         this.eventName = eventName;
@@ -19,9 +18,7 @@ public class Events {
         this.endDate = endDate;
         this.endTime = endTime;
         this.location = location;
-        this.gpsLat = gpsLat;
-        this.gpsLng = gpsLng;
-        this.participantLimit = participantLimit;
+        this.participantLimit = 0;
         this.isPublic = isPublic;
     }
 
@@ -95,22 +92,6 @@ public class Events {
 
     public void setLocation(String location) {
         this.location = location;
-    }
-
-    public double getGpsLat() {
-        return gpsLat;
-    }
-
-    public void setGpsLat(double gpsLat) {
-        this.gpsLat = gpsLat;
-    }
-
-    public double getGpsLng() {
-        return gpsLng;
-    }
-
-    public void setGpsLng(double gpsLng) {
-        this.gpsLng = gpsLng;
     }
 
     public int getParticipantLimit() {

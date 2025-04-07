@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/white"
+    tools:context=".EventOperation.CreateEvent">
+
+    <!-- Top Action Bar -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="6dp"
+        app:cardBackgroundColor="@color/purple_4"
+        android:layout_marginBottom="10dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="8dp">
+
+            <ImageView
+                android:id="@+id/btnBack"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/baseline_arrow_back_24" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Create Event"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Event Name -->
+    <EditText
+        android:id="@+id/eventName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Event Name"
+        android:inputType="text"
+        android:backgroundTint="@color/purple_4"
+        android:padding="12dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/rounded_edittext_background" />
+
+    <!-- Description -->
+    <EditText
+        android:id="@+id/description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Description"
+        android:inputType="textMultiLine"
+        android:minLines="4"
+        android:gravity="top|start"
+        android:backgroundTint="@color/purple_4"
+        android:padding="12dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/rounded_edittext_background" />
+
+    <!-- Start Date -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="10dp"
+            android:textSize="@dimen/_12sdp"
+            android:text="Start Date:"
+            android:src="@drawable/baseline_location_on_24_black" />
+
+        <TextView
+            android:id="@+id/startDate"
+            android:layout_width="100dp"
+            android:textAlignment="center"
+            android:layout_height="wrap_content"
+            android:text="Select Date"
+            android:backgroundTint="@color/purple_4"
+            android:textColor="@android:color/white"
+            android:padding="12dp"
+            android:background="@drawable/custom_textview" />
+    </LinearLayout>
+
+
+    <!-- Start Time -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="10dp"
+            android:textSize="@dimen/_12sdp"
+            android:text="Start Time:"
+            android:src="@drawable/baseline_location_on_24_black" />
+
+        <TextView
+            android:id="@+id/startTime"
+            android:layout_width="100dp"
+            android:textAlignment="center"
+            android:layout_height="wrap_content"
+            android:text="Select Time"
+            android:backgroundTint="@color/purple_4"
+            android:textColor="@android:color/white"
+            android:padding="12dp"
+            android:background="@drawable/custom_textview" />
+    </LinearLayout>
+
+    <!-- End Date -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="10dp"
+            android:textSize="@dimen/_12sdp"
+            android:text="End Date:"
+            android:src="@drawable/baseline_location_on_24_black" />
+
+        <TextView
+            android:id="@+id/endDate"
+            android:layout_width="100dp"
+            android:textAlignment="center"
+            android:layout_height="wrap_content"
+            android:text="Select Date"
+            android:backgroundTint="@color/purple_4"
+            android:textColor="@android:color/white"
+            android:padding="12dp"
+            android:background="@drawable/custom_textview" />
+    </LinearLayout>
+
+    <!-- End Time -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="10dp"
+            android:textSize="@dimen/_12sdp"
+            android:text="End Time"
+            android:src="@drawable/baseline_location_on_24_black" />
+
+        <TextView
+            android:id="@+id/endTime"
+            android:layout_width="100dp"
+            android:textAlignment="center"
+            android:layout_height="wrap_content"
+            android:text="Select Time"
+            android:backgroundTint="@color/purple_4"
+            android:textColor="@android:color/white"
+            android:padding="12dp"
+            android:background="@drawable/custom_textview" />
+    </LinearLayout>
+
+    <!-- Location with Button -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="10dp">
+
+        <ImageView
+            android:id="@+id/btnLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:padding="10dp"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/baseline_location_on_24_black" />
+
+
+        <EditText
+            android:id="@+id/location"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Enter Location"
+            android:layout_weight="1"
+            android:inputType="text"
+            android:backgroundTint="@color/purple_4"
+            android:padding="12dp"
+            android:background="@drawable/rounded_edittext_background" />
+    </LinearLayout>
+
+    <!-- Participant Limit -->
+    <EditText
+        android:id="@+id/participant"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Participant Limit (Optional)"
+        android:inputType="number"
+        android:backgroundTint="@color/purple_4"
+        android:padding="12dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/rounded_edittext_background" />
+
+    <!-- Public/Private Switch -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="5dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Privacy Setting"
+            android:layout_weight="1"
+            android:textSize="18sp"
+            android:layout_gravity="center_vertical"
+            android:textColor="@android:color/black" />
+
+        <Switch
+            android:id="@+id/switchState"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:trackTint="@color/purple_5"
+            android:gravity="left"
+            android:thumbTint="@color/purple_4" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="5dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="State: "
+            android:textSize="18sp"
+            android:layout_gravity="center_vertical"
+            android:textColor="@android:color/black" />
+
+        <TextView
+            android:id="@+id/state"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Public"
+            android:textSize="18sp"
+            android:layout_gravity="center_vertical"
+            android:textColor="@android:color/darker_gray"
+             />
+
+    </LinearLayout>
+
+
+    <!-- Submit Button -->
+    <TextView
+        android:id="@+id/btnCreate"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:text="Create Event"
+        android:textAlignment="center"
+        android:layout_gravity="center"
+        android:backgroundTint="@color/purple_4"
+        android:textColor="@android:color/white"
+        android:padding="12dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/custom_textview" />
+</LinearLayout>

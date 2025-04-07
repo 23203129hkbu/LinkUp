@@ -112,7 +112,7 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        //
+        // monitor for user, post, following relationship
         monitorDataChanges();
         // [END config_layout]
 
@@ -274,10 +274,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void finalizePostLoading() {
-        // 按日期排序貼文
         postsArrayList.sort((a1, a2) -> a2.getDate().compareTo(a1.getDate()));
-
-        // 通知適配器數據更新
         postAdapter.notifyDataSetChanged();
     }
     // handling UI update

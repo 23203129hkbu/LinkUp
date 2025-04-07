@@ -116,7 +116,6 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
                     holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
                 }
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(context, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
