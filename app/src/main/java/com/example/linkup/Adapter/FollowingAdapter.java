@@ -83,9 +83,11 @@ public class FollowingAdapter extends RecyclerView.Adapter<FollowingAdapter.View
         });
         // Open user profile on item click
         holder.itemView.setOnClickListener(view -> {
-            Intent intent = new Intent(context, UserProfile.class);
-            intent.putExtra("user", user);  // Pass the article object
-            context.startActivity(intent);
+            if (!user.getUID().equals(auth.getUid())){
+                Intent intent = new Intent(context, UserProfile.class);
+                intent.putExtra("user", user);  // Pass the article object
+                context.startActivity(intent);
+            }
         });
         // [END layout component function]
     }

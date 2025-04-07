@@ -38,6 +38,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 /*
 Case 1: delete post
 Case 2: private account
@@ -58,6 +59,7 @@ public class HomeFragment extends Fragment {
     // convert post data into RecyclerView by Adapter
     ArrayList<Posts> postsArrayList = new ArrayList<>();
     PostAdapter postAdapter;
+    HashSet<String> addedPostIDs = new HashSet<>();
 
 
     @Nullable
@@ -85,6 +87,12 @@ public class HomeFragment extends Fragment {
         // [END gain]
 
         // [START config_layout]
+        // Grant value - which view, posts array list
+        postAdapter = new PostAdapter(getContext(), postsArrayList);
+        // Set up the layout manager, adapter
+        postRV.setLayoutManager(new LinearLayoutManager(getContext()));
+        postRV.setHasFixedSize(true);
+        postRV.setAdapter(postAdapter);
         // Determine if there are any follow requests
         databaseRequestedRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -103,49 +111,9 @@ public class HomeFragment extends Fragment {
                 Toast.makeText(getContext(), "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-        // Public user checker
-        databaseUserRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot userSnapshot) {
-                if (userSnapshot.exists()) {
-                    reloadPosts();
-                }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(getContext(), "Failed to load posts: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-        // Followed user checker
-        databaseFollowingRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot followingSnapshot) {
-                reloadPosts();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(getContext(), "Failed to load posts: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-        // Pass data into arrayList , then post adapter received
-        databasePostRef.orderByChild("date").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot postSnapshot) {
-                reloadPosts();
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(getContext(), "Failed to load articles: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-        // Grant value - which view, posts array list
-        postAdapter = new PostAdapter(getContext(), postsArrayList);
-        // Set up the layout manager, adapter
-        postRV.setLayoutManager(new LinearLayoutManager(getContext()));
-        postRV.setHasFixedSize(true);
-        postRV.setAdapter(postAdapter);
+        //
+        monitorDataChanges();
         // [END config_layout]
 
         // [START layout component function]
@@ -172,78 +140,146 @@ public class HomeFragment extends Fragment {
         });
         // [END layout component function]
 
+
         // this line must be finalized
         return view;
     }
-    // refresh posts
-    private void reloadPosts() {
-        databasePostRef.orderByChild("date").addListenerForSingleValueEvent(new ValueEventListener() {
+
+    private void monitorDataChanges() {
+        // Pass data into arrayList , then post adapter received
+        databasePostRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot postSnapshot) {
-                postsArrayList.clear();
-                for (DataSnapshot dataSnapshot : postSnapshot.getChildren()) {
-                    Posts post = dataSnapshot.getValue(Posts.class);
-                    // Ensure article is not null before proceeding
-                    // asynchronous problem
-                    if (post != null) {
-                        if (post.getUID().equals(auth.getUid())) {
-                            // Your own posts
-                            postsArrayList.add(post);
-                        } else {
-                            // Public posts
-                            databaseUserRef.child(post.getUID()).addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot userSnapshot) {
-                                    if (userSnapshot.exists()) {
-                                        if (userSnapshot.child("privacy").getValue(String.class).equals("Public")) {
-                                            postsArrayList.add(post);
-                                        } else {
-                                            // Posts by users you follow
-                                            databaseFollowingRef.child(post.getUID()).addListenerForSingleValueEvent(new ValueEventListener() {
-                                                @Override
-                                                public void onDataChange(@NonNull DataSnapshot followingSnapshot) {
-                                                    if (followingSnapshot.exists()) {
-                                                        postsArrayList.add(post);
-                                                    }
-                                                }
-
-                                                @Override
-                                                public void onCancelled(@NonNull DatabaseError error) {
-                                                    Toast.makeText(getContext(), "Failed to load posts: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                                                }
-                                            });
-                                        }
-                                    }
-                                }
-
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError error) {
-                                    Toast.makeText(getContext(), "Failed to load posts: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                        }
-                    }
-                }
-                // Sort post by date and time to ensure the newest articles are at the top
-                postsArrayList.sort((a1, a2) -> {
-                    // Compare by date (descending)
-                    int dateComparison = a2.getDate().compareTo(a1.getDate());
-                    return dateComparison;
-                });
-                // Notify adapter after sorting
-                postAdapter.notifyDataSetChanged();
+                reloadPosts(postSnapshot);
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(getContext(), "Failed to load articles: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+        // Public user checker
+        // Listen for changes in user privacy settings
+        databaseUserRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot userSnapshot) {
+                    reloadPosts(null); // Reload the post
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(getContext(), "Failed to load posts: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+        // Followed user checker
+        databaseFollowingRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot followingSnapshot) {
+                reloadPosts(null); // Reload the post
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(getContext(), "Failed to load posts: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
     }
 
     // [START Method]
+    // refresh posts
+    private void reloadPosts(@Nullable DataSnapshot postSnapshot) {
+        postsArrayList.clear();
+        addedPostIDs.clear();
 
+        if (postSnapshot == null) {
+            // If postSnapshot is null, reload data from Firebase
+            databasePostRef.orderByChild("date").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                        Posts post = dataSnapshot.getValue(Posts.class);
+                        if (post != null) {
+                            if (post.getUID().equals(auth.getUid())) {
+                                addPostIfNotExists(post);
+                            } else {
+                                checkPostVisibility(post);
+                            }
+                        }
+                    }
+                    finalizePostLoading();
+                }
 
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(getContext(), "Failed to reload posts: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            // If postSnapshot is not null, process the data directly
+            for (DataSnapshot dataSnapshot : postSnapshot.getChildren()) {
+                Posts post = dataSnapshot.getValue(Posts.class);
+                if (post != null) {
+                    if (post.getUID().equals(auth.getUid())) {
+                        addPostIfNotExists(post);
+                    } else {
+                        checkPostVisibility(post);
+                    }
+                }
+            }
+            finalizePostLoading();
+        }
+    }
+
+    private void checkPostVisibility(Posts post) {
+        databaseUserRef.child(post.getUID()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot userSnapshot) {
+                if (userSnapshot.exists()) {
+                    String privacy = userSnapshot.child("privacy").getValue(String.class);
+                    if ("Public".equals(privacy)) {
+                        addPostIfNotExists(post);
+                    } else {
+                        checkIfUserIsFollowed(post);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(getContext(), "Failed to check user privacy: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void checkIfUserIsFollowed(Posts post) {
+        databaseFollowingRef.child(post.getUID()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot followingSnapshot) {
+                if (followingSnapshot.exists()) {
+                    addPostIfNotExists(post);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(getContext(), "Failed to check following status: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void addPostIfNotExists(Posts post) {
+        if (addedPostIDs.add(post.getPostID())) {
+            postsArrayList.add(post);
+        }
+    }
+
+    private void finalizePostLoading() {
+        // 按日期排序貼文
+        postsArrayList.sort((a1, a2) -> a2.getDate().compareTo(a1.getDate()));
+
+        // 通知適配器數據更新
+        postAdapter.notifyDataSetChanged();
+    }
     // handling UI update
     private void updateUI(String screen) {
         Intent intent = null;

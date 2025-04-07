@@ -17,6 +17,8 @@ import com.example.linkup.HomeOperation.UserProfile;
 import com.example.linkup.Object.Posts;
 import com.example.linkup.Object.Users;
 import com.example.linkup.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -29,12 +31,18 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     Context context;
     ArrayList<Users> usersArrayList;
     String location;
+    // Firebase features
+    FirebaseAuth auth;
 
     // Constructor
     public UserAdapter(Context context, ArrayList<Users> usersArrayList, String location) {
         this.context = context;
         this.usersArrayList = usersArrayList;
         this.location = location;
+
+        //[START Firebase configuration - get a object]
+        auth = FirebaseAuth.getInstance();
+        //[END configuration]
     }
 
 
@@ -57,14 +65,16 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         // [START layout component function]
         // Open user profile on item click
         holder.itemView.setOnClickListener(view -> {
-            Intent intent;
-            if (location.equals("ChatRoom")){
-                intent = new Intent(context, ChatRoomActivity.class);
-            }else{
-                intent = new Intent(context, UserProfile.class);
+            if (!user.getUID().equals(auth.getUid())){
+                Intent intent;
+                if (location.equals("ChatRoom")){
+                    intent = new Intent(context, ChatRoomActivity.class);
+                }else{
+                    intent = new Intent(context, UserProfile.class);
+                }
+                intent.putExtra("user", user);  // Pass the article object
+                context.startActivity(intent);
             }
-            intent.putExtra("user", user);  // Pass the article object
-            context.startActivity(intent);
         });
         // [END layout component function]
     }

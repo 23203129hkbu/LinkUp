@@ -52,6 +52,7 @@ import java.util.Date;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+// ✅
 public class ChatRoomActivity extends AppCompatActivity {
     // layout object
     ImageView btnBack, btnFavorites, btnVoice, btnImage, btnSend;
