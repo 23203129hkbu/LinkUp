@@ -22,8 +22,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.linkup.ChatOperation.ChatRoomActivity;
 import com.example.linkup.CommunityOperation.UpdateCommunityPost;
 import com.example.linkup.EventOperation.CreateEvent;
+import com.example.linkup.EventOperation.EventActivity;
 import com.example.linkup.EventOperation.FindRoute;
 import com.example.linkup.HomeOperation.PostMenu;
 import com.example.linkup.HomeOperation.UserProfile;
@@ -63,7 +65,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
 
 
     // Constructor
-    public EventAdapter(Context context, ArrayList<Events> eventsArrayList,  AppCompatActivity activity) {
+    public EventAdapter(Context context, ArrayList<Events> eventsArrayList, AppCompatActivity activity) {
         this.context = context;
         this.eventsArrayList = eventsArrayList;
         this.activity = activity; // Assign activity
@@ -87,65 +89,39 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull EventAdapter.ViewHolder holder, int position) {
         final Events event = eventsArrayList.get(position);
         // event.getUID and event.getEventID never change
-
         // [START config_firebase reference]
-        DatabaseReference databaseUserRef,databaseEventRef, databaseParticipantRef, databaseSavedEventRef,databaseIsJoinedRef; // real-time db ref
+        DatabaseReference databaseUserRef, databaseParticipantRef, databaseSavedEventRef, databaseIsJoinedRef; // real-time db ref
         databaseUserRef = Rdb.getReference().child("user").child(event.getUID());
         databaseParticipantRef = Rdb.getReference().child("eventParticipant").child(event.getEventID());
-        // join / cancel
-        databaseIsJoinedRef = Rdb.getReference().child("eventParticipant").child(event.getEventID()).child(auth.getUid());
         databaseSavedEventRef = Rdb.getReference().child("savedEvent").child(auth.getUid()).child(event.getEventID());
         // [END config_firebase reference]
 
-
-        // Parse the event's start and end date/time
-        String eventStartDateTime = event.getStartDate() + " " + event.getStartTime(); // Combine start date and time
-        String eventEndDateTime = event.getEndDate() + " " + event.getEndTime(); // Combine end date and time
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm"); // Adjust format as needed
-
-
         // [START config_layout]
         try {
+            // Parse the event's start and end date/time
+            String eventStartDateTime = event.getStartDate() + " " + event.getStartTime(); // Combine start date and time
+            String eventEndDateTime = event.getEndDate() + " " + event.getEndTime(); // Combine end date and time
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm"); // Adjust format as needed
+
             Date eventStart = dateFormat.parse(eventStartDateTime); // Event start time
             Date eventEnd = dateFormat.parse(eventEndDateTime); // Event end time
             Date currentTime = new Date(); // Current system time
-
             // Check if the event has started
             // If the event is start or end, don't need count the quota
-            if (eventStart != null && currentTime.after(eventStart)) {
-                // Hide the "Join" or "Cancel" button if the event has started
-                holder.btnJoin.setVisibility(View.GONE);
-                holder.eventStatusAndQuota.setTextColor(ContextCompat.getColor(context, R.color.red_3));
-
-                if (eventEnd != null && currentTime.after(eventEnd)){
-                    holder.eventStatusAndQuota.setText("The event has ended");
-                }else {
-                    holder.eventStatusAndQuota.setText("The event has started");
-                }
-            } else {
-                // Event has not started, ensure the button is visible
-                if (event.getUID().equals(auth.getUid())){
-                    // Hide save join button if the user is the creator
-                    holder.btnJoin.setVisibility(View.GONE);
-                    holder.btnSave.setVisibility(View.GONE);
-                }else{
-                    // Show save button for other users
-                    holder.btnSave.setVisibility(View.VISIBLE);
-                    holder.eventStatusAndQuota.setText("");
-                    holder.eventStatusAndQuota.setTextColor(ContextCompat.getColor(context, R.color.green_1));
-                }
+            if (!currentTime.after(eventStart) || !currentTime.after(eventEnd)) {
                 // [Gain Event Quota / Count Join number of people]
                 databaseParticipantRef.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        Boolean isJoined = false;
+                        boolean isJoined = false;
+                        boolean isFull = false;
                         int participantCount = (int) snapshot.getChildrenCount(); // Count actual participants
                         int maxParticipants = event.getParticipantLimit(); // Retrieve max participants
                         int remainingQuota = maxParticipants - participantCount;
                         for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                             Users user = dataSnapshot.getValue(Users.class);
-                            // post created by this user
-                            if (user != null && user.getUID().equals(user.getUID())) {
+                            // Check isJoined
+                            if (user.getUID().equals(auth.getUid())) {
                                 isJoined = true;
                             }
                         }
@@ -153,22 +129,33 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
                         if (remainingQuota <= 0) {
                             holder.eventStatusAndQuota.setText("Remaining quota: Full");
                             holder.eventStatusAndQuota.setTextColor(ContextCompat.getColor(context, R.color.red_3));
-                            if (!isJoined){
-                                holder.btnJoin.setVisibility(View.GONE); // Hide join button if full
-                            }else {
-                                holder.btnJoin.setVisibility(View.VISIBLE);
-                            }
+                            // Check isFull
+                            isFull = true;
                         } else {
                             holder.eventStatusAndQuota.setText("Remaining quota: " + remainingQuota);
                             holder.eventStatusAndQuota.setTextColor(ContextCompat.getColor(context, R.color.green_1));
-                            if (event.getUID().equals(auth.getUid())){
-                                // Hide save join button if the user is the creator
-                                holder.btnJoin.setVisibility(View.GONE);
-                            }else{
-                                holder.btnJoin.setVisibility(View.VISIBLE);
-                            }
-                            // Show join button if quota available
                         }
+                        // creator can't quit
+                        if (!event.getUID().equals(auth.getUid())) {
+                            // isFull and is participant
+                            if (isFull && !isJoined) {
+                                // isFull -> can't join and is participant
+                                holder.btnJoin.setVisibility(View.GONE);
+                            } else {
+                                // is participant or isn't full
+                                holder.btnJoin.setVisibility(View.VISIBLE);
+                                if (isJoined) {
+                                    holder.btnJoin.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.red_3));
+                                    holder.btnJoin.setText("CANCEL");
+                                } else {
+                                    holder.btnJoin.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.green_1));
+                                    holder.btnJoin.setText("JOIN");
+                                }
+                            }
+                        } else {
+                            holder.btnJoin.setVisibility(View.GONE);
+                        }
+
                     }
 
                     @Override
@@ -176,31 +163,21 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
                         Log.e(TAG, "Failed to load participant data: " + error.getMessage());
                     }
                 });
-                // Check IsJoin
-                databaseIsJoinedRef.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (snapshot.exists()) {
-                            holder.btnJoin.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.red_3));
-                            holder.btnJoin.setText("CANCEL");
-                        } else {
-                            holder.btnJoin.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.green_1));
-                            holder.btnJoin.setText("JOIN");
-                        }
-                    }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(context, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                        Log.w(TAG, "Personal information cannot be obtained: "+error.getMessage());
-                    }
-                });
+
+            } else {
+                holder.btnJoin.setVisibility(View.GONE);
+                holder.eventStatusAndQuota.setTextColor(ContextCompat.getColor(context, R.color.red_3));
+                if (currentTime.after(eventEnd)) {
+                    holder.eventStatusAndQuota.setText("The event has ended");
+                } else if (currentTime.after(eventStart)) {
+                    holder.eventStatusAndQuota.setText("The event has started");
+                }
             }
         } catch (ParseException e) {
             e.printStackTrace();
             Log.e(TAG, "Error parsing event start date/time: " + e.getMessage());
         }
-
-        // [Gain Post Creator Info]
+        // [Gain Event Creator Info]
         databaseUserRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -212,10 +189,11 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
                     Toast.makeText(context, "User data not found", Toast.LENGTH_SHORT).show();
                 }
             }
+
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(context, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                Log.w(TAG, "Personal information cannot be obtained: "+error.getMessage());
+                Log.w(TAG, "Personal information cannot be obtained: " + error.getMessage());
             }
         });
         // [Gain Event Info]
@@ -225,7 +203,6 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
         holder.endDateTime.setText("End: " + event.getEndDate() + ", " + event.getEndTime());
         holder.description.setText(event.getDescription());
         holder.participantLimit.setText("Participants: " + event.getParticipantLimit());
-
         // Check saved state of the event
         databaseSavedEventRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -238,6 +215,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
                     holder.btnSave.setImageResource(R.drawable.baseline_turned_in_not_24);
                 }
             }
+
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(context, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
@@ -275,6 +253,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
                     // * When every save changes -> Notify of changes to data set
                     notifyDataSetChanged();
                 }
+
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
                     Log.e(TAG, "Save/unsave operation failed: " + error.getMessage());
@@ -310,6 +289,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
                     // * When every save changes -> Notify of changes to data set
                     notifyDataSetChanged();
                 }
+
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
                     Log.e(TAG, "Save/unsave operation failed: " + error.getMessage());
@@ -341,6 +321,12 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
                 Toast.makeText(context, "Failed to encode location.", Toast.LENGTH_SHORT).show();
             }
         });
+        // Open event on item click
+        holder.itemView.setOnClickListener(view -> {
+            Intent intent = new Intent(context, EventActivity.class);
+            intent.putExtra("event", event);  // Pass the event object
+            context.startActivity(intent);
+        });
         // [END layout component function]
     }
 
@@ -361,7 +347,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
             eventName = itemView.findViewById(R.id.eventName);
             startDateTime = itemView.findViewById(R.id.startDateTime);
             endDateTime = itemView.findViewById(R.id.endDateTime);
-            location= itemView.findViewById(R.id.location);
+            location = itemView.findViewById(R.id.location);
             participantLimit = itemView.findViewById(R.id.participantLimit);
             description = itemView.findViewById(R.id.description);
             eventStatusAndQuota = itemView.findViewById(R.id.eventStatusAndQuota);

@@ -1,6 +1,8 @@
 package com.example.linkup.Object;
 
-public class Events {
+import java.io.Serializable;
+
+public class Events implements Serializable {
     String eventID, UID, eventName, description, startDate, startTime, endDate, endTime, location;
     int participantLimit;
     boolean isPublic;

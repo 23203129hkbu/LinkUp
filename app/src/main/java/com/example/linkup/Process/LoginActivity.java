@@ -92,7 +92,7 @@ public class LoginActivity extends AppCompatActivity {
                 userEmail = email.getText().toString();
                 userPwd = pwd.getText().toString();
 
-                progressDialog.show(); // Show the dialog first
+
                 // error handling : empty, invalid format, length limitation
                 if ((TextUtils.isEmpty(userEmail))) {
                     Toast.makeText(LoginActivity.this, "Email is required", Toast.LENGTH_SHORT).show();
@@ -105,6 +105,7 @@ public class LoginActivity extends AppCompatActivity {
                     pwd.setError("Passwords must be six or more characters");
                     Toast.makeText(LoginActivity.this, "Passwords are less than six characters", Toast.LENGTH_SHORT).show();
                 } else {
+                    progressDialog.show(); // Show the dialog first
                     progressbar.setVisibility(View.VISIBLE);
                     // When a user signs in to your app, pass the user's email address and password
                     auth.signInWithEmailAndPassword(userEmail, userPwd).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
