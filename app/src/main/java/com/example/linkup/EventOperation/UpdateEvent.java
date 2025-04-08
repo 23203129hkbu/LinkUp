@@ -28,6 +28,8 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.linkup.Object.Events;
+import com.example.linkup.Object.Modifications;
+import com.example.linkup.Object.Posts;
 import com.example.linkup.Object.Users;
 import com.example.linkup.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -53,7 +55,7 @@ public class UpdateEvent extends AppCompatActivity {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseEventRef, databaseParticipantRef; // real-time db ref
+    DatabaseReference databaseEventRef, databaseParticipantRef, databaseModificationRef; // real-time db ref
     // Dialog
     ProgressDialog progressDialog;
     // Calendar & DateFormat
@@ -82,6 +84,7 @@ public class UpdateEvent extends AppCompatActivity {
         // [START config_firebase reference]
         databaseEventRef = Rdb.getReference().child("event").child(event.getEventID());
         databaseParticipantRef = Rdb.getReference().child("eventParticipant").child(event.getEventID());
+        databaseModificationRef = Rdb.getReference().child("modification");
         // [END config_firebase reference]
 
 
@@ -371,6 +374,27 @@ public class UpdateEvent extends AppCompatActivity {
                 .addOnSuccessListener(unused -> {
                     progressDialog.dismiss();
                     Toast.makeText(UpdateEvent.this, "Event updated successfully!", Toast.LENGTH_SHORT).show();
+                    databaseParticipantRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                Users user = dataSnapshot.getValue(Users.class);
+                                if (user != null) {
+                                    Modifications modification = new Modifications();
+                                    modification.setEventId(event.getEventID());
+                                    modification.setContent("Please note that Event: "+ event.getEventName()+" has been changed");
+                                    modification.setRead(false);
+                                    databaseModificationRef.child(user.getUID()).child(event.getEventID()).setValue(modification);
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            Toast.makeText(UpdateEvent.this, "Failed to reload posts: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
                     finish(); // Close the activity
                 })
                 .addOnFailureListener(e -> {
