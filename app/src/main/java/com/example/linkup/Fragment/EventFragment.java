@@ -24,6 +24,7 @@ import com.example.linkup.Adapter.PostAdapter;
 import com.example.linkup.CommunityOperation.CommunityMenu;
 import com.example.linkup.EventOperation.CreateEvent;
 import com.example.linkup.EventOperation.EventMenu;
+import com.example.linkup.EventOperation.SearchEvent;
 import com.example.linkup.HomeOperation.CreatePost;
 import com.example.linkup.HomeOperation.FollowRequestList;
 import com.example.linkup.HomeOperation.SearchUser;
@@ -48,7 +49,7 @@ import java.util.Locale;
 public class EventFragment extends Fragment {
     View view;
     // layout object
-    ImageView btnAdd, btnNotification, btnMenu;
+    ImageView btnAdd, btnSearch, btnMenu;
     RecyclerView eventRV;
     // Firebase features
     FirebaseAuth auth;
@@ -73,7 +74,7 @@ public class EventFragment extends Fragment {
 
         // [START gain layout objects]
         btnMenu = view.findViewById(R.id.btnMenu);
-        btnNotification = view.findViewById(R.id.btnNotification);
+        btnSearch = view.findViewById(R.id.btnSearch);
         btnAdd = view.findViewById(R.id.btnAdd);
         eventRV = view.findViewById(R.id.eventRV);
         // [END gain]
@@ -130,6 +131,13 @@ public class EventFragment extends Fragment {
                 updateUI("Create");
             }
         });
+        // Switch the screen - Search User
+        btnSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateUI("Search");
+            }
+        });
         // Switch the screen - Community Menu
         btnMenu.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -149,8 +157,8 @@ public class EventFragment extends Fragment {
         Intent intent = null;
         if (screen.equals("Create")) {
             intent = new Intent(getContext(), CreateEvent.class);
-        } else if (screen.equals("Notification")) {
-            intent = new Intent(getContext(), FollowRequestList.class);
+        } else if (screen.equals("Search")) {
+            intent = new Intent(getContext(), SearchEvent.class);
         }
         if (intent != null) {
             startActivity(intent);

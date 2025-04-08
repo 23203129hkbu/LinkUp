@@ -111,10 +111,12 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
             Date currentTime = new Date(); // Current system time
 
             // Check if the event has started
+            // If the event is start or end, don't need count the quota
             if (eventStart != null && currentTime.after(eventStart)) {
                 // Hide the "Join" or "Cancel" button if the event has started
                 holder.btnJoin.setVisibility(View.GONE);
                 holder.eventStatusAndQuota.setTextColor(ContextCompat.getColor(context, R.color.red_3));
+
                 if (eventEnd != null && currentTime.after(eventEnd)){
                     holder.eventStatusAndQuota.setText("The event has ended");
                 }else {
@@ -132,6 +134,66 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
                     holder.eventStatusAndQuota.setText("");
                     holder.eventStatusAndQuota.setTextColor(ContextCompat.getColor(context, R.color.green_1));
                 }
+                // [Gain Event Quota / Count Join number of people]
+                databaseParticipantRef.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        Boolean isJoined = false;
+                        int participantCount = (int) snapshot.getChildrenCount(); // Count actual participants
+                        int maxParticipants = event.getParticipantLimit(); // Retrieve max participants
+                        int remainingQuota = maxParticipants - participantCount;
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                            Users user = dataSnapshot.getValue(Users.class);
+                            // post created by this user
+                            if (user != null && user.getUID().equals(user.getUID())) {
+                                isJoined = true;
+                            }
+                        }
+                        // Update UI based on remaining quota
+                        if (remainingQuota <= 0) {
+                            holder.eventStatusAndQuota.setText("Remaining quota: Full");
+                            holder.eventStatusAndQuota.setTextColor(ContextCompat.getColor(context, R.color.red_3));
+                            if (!isJoined){
+                                holder.btnJoin.setVisibility(View.GONE); // Hide join button if full
+                            }else {
+                                holder.btnJoin.setVisibility(View.VISIBLE);
+                            }
+                        } else {
+                            holder.eventStatusAndQuota.setText("Remaining quota: " + remainingQuota);
+                            holder.eventStatusAndQuota.setTextColor(ContextCompat.getColor(context, R.color.green_1));
+                            if (event.getUID().equals(auth.getUid())){
+                                // Hide save join button if the user is the creator
+                                holder.btnJoin.setVisibility(View.GONE);
+                            }else{
+                                holder.btnJoin.setVisibility(View.VISIBLE);
+                            }
+                            // Show join button if quota available
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.e(TAG, "Failed to load participant data: " + error.getMessage());
+                    }
+                });
+                // Check IsJoin
+                databaseIsJoinedRef.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            holder.btnJoin.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.red_3));
+                            holder.btnJoin.setText("CANCEL");
+                        } else {
+                            holder.btnJoin.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.green_1));
+                            holder.btnJoin.setText("JOIN");
+                        }
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(context, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        Log.w(TAG, "Personal information cannot be obtained: "+error.getMessage());
+                    }
+                });
             }
         } catch (ParseException e) {
             e.printStackTrace();
@@ -163,64 +225,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
         holder.endDateTime.setText("End: " + event.getEndDate() + ", " + event.getEndTime());
         holder.description.setText(event.getDescription());
         holder.participantLimit.setText("Participants: " + event.getParticipantLimit());
-        // [Gain Event Quota / Count Join number of people]
-        databaseIsJoinedRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    holder.btnJoin.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.red_3));
-                    holder.btnJoin.setText("CANCEL");
-                } else {
-                    holder.btnJoin.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.green_1));
-                    holder.btnJoin.setText("JOIN");
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(context, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                Log.w(TAG, "Personal information cannot be obtained: "+error.getMessage());
-            }
-        });
-        // Calculate remaining quota
-        databaseParticipantRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Boolean isJoined = false;
-                int participantCount = (int) snapshot.getChildrenCount(); // Count actual participants
-                int maxParticipants = event.getParticipantLimit(); // Retrieve max participants
-                int remainingQuota = maxParticipants - participantCount;
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Users user = dataSnapshot.getValue(Users.class);
-                    // post created by this user
-                    if (user != null && user.getUID().equals(user.getUID())) {
-                        isJoined = true;
-                    }
-                }
-                // Update UI based on remaining quota
-                if (remainingQuota <= 0) {
-                    holder.eventStatusAndQuota.setText("Remaining quota: Full");
-                    holder.eventStatusAndQuota.setTextColor(ContextCompat.getColor(context, R.color.red_3));
-                    if (!isJoined){
-                        holder.btnJoin.setVisibility(View.GONE); // Hide join button if full
-                    }
-                } else {
-                    holder.eventStatusAndQuota.setText("Remaining quota: " + remainingQuota);
-                    holder.eventStatusAndQuota.setTextColor(ContextCompat.getColor(context, R.color.green_1));
-                    if (event.getUID().equals(auth.getUid())){
-                        // Hide save join button if the user is the creator
-                        holder.btnJoin.setVisibility(View.GONE);
-                    }else{
-                        holder.btnJoin.setVisibility(View.VISIBLE);
-                    }
-                     // Show join button if quota available
-                }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e(TAG, "Failed to load participant data: " + error.getMessage());
-            }
-        });
         // Check saved state of the event
         databaseSavedEventRef.addValueEventListener(new ValueEventListener() {
             @Override
