@@ -92,11 +92,16 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
         // [START config_firebase reference]
         DatabaseReference databaseUserRef, databaseParticipantRef, databaseSavedEventRef, databaseIsJoinedRef; // real-time db ref
         databaseUserRef = Rdb.getReference().child("user").child(event.getUID());
+        databaseIsJoinedRef = Rdb.getReference().child("eventParticipant").child(event.getEventID()).child(auth.getUid());
         databaseParticipantRef = Rdb.getReference().child("eventParticipant").child(event.getEventID());
         databaseSavedEventRef = Rdb.getReference().child("savedEvent").child(auth.getUid()).child(event.getEventID());
         // [END config_firebase reference]
 
         // [START config_layout]
+        if (event.getUID().equals(auth.getUid())){
+            holder.btnSave.setVisibility(View.GONE);
+        }
+
         try {
             // Parse the event's start and end date/time
             String eventStartDateTime = event.getStartDate() + " " + event.getStartTime(); // Combine start date and time
@@ -108,7 +113,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
             Date currentTime = new Date(); // Current system time
             // Check if the event has started
             // If the event is start or end, don't need count the quota
-            if (!currentTime.after(eventStart) || !currentTime.after(eventEnd)) {
+            if (!currentTime.after(eventStart)) {
                 // [Gain Event Quota / Count Join number of people]
                 databaseParticipantRef.addValueEventListener(new ValueEventListener() {
                     @Override

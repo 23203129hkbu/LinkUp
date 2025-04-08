@@ -5,9 +5,7 @@ import static android.content.ContentValues.TAG;
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.media.metrics.Event;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
@@ -15,28 +13,22 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.example.linkup.HomeOperation.CreatePost;
 import com.example.linkup.Object.Events;
-import com.example.linkup.Object.Posts;
 import com.example.linkup.Object.Users;
-import com.example.linkup.ProfileOperation.PrivacyActivity;
 import com.example.linkup.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -44,21 +36,19 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
-import de.hdodenhof.circleimageview.CircleImageView;
-// ✅
-public class CreateEvent extends AppCompatActivity {
+public class UpdateEvent extends AppCompatActivity {
     // layout object
     ImageView btnBack, btnLocation;
     EditText eventName, description, location, participant;
-    TextView startDate, startTime, endDate, endTime, state, btnCreate, error;
+    TextView startDate, startTime, endDate, endTime, state, btnUpdate, error;
     Switch switchState;
     // Firebase features
     FirebaseAuth auth;
@@ -72,14 +62,17 @@ public class CreateEvent extends AppCompatActivity {
     TimePickerDialog timePickerDialog;
     // Event Info
     Events event = new Events();
-    String eventId;
-    String name, eventDescription, eventLocation, eventParticipant, eventStartDate, eventStartTime, eventEndDate, eventEndTime;
-    Boolean isPublic = true;
+    Boolean isPublic = false;
+    int currentParticipant;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create_event);
+        setContentView(R.layout.activity_update_event);
+        // [START gain value from other activity]
+        event = (Events) getIntent().getSerializableExtra("event");
+        // [END gain]
 
         // [START config_firebase]
         auth = FirebaseAuth.getInstance();
@@ -87,9 +80,10 @@ public class CreateEvent extends AppCompatActivity {
         // [END config_firebase]
 
         // [START config_firebase reference]
-        databaseEventRef = Rdb.getReference().child("event");
-        databaseParticipantRef = Rdb.getReference().child("eventParticipant");
+        databaseEventRef = Rdb.getReference().child("event").child(event.getEventID());
+        databaseParticipantRef = Rdb.getReference().child("eventParticipant").child(event.getEventID());
         // [END config_firebase reference]
+
 
         // [START gain layout objects]
         btnBack = findViewById(R.id.btnBack);
@@ -104,7 +98,7 @@ public class CreateEvent extends AppCompatActivity {
         endTime = findViewById(R.id.endTime);
         switchState = findViewById(R.id.switchState);
         state = findViewById(R.id.state);
-        btnCreate = findViewById(R.id.btnCreate);
+        btnUpdate = findViewById(R.id.btnUpdate);
         error = findViewById(R.id.error);
         // [END gain]
 
@@ -119,6 +113,50 @@ public class CreateEvent extends AppCompatActivity {
         // [END config_dialog]
 
         // [START config_layout]
+        // [Gain Event Info]
+        databaseEventRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    event = snapshot.getValue(Events.class);
+                    // Layout Control
+                    eventName.setText(event.getEventName());
+                    description.setText(event.getDescription());
+                    startDate.setText(event.getStartDate());
+                    startTime.setText(event.getStartTime());
+                    endDate.setText(event.getEndDate());
+                    endTime.setText(event.getEndTime());
+                    location.setText(event.getLocation());
+                    participant.setText(String.valueOf(event.getParticipantLimit()));
+                    description.setText(event.getDescription());
+                    if (event.isPublic()){
+                        switchState.setChecked(false);
+                    }else {
+                        switchState.setChecked(true);
+                    }
+                } else {
+                    Toast.makeText(UpdateEvent.this, "event data not found", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(UpdateEvent.this, "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.w(TAG, "Event cannot be obtained: " + error.getMessage());
+            }
+        });
+        // [Gain Event Info]
+        databaseParticipantRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                currentParticipant = (int) snapshot.getChildrenCount(); // Count actual participants
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Failed to load participant data: " + error.getMessage());
+            }
+        });
         // Monitor changes in the location EditText
         location.addTextChangedListener(new TextWatcher() {
             @Override
@@ -141,8 +179,8 @@ public class CreateEvent extends AppCompatActivity {
                 // No action needed after text changes
             }
         });
-        // [END config_layout]
 
+        // [END config_layout]
 
         // [START layout component function]
         // Switch the screen - Profile Fragment
@@ -158,7 +196,7 @@ public class CreateEvent extends AppCompatActivity {
             int month = calendar.get(Calendar.MONTH);
             int day = calendar.get(Calendar.DAY_OF_MONTH);
 
-            datePickerDialog = new DatePickerDialog(CreateEvent.this, (datePicker, selectedYear, selectedMonth, selectedDay) -> {
+            datePickerDialog = new DatePickerDialog(UpdateEvent.this, (datePicker, selectedYear, selectedMonth, selectedDay) -> {
                 startDate.setText(selectedYear + "-" + (selectedMonth + 1) + "-" + selectedDay);
             }, year, month, day);
             datePickerDialog.show();
@@ -168,7 +206,7 @@ public class CreateEvent extends AppCompatActivity {
             int month = calendar.get(Calendar.MONTH);
             int day = calendar.get(Calendar.DAY_OF_MONTH);
 
-            datePickerDialog = new DatePickerDialog(CreateEvent.this, (datePicker, selectedYear, selectedMonth, selectedDay) -> {
+            datePickerDialog = new DatePickerDialog(UpdateEvent.this, (datePicker, selectedYear, selectedMonth, selectedDay) -> {
                 endDate.setText(selectedYear + "-" + (selectedMonth + 1) + "-" + selectedDay);
             }, year, month, day);
             datePickerDialog.show();
@@ -178,7 +216,7 @@ public class CreateEvent extends AppCompatActivity {
             int hour = calendar.get(Calendar.HOUR_OF_DAY);
             int minute = calendar.get(Calendar.MINUTE);
 
-            timePickerDialog = new TimePickerDialog(CreateEvent.this, (timePicker, selectedHour, selectedMinute) -> {
+            timePickerDialog = new TimePickerDialog(UpdateEvent.this, (timePicker, selectedHour, selectedMinute) -> {
                 startTime.setText(selectedHour + ":" + String.format("%02d", selectedMinute));
             }, hour, minute, true);
             timePickerDialog.show();
@@ -187,7 +225,7 @@ public class CreateEvent extends AppCompatActivity {
             int hour = calendar.get(Calendar.HOUR_OF_DAY);
             int minute = calendar.get(Calendar.MINUTE);
 
-            timePickerDialog = new TimePickerDialog(CreateEvent.this, (timePicker, selectedHour, selectedMinute) -> {
+            timePickerDialog = new TimePickerDialog(UpdateEvent.this, (timePicker, selectedHour, selectedMinute) -> {
                 endTime.setText(selectedHour + ":" + String.format("%02d", selectedMinute));
             }, hour, minute, true);
             timePickerDialog.show();
@@ -207,7 +245,7 @@ public class CreateEvent extends AppCompatActivity {
                     startActivity(intent);
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
-                    Toast.makeText(CreateEvent.this, "Failed to encode location.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(UpdateEvent.this, "Failed to encode location.", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -226,7 +264,7 @@ public class CreateEvent extends AppCompatActivity {
             }
         });
         // Create Event
-        btnCreate.setOnClickListener(new View.OnClickListener() {
+        btnUpdate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 collectEventDataAndSave();
@@ -235,55 +273,56 @@ public class CreateEvent extends AppCompatActivity {
 
         // [END layout component function]
     }
-
     // Collect event data, validate, and save to Firebase
     private void collectEventDataAndSave() {
-        // Collect data from form fields
-        name = eventName.getText().toString().trim();
-        eventDescription = description.getText().toString().trim();
-        eventLocation = location.getText().toString().trim();
-        eventParticipant = participant.getText().toString().trim();
-        eventStartDate = startDate.getText().toString().trim();
-        eventStartTime = startTime.getText().toString().trim();
-        eventEndDate = endDate.getText().toString().trim();
-        eventEndTime = endTime.getText().toString().trim();
+        // Create Event Object
+        event.setEventName(eventName.getText().toString().trim());
+        event.setDescription(description.getText().toString().trim());
+        event.setStartDate(startDate.getText().toString().trim());
+        event.setStartTime(startTime.getText().toString().trim());
+        event.setEndDate(endDate.getText().toString().trim());
+        event.setEndTime(endTime.getText().toString().trim());
+        event.setLocation(location.getText().toString().trim());
+        event.setParticipantLimit(Integer.parseInt(participant.getText().toString().trim()));
+        event.setPublic(isPublic);
 
         // Validate required fields
-        if (TextUtils.isEmpty(name)) {
+        if (TextUtils.isEmpty(event.getEventName())) {
             eventName.setError("Event name is required!");
             return;
         }
-        if (TextUtils.isEmpty(eventDescription)) {
+        if (TextUtils.isEmpty(event.getDescription())) {
             description.setError("Description is required!");
             return;
         }
-        if (TextUtils.isEmpty(eventLocation)) {
+        if (TextUtils.isEmpty(event.getLocation())) {
             location.setError("Location is required!");
             return;
         }
-        if (TextUtils.isEmpty(eventStartDate)) {
+        if (TextUtils.isEmpty(event.getStartDate())) {
             startDate.setError("Start date is required!");
 
         }
-        if (TextUtils.isEmpty(eventStartTime)) {
+        if (TextUtils.isEmpty(event.getStartTime())) {
             startTime.setError("Start time is required!");
             return;
         }
-        if (TextUtils.isEmpty(eventEndDate)) {
+        if (TextUtils.isEmpty(event.getEndDate())) {
             endDate.setError("End date is required!");
             return;
         }
-        if (TextUtils.isEmpty(eventEndTime)) {
+        if (TextUtils.isEmpty(event.getEndTime())) {
             endTime.setError("End time is required!");
             return;
         }
 
         // Prepare event participant count
-        int maxParticipants;
         try {
-            maxParticipants = Integer.parseInt(eventParticipant);
-            if (maxParticipants <= 1) {
+            if (event.getParticipantLimit() <= 1) {
                 participant.setError("Participants must be greater than 1!");
+                return;
+            } else if (event.getParticipantLimit()<currentParticipant) {
+                participant.setError("The maximum number of participants you set is smaller than the current number of participants, you need to remove some of the participants from the participant management.");
                 return;
             }
         } catch (NumberFormatException e) {
@@ -294,8 +333,8 @@ public class CreateEvent extends AppCompatActivity {
         // Validate start date/time is at least one day later than the current date/time
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault());
         try {
-            String startDateTime = eventStartDate + " " + eventStartTime;
-            String endDateTime = eventEndDate + " " + eventEndTime;
+            String startDateTime = event.getStartDate() + " " + event.getStartTime();
+            String endDateTime = event.getEndDate() + " " + event.getEndTime();
 
             // Parse start and end date/time
             java.util.Date startDateObj = sdf.parse(startDateTime);
@@ -324,32 +363,14 @@ public class CreateEvent extends AppCompatActivity {
             error.setText("Please check the Start Date/Time and End Date/Time are selected!");
             return;
         }
-
-        // Create Event Object
-        eventId = databaseEventRef.push().getKey();
-        event.setEventID(eventId);
-        event.setUID(auth.getUid());
-        event.setEventName(name);
-        event.setDescription(eventDescription);
-        event.setStartDate(eventStartDate);
-        event.setStartTime(eventStartTime);
-        event.setEndDate(eventEndDate);
-        event.setEndTime(eventEndTime);
-        event.setLocation(eventLocation);
-        event.setParticipantLimit(maxParticipants);
-        event.setPublic(isPublic);
-
         // Show progress dialog
         progressDialog.show();
 
         // Save event to Firebase
-        databaseEventRef.child(eventId).setValue(event)
+        databaseEventRef.setValue(event)
                 .addOnSuccessListener(unused -> {
                     progressDialog.dismiss();
-                    Users storedUser = new Users();
-                    storedUser.setUID(auth.getUid());
-                    databaseParticipantRef.child(eventId).child(auth.getUid()).setValue(storedUser);
-                    Toast.makeText(CreateEvent.this, "Event created successfully!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(UpdateEvent.this, "Event updated successfully!", Toast.LENGTH_SHORT).show();
                     finish(); // Close the activity
                 })
                 .addOnFailureListener(e -> {

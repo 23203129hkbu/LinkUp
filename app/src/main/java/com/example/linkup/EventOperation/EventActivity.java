@@ -253,6 +253,21 @@ public class EventActivity extends AppCompatActivity {
                 Toast.makeText(EventActivity.this, "Failed to encode location.", Toast.LENGTH_SHORT).show();
             }
         });
+        // Open Menu to manage event
+        btnMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                EventOperationMenu eom = new EventOperationMenu();
+
+                // Pass the `event` object to the bottom sheet
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("event", event);
+                eom.setArguments(bundle);
+
+                // Show the bottom sheet
+                eom.show(getSupportFragmentManager(), "eventMenu");
+            }
+        });
         // [END layout component function]
     }
 
@@ -266,7 +281,7 @@ public class EventActivity extends AppCompatActivity {
             isFull = false;
         }
         // Only creator can manage the event
-        if (!event.getUID().equals(auth.getUid())) {
+        if (!event.getUID().equals(auth.getUid())||isStart||isEnd) {
             // Hide save join button if the user is the creator
             btnMenu.setVisibility(View.GONE);
         }
