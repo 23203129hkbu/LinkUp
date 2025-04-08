@@ -44,11 +44,11 @@
 
             <!-- Menu Icon -->
             <ImageView
-                android:id="@+id/btnMenu"
+                android:id="@+id/btnPointToPoint"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/baseline_more_vert_24"
-                android:contentDescription="Menu" />
+                android:src="@drawable/baseline_travel_explore_24"
+                />
         </LinearLayout>
 
         <!-- Event Name -->

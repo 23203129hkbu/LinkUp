@@ -2,8 +2,12 @@ package com.example.linkup.Adapter;
 
 import static android.content.ContentValues.TAG;
 
+import static androidx.core.content.ContextCompat.startActivity;
+
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +22,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.linkup.CommunityOperation.UpdateCommunityPost;
+import com.example.linkup.EventOperation.CreateEvent;
+import com.example.linkup.EventOperation.FindRoute;
 import com.example.linkup.HomeOperation.PostMenu;
 import com.example.linkup.HomeOperation.UserProfile;
 import com.example.linkup.Object.Articles;
@@ -36,7 +43,12 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -44,17 +56,17 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
     // layout object
     Context context;
     ArrayList<Events> eventsArrayList;
+    AppCompatActivity activity;
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    // Boolean checker
-    String startDateAndTime, endDateAndTime;
 
 
     // Constructor
-    public EventAdapter(Context context, ArrayList<Events> eventsArrayList) {
+    public EventAdapter(Context context, ArrayList<Events> eventsArrayList,  AppCompatActivity activity) {
         this.context = context;
         this.eventsArrayList = eventsArrayList;
+        this.activity = activity; // Assign activity
 
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
@@ -85,20 +97,45 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
         databaseSavedEventRef = Rdb.getReference().child("savedEvent").child(auth.getUid()).child(event.getEventID());
         // [END config_firebase reference]
 
+
+        // Parse the event's start and end date/time
+        String eventStartDateTime = event.getStartDate() + " " + event.getStartTime(); // Combine start date and time
+        String eventEndDateTime = event.getEndDate() + " " + event.getEndTime(); // Combine end date and time
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm"); // Adjust format as needed
+
+
         // [START config_layout]
-        if (event.getUID().equals(auth.getUid())){
-            // Hide save join button if the user is the creator
-            holder.btnJoin.setVisibility(View.GONE);
-            holder.btnSave.setVisibility(View.GONE);
-            holder.btnMenu.setVisibility(View.VISIBLE);
-        }else{
-            // Show save button for other users
-            holder.btnSave.setVisibility(View.VISIBLE);
-            if (!event.isPublic()){
-                holder.btnMenu.setVisibility(View.GONE);
-            }else {
-                holder.btnMenu.setVisibility(View.VISIBLE);
+        try {
+            Date eventStart = dateFormat.parse(eventStartDateTime); // Event start time
+            Date eventEnd = dateFormat.parse(eventEndDateTime); // Event end time
+            Date currentTime = new Date(); // Current system time
+
+            // Check if the event has started
+            if (eventStart != null && currentTime.after(eventStart)) {
+                // Hide the "Join" or "Cancel" button if the event has started
+                holder.btnJoin.setVisibility(View.GONE);
+                holder.eventStatusAndQuota.setTextColor(ContextCompat.getColor(context, R.color.red_3));
+                if (eventEnd != null && currentTime.after(eventEnd)){
+                    holder.eventStatusAndQuota.setText("The event has ended");
+                }else {
+                    holder.eventStatusAndQuota.setText("The event has started");
+                }
+            } else {
+                // Event has not started, ensure the button is visible
+                if (event.getUID().equals(auth.getUid())){
+                    // Hide save join button if the user is the creator
+                    holder.btnJoin.setVisibility(View.GONE);
+                    holder.btnSave.setVisibility(View.GONE);
+                }else{
+                    // Show save button for other users
+                    holder.btnSave.setVisibility(View.VISIBLE);
+                    holder.eventStatusAndQuota.setText("");
+                    holder.eventStatusAndQuota.setTextColor(ContextCompat.getColor(context, R.color.green_1));
+                }
             }
+        } catch (ParseException e) {
+            e.printStackTrace();
+            Log.e(TAG, "Error parsing event start date/time: " + e.getMessage());
         }
 
         // [Gain Post Creator Info]
@@ -148,15 +185,24 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
         databaseParticipantRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Boolean isJoined = false;
                 int participantCount = (int) snapshot.getChildrenCount(); // Count actual participants
                 int maxParticipants = event.getParticipantLimit(); // Retrieve max participants
                 int remainingQuota = maxParticipants - participantCount;
-
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    Users user = dataSnapshot.getValue(Users.class);
+                    // post created by this user
+                    if (user != null && user.getUID().equals(user.getUID())) {
+                        isJoined = true;
+                    }
+                }
                 // Update UI based on remaining quota
                 if (remainingQuota <= 0) {
                     holder.eventStatusAndQuota.setText("Remaining quota: Full");
                     holder.eventStatusAndQuota.setTextColor(ContextCompat.getColor(context, R.color.red_3));
-                    holder.btnJoin.setVisibility(View.GONE); // Hide join button if full
+                    if (!isJoined){
+                        holder.btnJoin.setVisibility(View.GONE); // Hide join button if full
+                    }
                 } else {
                     holder.eventStatusAndQuota.setText("Remaining quota: " + remainingQuota);
                     holder.eventStatusAndQuota.setTextColor(ContextCompat.getColor(context, R.color.green_1));
@@ -175,7 +221,6 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
                 Log.e(TAG, "Failed to load participant data: " + error.getMessage());
             }
         });
-
         // Check saved state of the event
         databaseSavedEventRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -266,40 +311,30 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
                 }
             });
         });
-        // Handle save button click (toggle save/remove event)
-        holder.btnMenu.setOnClickListener(view -> {
-            databaseSavedEventRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.exists()) {
-                        // event is already saved, unsaved it
-                        databaseSavedEventRef.removeValue().addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                Toast.makeText(context, "Event unsaved", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(context, "Failed to unsaved event", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    } else {
-                        Events storedEvent = new Events();
-                        storedEvent.setEventID(event.getEventID());
-                        // Article is not saved, save it
-                        databaseSavedEventRef.setValue(storedEvent).addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                Toast.makeText(context, "Event saved", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(context, "Failed to save event", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-                    // * When every save changes -> Notify of changes to data set
-                    notifyDataSetChanged();
-                }
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    Log.e(TAG, "Save/unsave operation failed: " + error.getMessage());
-                }
-            });
+        // Point to Point Google Map
+        holder.btnPointToPoint.setOnClickListener(view -> {
+            FindRoute findRoute = new FindRoute();
+            // Pass data to the bottom sheet if needed, for example:
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("destination", event.getLocation());
+            findRoute.setArguments(bundle);
+            // Use the activity's fragment manager to show the bottom sheet
+            findRoute.show(activity.getSupportFragmentManager(), "bottom");
+        });
+        // handle find the location
+        holder.btnLocation.setOnClickListener(view -> {
+            try {
+                String encodedLocation = URLEncoder.encode(event.getLocation().toString(), "UTF-8");
+                Uri uri = Uri.parse("https://www.google.com.hk/maps/place/" + encodedLocation);
+                // Uri uri = Uri.parse("https://www.google.com.hk/maps/place/" + your location + "/"+ encodedLocation);
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                intent.setPackage("com.google.android.apps.maps");
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent); // Use context to start the activity
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+                Toast.makeText(context, "Failed to encode location.", Toast.LENGTH_SHORT).show();
+            }
         });
         // [END layout component function]
     }
@@ -312,7 +347,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         CircleImageView avatar;
         TextView username, eventName, startDateTime, endDateTime, location, participantLimit, description, eventStatusAndQuota, btnJoin;
-        ImageView btnMenu, btnLocation, btnSave;
+        ImageView btnPointToPoint, btnLocation, btnSave;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -325,7 +360,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.ViewHolder> 
             participantLimit = itemView.findViewById(R.id.participantLimit);
             description = itemView.findViewById(R.id.description);
             eventStatusAndQuota = itemView.findViewById(R.id.eventStatusAndQuota);
-            btnMenu = itemView.findViewById(R.id.btnMenu);
+            btnPointToPoint = itemView.findViewById(R.id.btnPointToPoint);
             btnJoin = itemView.findViewById(R.id.btnJoin);
             btnLocation = itemView.findViewById(R.id.btnLocation);
             btnSave = itemView.findViewById(R.id.btnSave);

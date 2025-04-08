@@ -85,6 +85,8 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.2")
     implementation("androidx.multidex:multidex:2.0.1")
     implementation("com.google.zxing:core:3.4.1")
+    // Google Map
+    implementation ("com.google.android.gms:play-services-location:21.0.1")
 
 
 

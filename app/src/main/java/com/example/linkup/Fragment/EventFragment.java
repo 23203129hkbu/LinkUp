@@ -115,7 +115,7 @@ public class EventFragment extends Fragment {
             }
         });
         // Grant value - which view, posts array list
-        eventAdapter = new EventAdapter(getContext(), eventsArrayList);
+        eventAdapter = new EventAdapter(getContext(), eventsArrayList, (AppCompatActivity) getActivity());
         // Set up the layout manager, adapter
         eventRV.setLayoutManager(new LinearLayoutManager(getContext()));
         eventRV.setHasFixedSize(true);

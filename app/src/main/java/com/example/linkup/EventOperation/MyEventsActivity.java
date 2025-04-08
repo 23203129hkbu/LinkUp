@@ -83,7 +83,7 @@ public class MyEventsActivity extends AppCompatActivity {
         });
 
         // Grant value - which view, posts array list
-        eventAdapter = new EventAdapter(MyEventsActivity.this, eventsArrayList);
+        eventAdapter = new EventAdapter(MyEventsActivity.this, eventsArrayList, MyEventsActivity.this);
         // Set up the layout manager, adapter
         eventRV.setLayoutManager(new LinearLayoutManager(MyEventsActivity.this));
         eventRV.setHasFixedSize(true);

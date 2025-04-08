@@ -53,12 +53,12 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import de.hdodenhof.circleimageview.CircleImageView;
-
+// ✅
 public class CreateEvent extends AppCompatActivity {
     // layout object
     ImageView btnBack, btnLocation;
     EditText eventName, description, location, participant;
-    TextView startDate, startTime, endDate, endTime, state, btnCreate;
+    TextView startDate, startTime, endDate, endTime, state, btnCreate, error;
     Switch switchState;
     // Firebase features
     FirebaseAuth auth;
@@ -105,6 +105,7 @@ public class CreateEvent extends AppCompatActivity {
         switchState = findViewById(R.id.switchState);
         state = findViewById(R.id.state);
         btnCreate = findViewById(R.id.btnCreate);
+        error = findViewById(R.id.error);
         // [END gain]
 
         // [START Calender / Date Format configuration]
@@ -158,7 +159,7 @@ public class CreateEvent extends AppCompatActivity {
             int month = calendar.get(Calendar.MONTH);
             int day = calendar.get(Calendar.DAY_OF_MONTH);
 
-            datePickerDialog = new DatePickerDialog(this, (datePicker, selectedYear, selectedMonth, selectedDay) -> {
+            datePickerDialog = new DatePickerDialog(CreateEvent.this, (datePicker, selectedYear, selectedMonth, selectedDay) -> {
                 startDate.setText(selectedYear + "-" + (selectedMonth + 1) + "-" + selectedDay);
             }, year, month, day);
             datePickerDialog.show();
@@ -168,7 +169,7 @@ public class CreateEvent extends AppCompatActivity {
             int month = calendar.get(Calendar.MONTH);
             int day = calendar.get(Calendar.DAY_OF_MONTH);
 
-            datePickerDialog = new DatePickerDialog(this, (datePicker, selectedYear, selectedMonth, selectedDay) -> {
+            datePickerDialog = new DatePickerDialog(CreateEvent.this, (datePicker, selectedYear, selectedMonth, selectedDay) -> {
                 endDate.setText(selectedYear + "-" + (selectedMonth + 1) + "-" + selectedDay);
             }, year, month, day);
             datePickerDialog.show();
@@ -178,7 +179,7 @@ public class CreateEvent extends AppCompatActivity {
             int hour = calendar.get(Calendar.HOUR_OF_DAY);
             int minute = calendar.get(Calendar.MINUTE);
 
-            timePickerDialog = new TimePickerDialog(this, (timePicker, selectedHour, selectedMinute) -> {
+            timePickerDialog = new TimePickerDialog(CreateEvent.this, (timePicker, selectedHour, selectedMinute) -> {
                 startTime.setText(selectedHour + ":" + String.format("%02d", selectedMinute));
             }, hour, minute, true);
             timePickerDialog.show();
@@ -187,7 +188,7 @@ public class CreateEvent extends AppCompatActivity {
             int hour = calendar.get(Calendar.HOUR_OF_DAY);
             int minute = calendar.get(Calendar.MINUTE);
 
-            timePickerDialog = new TimePickerDialog(this, (timePicker, selectedHour, selectedMinute) -> {
+            timePickerDialog = new TimePickerDialog(CreateEvent.this, (timePicker, selectedHour, selectedMinute) -> {
                 endTime.setText(selectedHour + ":" + String.format("%02d", selectedMinute));
             }, hour, minute, true);
             timePickerDialog.show();
@@ -200,6 +201,7 @@ public class CreateEvent extends AppCompatActivity {
                 try {
                     String encodedLocation = URLEncoder.encode(locationText, "UTF-8");
                     Uri uri = Uri.parse("https://www.google.com.hk/maps/place/" + encodedLocation);
+                    // Uri uri = Uri.parse("https://www.google.com.hk/maps/place/" + your location + "/"+ encodedLocation);
                     Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                     intent.setPackage("com.google.android.apps.maps");
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -261,19 +263,19 @@ public class CreateEvent extends AppCompatActivity {
             return;
         }
         if (TextUtils.isEmpty(eventStartDate)) {
-            Toast.makeText(this, "Start date is required!", Toast.LENGTH_SHORT).show();
-            return;
+            startDate.setError("Start date is required!");
+
         }
         if (TextUtils.isEmpty(eventStartTime)) {
-            Toast.makeText(this, "Start time is required!", Toast.LENGTH_SHORT).show();
+            startTime.setError("Start time is required!");
             return;
         }
         if (TextUtils.isEmpty(eventEndDate)) {
-            Toast.makeText(this, "End date is required!", Toast.LENGTH_SHORT).show();
+            endDate.setError("End date is required!");
             return;
         }
         if (TextUtils.isEmpty(eventEndTime)) {
-            Toast.makeText(this, "End time is required!", Toast.LENGTH_SHORT).show();
+            endTime.setError("End time is required!");
             return;
         }
 
@@ -281,8 +283,8 @@ public class CreateEvent extends AppCompatActivity {
         int maxParticipants;
         try {
             maxParticipants = Integer.parseInt(eventParticipant);
-            if (maxParticipants <= 2) {
-                participant.setError("Participants must be greater than 2!");
+            if (maxParticipants <= 1) {
+                participant.setError("Participants must be greater than 1!");
                 return;
             }
         } catch (NumberFormatException e) {
@@ -290,9 +292,42 @@ public class CreateEvent extends AppCompatActivity {
             return;
         }
 
+        // Validate start date/time is at least one day later than the current date/time
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault());
+        try {
+            String startDateTime = eventStartDate + " " + eventStartTime;
+            String endDateTime = eventEndDate + " " + eventEndTime;
+
+            // Parse start and end date/time
+            java.util.Date startDateObj = sdf.parse(startDateTime);
+            java.util.Date endDateObj = sdf.parse(endDateTime);
+
+            // Calculate the minimum valid start date (current date + 1 day)
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.DAY_OF_YEAR, 1);
+            java.util.Date minStartDate = cal.getTime();
+
+            // Check if the start date/time is earlier than the allowed minimum
+            if (startDateObj != null && startDateObj.before(minStartDate)) {
+                error.setVisibility(View.VISIBLE);
+                error.setText("Start date/time must be at least one day later than today!");
+                return;
+            }
+
+            // Check if the start date/time is after the end date/time
+            if (startDateObj != null && endDateObj != null && startDateObj.after(endDateObj)) {
+                error.setVisibility(View.VISIBLE);
+                error.setText("Start date/time cannot be later than end date/time!");
+                return;
+            }
+        } catch (Exception e) {
+            error.setVisibility(View.VISIBLE);
+            error.setText("Please check the Start Date/Time and End Date/Time are selected!");
+            return;
+        }
 
         // Create Event Object
-        eventId = databaseEventRef.push().getKey(); // Generate unique ID for the event
+        eventId = databaseEventRef.push().getKey();
         event.setEventID(eventId);
         event.setUID(auth.getUid());
         event.setEventName(name);
@@ -316,12 +351,12 @@ public class CreateEvent extends AppCompatActivity {
                     storedUser.setUID(auth.getUid());
                     databaseParticipantRef.child(eventId).child(auth.getUid()).setValue(storedUser);
                     Toast.makeText(CreateEvent.this, "Event created successfully!", Toast.LENGTH_SHORT).show();
-                    finish(); // Close the activity after successful creation
+                    finish(); // Close the activity
                 })
                 .addOnFailureListener(e -> {
                     progressDialog.dismiss();
-                    Toast.makeText(CreateEvent.this, "Failed to create event: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    error.setVisibility(View.VISIBLE);
+                    error.setText("Failed to create event: " + e.getMessage());
                 });
     }
-
 }
