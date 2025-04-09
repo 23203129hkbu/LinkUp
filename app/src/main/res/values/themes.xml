@@ -6,6 +6,7 @@
     </style>
 
     <style name="Theme.LinkUp" parent="Base.Theme.LinkUp" />
+
     <style name="dialogue">
         <item name="android:windowBackground">@drawable/dialogue_background</item>
         <item name="windowNoTitle">true</item>
