@@ -1,47 +1,34 @@
-package com.example.linkup.EventOperation;
+package com.example.linkup.HomeOperation;
 
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SearchView;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.linkup.EventOperation.InvitationActivity;
 import com.example.linkup.EventOperation.TabbedView.InvitationPagerAdapter;
-import com.example.linkup.HomeOperation.FollowerActivity;
-import com.example.linkup.HomeOperation.FollowingActivity;
-import com.example.linkup.HomeOperation.UserProfile;
-import com.example.linkup.Object.Events;
-import com.example.linkup.ProfileOperation.TabbedView.SectionsPagerAdapter;
+import com.example.linkup.HomeOperation.TabbedView.NotificationPagerAdapter;
 import com.example.linkup.R;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
-public class InvitationActivity extends AppCompatActivity {
+public class NotificationActivity extends AppCompatActivity {
     // Layout objects
     ImageView btnBack;
     // Tabbed View
-    InvitationPagerAdapter invitationPagerAdapter;
+    NotificationPagerAdapter notificationPagerAdapter;
     ViewPager2 tabbedView;
     TabLayout tab;
-    // Event info
-    Events event = new Events();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_invitation);
-        // Retrieve the event object from the intent
-        event = (Events) getIntent().getSerializableExtra("event");
-        // [END gain]
+        setContentView(R.layout.activity_notification);
 
         // [START gain layout objects]
         btnBack = findViewById(R.id.btnBack);
@@ -51,14 +38,16 @@ public class InvitationActivity extends AppCompatActivity {
         // [END gain]
 
         // [START config_layout]
-        invitationPagerAdapter = new InvitationPagerAdapter(InvitationActivity.this, event);
-        tabbedView.setAdapter(invitationPagerAdapter);
+        notificationPagerAdapter= new NotificationPagerAdapter(NotificationActivity.this);
+        tabbedView.setAdapter(notificationPagerAdapter);
         // Link TabLayout with ViewPager2 using TabLayoutMediator
         new TabLayoutMediator(tab, tabbedView, (tab, position) -> {
             if (position == 0) {
-                tab.setText("Following");
+                tab.setIcon(R.drawable.baseline_person_add_alt_1_24);
             } else if (position == 1) {
-                tab.setText("Follower");
+                tab.setIcon(R.drawable.baseline_event_repeat_24);
+            } else if (position == 2) {
+                tab.setIcon(R.drawable.baseline_assignment_late_24);
             }
         }).attach();
         // [END config_layout]

@@ -142,5 +142,4 @@ public class FollowRequestAdapter extends RecyclerView.Adapter<FollowRequestAdap
             btnAccept = itemView.findViewById(R.id.btnAccept);
         }
     }
-
 }

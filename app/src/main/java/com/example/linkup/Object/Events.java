@@ -20,7 +20,7 @@ public class Events implements Serializable {
         this.endDate = endDate;
         this.endTime = endTime;
         this.location = location;
-        this.participantLimit = 0;
+        this.participantLimit = participantLimit;
         this.isPublic = isPublic;
     }
 
@@ -108,8 +108,8 @@ public class Events implements Serializable {
         return isPublic;
     }
 
-    public void setPublic(boolean aPublic) {
-        isPublic = aPublic;
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
     }
 
 }

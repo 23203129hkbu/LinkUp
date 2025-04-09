@@ -5,28 +5,18 @@
     android:background="@color/white"
     android:padding="8dp">
 
-    <!-- Profile Image -->
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/avatar"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_alignParentStart="true"
-        android:src="@drawable/baseline_person_24"
-        android:scaleType="centerCrop" />
-
     <!-- User Info -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toEndOf="@id/avatar"
         android:layout_marginStart="10dp"
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/username"
+            android:id="@+id/eventName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="username"
+            android:text="EventName"
             android:textColor="@color/black"
             android:textSize="14sp"
             android:fontFamily="sans-serif-medium" />
@@ -34,7 +24,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="send you a follow request"
+            android:text="Send you a notice of invitation"
             android:textColor="@color/gray_1"
             android:textSize="12sp" />
     </LinearLayout>

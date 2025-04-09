@@ -63,7 +63,6 @@ public class EventOperationMenu extends BottomSheetDialogFragment {
         btnCancel = view.findViewById(R.id.btnCancel);
         btnManagement = view.findViewById(R.id.btnManagement);
         btnInvite = view.findViewById(R.id.btnInvite);
-        btnGenQRCode = view.findViewById(R.id.btnGenQRCode);
         // [END gain]
 
         // [START layout component function]
@@ -162,11 +161,6 @@ public class EventOperationMenu extends BottomSheetDialogFragment {
             @Override
             public void onClick(View view) {
                 updateUI("Invitation");
-            }
-        });
-        btnGenQRCode.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
             }
         });
         // [END layout component function]

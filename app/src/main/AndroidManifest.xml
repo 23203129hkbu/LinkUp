@@ -24,6 +24,18 @@
         android:theme="@style/Theme.LinkUp"
         tools:targetApi="31">
         <activity
+            android:name=".HomeOperation.TabbedView.ModificationTab"
+            android:exported="false" />
+        <activity
+            android:name=".HomeOperation.TabbedView.InvitationTab"
+            android:exported="false" />
+        <activity
+            android:name=".HomeOperation.TabbedView.FollowRequestTab"
+            android:exported="false" />
+        <activity
+            android:name=".HomeOperation.NotificationActivity"
+            android:exported="false" />
+        <activity
             android:name=".EventOperation.TabbedView.FollowerTab"
             android:exported="false"
             android:theme="@style/Theme.LinkUp" />

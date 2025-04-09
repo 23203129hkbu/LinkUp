@@ -77,22 +77,6 @@
 
     </androidx.cardview.widget.CardView>
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/btnGenQRCode"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:drawableStart="@drawable/baseline_qr_code_24"
-            android:drawablePadding="10dp"
-            android:padding="10dp"
-            android:text="Event QR Code"
-            android:textColor="@color/black"
-            android:textSize="20sp" />
-
-    </androidx.cardview.widget.CardView>
 
 
 

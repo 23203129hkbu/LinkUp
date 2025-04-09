@@ -26,7 +26,6 @@ import com.example.linkup.EventOperation.CreateEvent;
 import com.example.linkup.EventOperation.EventMenu;
 import com.example.linkup.EventOperation.SearchEvent;
 import com.example.linkup.HomeOperation.CreatePost;
-import com.example.linkup.HomeOperation.FollowRequestList;
 import com.example.linkup.HomeOperation.SearchUser;
 import com.example.linkup.Object.Articles;
 import com.example.linkup.Object.Events;

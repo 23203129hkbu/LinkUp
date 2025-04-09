@@ -23,10 +23,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.linkup.Adapter.ArticleAdapter;
 import com.example.linkup.Adapter.PostAdapter;
 import com.example.linkup.HomeOperation.CreatePost;
-import com.example.linkup.HomeOperation.FollowRequestList;
+import com.example.linkup.HomeOperation.NotificationActivity;
 import com.example.linkup.HomeOperation.SearchUser;
 import com.example.linkup.HomeOperation.UserProfile;
 import com.example.linkup.Object.Articles;
+import com.example.linkup.Object.Modifications;
 import com.example.linkup.Object.Posts;
 import com.example.linkup.R;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -55,11 +56,16 @@ public class HomeFragment extends Fragment {
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databasePostRef, databaseRequestedRef, databaseUserRef, databaseFollowingRef; // real-time db ref
+    DatabaseReference databasePostRef, databaseRequestedRef, databaseUserRef, databaseFollowingRef, databaseInvitationRef, databaseModificationRef; // real-time db ref
     // convert post data into RecyclerView by Adapter
     ArrayList<Posts> postsArrayList = new ArrayList<>();
     PostAdapter postAdapter;
     HashSet<String> addedPostIDs = new HashSet<>();
+    // Notification
+    Boolean requestChecker = false;
+    Boolean invitationChecker = false;
+    Boolean modificationChecker = false;
+
 
 
     @Nullable
@@ -77,6 +83,8 @@ public class HomeFragment extends Fragment {
         databaseRequestedRef = Rdb.getReference().child("requested").child(auth.getUid());
         databaseUserRef = Rdb.getReference().child("user");
         databaseFollowingRef = Rdb.getReference().child("following").child(auth.getUid());
+        databaseInvitationRef = Rdb.getReference().child("invitation").child(auth.getUid());
+        databaseModificationRef = Rdb.getReference().child("modification").child(auth.getUid());
         // [END config_firebase reference]
 
         // [START gain layout objects]
@@ -98,12 +106,11 @@ public class HomeFragment extends Fragment {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    // layout control
-                    // There is a request for attention
-                    btnNotification.setImageResource(R.drawable.baseline_notifications_active_24);
+                    requestChecker = true;
                 } else {
-                    btnNotification.setImageResource(R.drawable.baseline_notifications_none_24);
+                    requestChecker = false;
                 }
+                loadNotification();
             }
 
             @Override
@@ -111,7 +118,42 @@ public class HomeFragment extends Fragment {
                 Toast.makeText(getContext(), "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+        // Determine if there are any follow invitation
+        databaseInvitationRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    invitationChecker = true;
+                } else {
+                    invitationChecker = false;
+                }
+                loadNotification();
+            }
 
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(getContext(), "Failed to load data: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+        // Determine if there are any follow invitation
+        databaseModificationRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                modificationChecker = false;
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    Modifications modification = dataSnapshot.getValue(Modifications.class);
+                    if (modification != null && !modification.getRead()) {
+                        modificationChecker = true;
+                    }
+                }
+                loadNotification();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Toast.makeText(getContext(), "Failed to load users: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
         // monitor for user, post, following relationship
         monitorDataChanges();
         // [END config_layout]
@@ -143,6 +185,14 @@ public class HomeFragment extends Fragment {
 
         // this line must be finalized
         return view;
+    }
+
+    private void loadNotification() {
+        if (requestChecker||invitationChecker||modificationChecker){
+            btnNotification.setImageResource(R.drawable.baseline_notifications_active_24);
+        }else {
+            btnNotification.setImageResource(R.drawable.baseline_notifications_none_24);
+        }
     }
 
     private void monitorDataChanges() {
@@ -283,7 +333,7 @@ public class HomeFragment extends Fragment {
         if (screen.equals("Search")) {
             intent = new Intent(getContext(), SearchUser.class);
         } else if (screen.equals("Notification")) {
-            intent = new Intent(getContext(), FollowRequestList.class);
+            intent = new Intent(getContext(), NotificationActivity.class);
         } else if (screen.equals("Create")) {
             intent = new Intent(getContext(), CreatePost.class);
         }
