@@ -8,7 +8,8 @@
     android:orientation="vertical"
     android:background="@color/white"
     android:padding="8dp"
-    tools:context=".HomeOperation.FollowingActivity">
+    tools:context=".EventOperation.ParticipantManagementActivity">
+
 
     <!-- Header -->
     <LinearLayout
@@ -20,18 +21,18 @@
 
         <ImageButton
             android:id="@+id/btnBack"
-            android:layout_width="40dp"
+            android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Back"
             android:padding="8dp"
-            android:src="@drawable/baseline_arrow_back_24_black"
-            android:contentDescription="Back" />
+            android:src="@drawable/baseline_arrow_back_24_black" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:text="Following"
+            android:text="List of Participants"
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="@color/black"
@@ -66,7 +67,7 @@
 
     <!-- User List -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/followingRV"
+        android:id="@+id/participantRV"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
@@ -74,4 +75,5 @@
         android:clipToPadding="false"
         android:paddingTop="8dp"
         android:scrollbars="vertical" />
+
 </LinearLayout>

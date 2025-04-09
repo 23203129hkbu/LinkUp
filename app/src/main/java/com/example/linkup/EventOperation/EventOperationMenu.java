@@ -33,11 +33,12 @@ import com.google.firebase.database.ValueEventListener;
 public class EventOperationMenu extends BottomSheetDialogFragment {
     // layout object
     CardView btnUpdate, btnCancel, btnManagement, btnInvite, btnGenQRCode;
-    Events event;
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
     DatabaseReference databaseEventRef, databaseParticipantRef, databaseModificationRef; // real-time db ref
+    // Event info
+    Events event = new Events();
 
     @Nullable
     @Override
@@ -117,7 +118,6 @@ public class EventOperationMenu extends BottomSheetDialogFragment {
                                                                             Toast.makeText(getContext(), "Failed to reload : " + error.getMessage(), Toast.LENGTH_SHORT).show();
                                                                         }
                                                                     });
-                                                                    databaseParticipantRef.removeValue();
                                                                     updateUI("Event");
                                                                 }
                                                             });
@@ -167,7 +167,6 @@ public class EventOperationMenu extends BottomSheetDialogFragment {
         btnGenQRCode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                updateUI("joinedEvents");
             }
         });
         // [END layout component function]
@@ -184,8 +183,12 @@ public class EventOperationMenu extends BottomSheetDialogFragment {
             intent.putExtra("event", event);  // Pass the event object
         } else if (screen.equals("Event")) {
             intent = new Intent(getContext(), MainActivity.class);
-        } else if (screen.equals("joinedEvents")) {
-            intent = new Intent(getContext(), JoinedEventsActivity.class);
+        } else if (screen.equals("Management")) {
+            intent = new Intent(getContext(), ParticipantManagementActivity.class);
+            intent.putExtra("event", event);  // Pass the event object
+        }else if (screen.equals("Invitation")) {
+            intent = new Intent(getContext(), InvitationActivity.class);
+            intent.putExtra("event", event);  // Pass the event object
         }
         if (intent != null) {
             startActivity(intent);

@@ -74,11 +74,8 @@ public class FollowerAdapter extends RecyclerView.Adapter<FollowerAdapter.ViewHo
         databaseFollowerRef = Rdb.getReference().child("follower").child(user.getUID()).child(auth.getUid());
         databaseMyFollowerRef = Rdb.getReference().child("follower").child(auth.getUid()).child(user.getUID());
         databaseOtherSideFollowingRef = Rdb.getReference().child("following").child(user.getUID()).child(auth.getUid());
-
-
-        // For private Account
-
         // [END config_firebase reference]
+
         // [START config_layout]
         Picasso.get().load(user.getAvatarURL()).into(holder.avatar);
         holder.username.setText(user.getUsername());
