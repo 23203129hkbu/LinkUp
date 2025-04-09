@@ -53,6 +53,7 @@ public class EventActivity extends AppCompatActivity {
     Boolean isEnd = false;
     Boolean isJoined = false;
     Boolean isFull = false;
+    Boolean isPublic = true;
     int maxParticipants = 0;
     int participantCount = 0;
     //
@@ -143,6 +144,7 @@ public class EventActivity extends AppCompatActivity {
                         e.printStackTrace();
                         Log.e(TAG, "Error parsing event start date/time: " + e.getMessage());
                     }
+                    isPublic = event.isPublic();
                     maxParticipants = event.getParticipantLimit();
                     // Layout Control
                     eventName.setText(event.getEventName());
@@ -307,7 +309,7 @@ public class EventActivity extends AppCompatActivity {
                 if (isJoined) {
                     btnJoin.setBackgroundTintList(ContextCompat.getColorStateList(EventActivity.this, R.color.red_3));
                     btnJoin.setText("CANCEL");
-                } else {
+                } else if(isPublic){
                     btnJoin.setBackgroundTintList(ContextCompat.getColorStateList(EventActivity.this, R.color.green_1));
                     btnJoin.setText("JOIN");
                 }
