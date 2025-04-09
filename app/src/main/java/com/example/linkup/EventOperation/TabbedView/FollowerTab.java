@@ -19,8 +19,11 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.linkup.Adapter.FollowerAdapter;
 import com.example.linkup.Adapter.ImageAdapter;
 import com.example.linkup.Adapter.InvitationAdapter;
+import com.example.linkup.Adapter.UserAdapter;
+import com.example.linkup.HomeOperation.FollowerActivity;
 import com.example.linkup.Object.Events;
 import com.example.linkup.Object.Posts;
 import com.example.linkup.Object.Users;
@@ -35,15 +38,15 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-public class FollowingTab extends Fragment {
+public class FollowerTab extends Fragment {
     View view;
     // layout object
-    RecyclerView followingRV;
+    RecyclerView followerRV;
     SearchView searchBar;
     // Firebase features
     FirebaseAuth auth;
     FirebaseDatabase Rdb; // real-time db
-    DatabaseReference databaseUserRef, databaseFollowingRef; // real-time db ref
+    DatabaseReference databaseUserRef, databaseFollowerRef; // real-time db ref
     // convert article data into RecyclerView by Adapter
     ArrayList<Users> usersArrayList = new ArrayList<>();
     ArrayList<Users> filteredUsers = new ArrayList<>(); // Update the result (after filter)
@@ -51,7 +54,7 @@ public class FollowingTab extends Fragment {
     // Store which event
     Events event;
 
-    public FollowingTab(Events event) {
+    public FollowerTab(Events event) {
         this.event = event;
     }
 
@@ -59,7 +62,7 @@ public class FollowingTab extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        view = inflater.inflate(R.layout.activity_following_tab, container, false);
+        view = inflater.inflate(R.layout.activity_follower_tab, container, false);
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
         Rdb = FirebaseDatabase.getInstance();
@@ -67,20 +70,20 @@ public class FollowingTab extends Fragment {
 
         // [START config_firebase reference]
         databaseUserRef = Rdb.getReference().child("user");
-        databaseFollowingRef = Rdb.getReference().child("following").child(auth.getUid());
+        databaseFollowerRef = Rdb.getReference().child("follower").child(auth.getUid());
         // [END config_firebase reference]
 
         // [START gain layout objects]
         searchBar = view.findViewById(R.id.searchBar);
-        followingRV = view.findViewById(R.id.followingRV);
+        followerRV = view.findViewById(R.id.followerRV);
         // [END gain]
 
-        databaseFollowingRef.addValueEventListener(new ValueEventListener() {
+        databaseFollowerRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                HashSet<String> followingUIDs = new HashSet<>();
+                HashSet<String> followerUIDs = new HashSet<>();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    followingUIDs.add(dataSnapshot.getKey());
+                    followerUIDs.add(dataSnapshot.getKey());
                 }
 
                 databaseUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -91,7 +94,7 @@ public class FollowingTab extends Fragment {
 
                         for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                             Users follower = dataSnapshot.getValue(Users.class);
-                            if (follower!= null && followingUIDs.contains(follower.getUID())) {
+                            if (follower!= null && followerUIDs.contains(follower.getUID())) {
                                 usersArrayList.add(follower);
                             }
                         }
@@ -114,10 +117,10 @@ public class FollowingTab extends Fragment {
         });
         // Initialize Adapter with an empty list
         invitationAdapter = new InvitationAdapter(getContext(), filteredUsers, event); // Only filteredUsers are shown
-        followingRV.setLayoutManager(new LinearLayoutManager(getContext()));
-        followingRV.setHasFixedSize(true);
+        followerRV.setLayoutManager(new LinearLayoutManager(getContext()));
+        followerRV.setHasFixedSize(true);
         // Depends on whether the profile is used by the user
-        followingRV.setAdapter(invitationAdapter);
+        followerRV.setAdapter(invitationAdapter);
         // [END config_layout]
 
         // [START layout component function]
@@ -153,6 +156,7 @@ public class FollowingTab extends Fragment {
                 }
             }
         }
+
         invitationAdapter.notifyDataSetChanged(); // Refresh the adapter with the filtered list
     }
     // [END Method]

@@ -16,7 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.example.linkup.EventOperation.TabbedView.InviteePagerAdapter;
+import com.example.linkup.EventOperation.TabbedView.InvitationPagerAdapter;
 import com.example.linkup.HomeOperation.FollowerActivity;
 import com.example.linkup.HomeOperation.FollowingActivity;
 import com.example.linkup.HomeOperation.UserProfile;
@@ -30,7 +30,7 @@ public class InvitationActivity extends AppCompatActivity {
     // Layout objects
     ImageView btnBack;
     // Tabbed View
-    InviteePagerAdapter adapter;
+    InvitationPagerAdapter invitationPagerAdapter;
     ViewPager2 tabbedView;
     TabLayout tab;
     // Event info
@@ -48,13 +48,12 @@ public class InvitationActivity extends AppCompatActivity {
         // Tabbed view
         tabbedView = findViewById(R.id.tabbedView);
         tab = findViewById(R.id.tab);
-        // Profile
         // [END gain]
 
         // [START config_layout]
-        adapter = new InviteePagerAdapter(InvitationActivity.this,event);
-        tabbedView.setAdapter(adapter);
-        // Use TabLayoutMediator to link TabLayout with ViewPager2
+        invitationPagerAdapter = new InvitationPagerAdapter(InvitationActivity.this, event);
+        tabbedView.setAdapter(invitationPagerAdapter);
+        // Link TabLayout with ViewPager2 using TabLayoutMediator
         new TabLayoutMediator(tab, tabbedView, (tab, position) -> {
             if (position == 0) {
                 tab.setText("Following");

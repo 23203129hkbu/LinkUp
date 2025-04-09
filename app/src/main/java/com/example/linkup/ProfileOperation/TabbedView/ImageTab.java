@@ -65,9 +65,6 @@ public class ImageTab extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         view = inflater.inflate(R.layout.activity_image_tab, container, false);
-        // [START gain layout objects]
-        imageRV = view.findViewById(R.id.imageRV);
-        // [END gain]
 
         //[START Firebase configuration - get a object]
         auth = FirebaseAuth.getInstance();
@@ -77,6 +74,10 @@ public class ImageTab extends Fragment {
         // [START config_firebase reference]
         databasePostRef = Rdb.getReference().child("post");
         // [END config_firebase reference]
+
+        // [START gain layout objects]
+        imageRV = view.findViewById(R.id.imageRV);
+        // [END gain]
 
         // Gain the adapter data object
         databasePostRef.orderByChild("date").addValueEventListener(new ValueEventListener() {

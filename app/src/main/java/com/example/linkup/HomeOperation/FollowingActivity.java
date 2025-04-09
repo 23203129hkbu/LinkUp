@@ -121,7 +121,6 @@ public class FollowingActivity extends AppCompatActivity {
         }else {
             followingRV.setAdapter(followingAdapter);
         }
-
         // [END config_layout]
 
         // [START layout component function]

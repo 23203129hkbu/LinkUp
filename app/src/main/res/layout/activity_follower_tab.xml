@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:background="@color/white"
     android:padding="8dp"
-    tools:context=".EventOperation.TabbedView.FollowingTab">
+    tools:context=".EventOperation.TabbedView.FollowerTab">
 
     <!-- Search Bar -->
     <androidx.cardview.widget.CardView
@@ -29,7 +29,7 @@
 
     <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/followingRV"
+        android:id="@+id/followerRV"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="8dp"
