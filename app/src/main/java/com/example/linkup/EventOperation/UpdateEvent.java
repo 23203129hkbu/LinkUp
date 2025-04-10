@@ -134,8 +134,10 @@ public class UpdateEvent extends AppCompatActivity {
                     description.setText(event.getDescription());
                     if (event.isPublic()){
                         switchState.setChecked(false);
+                        isPublic = true;
                     }else {
                         switchState.setChecked(true);
+                        isPublic = false;
                     }
                 } else {
                     Toast.makeText(UpdateEvent.this, "event data not found", Toast.LENGTH_SHORT).show();
